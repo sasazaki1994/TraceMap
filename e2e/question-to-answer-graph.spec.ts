@@ -1,0 +1,41 @@
+import { expect, test } from "@playwright/test";
+
+test.describe("question-to-answer-graph", () => {
+  let databaseConnected = false;
+
+  test.beforeAll(async ({ request }) => {
+    const res = await request.get("/api/health");
+    expect(res.ok()).toBeTruthy();
+    const body = (await res.json()) as {
+      database?: { status?: string };
+    };
+    databaseConnected = body.database?.status === "connected";
+  });
+
+  test("home to submit to run page shows answer graph and source detail", async ({
+    page,
+  }) => {
+    test.skip(
+      !databaseConnected,
+      "Requires Postgres at DATABASE_URL, migrations applied, and dev server health check passing.",
+    );
+
+    await page.goto("/");
+
+    await page.getByLabel("Question").fill("Why is interpretability important?");
+    await page.getByRole("button", { name: "Analyze Sources" }).click();
+
+    await expect(page).toHaveURL(/\/runs\//);
+    await expect(page.getByText("Why is interpretability important?")).toBeVisible();
+    await expect(page.getByTestId("run-answer")).toContainText("Mock trace snapshot");
+    await expect(page.getByTestId("run-graph")).toBeVisible();
+    await expect(page.getByTestId("graph-node-node_question")).toBeVisible();
+    await expect(page.getByTestId("graph-node-node_answer")).toBeVisible();
+    await expect(page.getByTestId("graph-node-node_source_a")).toBeVisible();
+
+    await page.getByTestId("source-row").first().click();
+    await expect(page.getByTestId("source-detail-panel")).toContainText(
+      "Interpretability survey (mock)",
+    );
+  });
+});
