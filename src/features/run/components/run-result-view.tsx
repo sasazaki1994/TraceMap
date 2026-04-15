@@ -69,6 +69,10 @@ function edgeEndpoints(
   };
 }
 
+function formatWeight(weight: number): string {
+  return `${Math.round(weight * 100)}%`;
+}
+
 export function RunResultView({
   question,
   answerTitle,
@@ -80,9 +84,24 @@ export function RunResultView({
 
   const positions = useMemo(() => layoutGraph(graph), [graph]);
 
+  const sourceNodesById = useMemo(
+    () =>
+      new Map(
+        graph.nodes
+          .filter((node) => node.kind === "source" && node.sourceSnapshotId)
+          .map((node) => [node.id, node.sourceSnapshotId as string]),
+      ),
+    [graph.nodes],
+  );
+
   const selectedSource = useMemo(
     () => sources.find((s) => s.id === selectedSourceId) ?? null,
     [sources, selectedSourceId],
+  );
+
+  const sourcesById = useMemo(
+    () => new Map(sources.map((source) => [source.id, source])),
+    [sources],
   );
 
   return (
@@ -202,6 +221,71 @@ export function RunResultView({
           </div>
 
           <h3 className="run-question-label" style={{ marginTop: "1.25rem" }}>
+            Claims
+          </h3>
+          {graph.claims.length === 0 ? (
+            <p className="muted">No claim metadata is available for this run.</p>
+          ) : (
+            <ul className="claim-list" data-testid="claim-list">
+              {graph.claims.map((claim) => {
+                const linkedSources = claim.sourceNodeIds
+                  .map((sourceNodeId) => sourceNodesById.get(sourceNodeId))
+                  .filter((sourceId): sourceId is string => Boolean(sourceId))
+                  .map((sourceId) => sourcesById.get(sourceId))
+                  .filter((source): source is RunSourceView => Boolean(source));
+
+                return (
+                  <li key={claim.id} className="claim-list-item">
+                    <div className="source-list-item-title">{claim.text}</div>
+                    <div className="source-list-item-meta">
+                      Weight: {formatWeight(claim.weight)}
+                      {claim.missingEvidence ? " · Evidence gap" : ""}
+                    </div>
+                    {linkedSources.length > 0 ? (
+                      <div className="claim-source-links">
+                        {linkedSources.map((source) => (
+                          <button
+                            key={`${claim.id}-${source.id}`}
+                            type="button"
+                            className="claim-source-link"
+                            onClick={() => {
+                              setSelectedSourceId(source.id);
+                            }}
+                          >
+                            {source.label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <h3 className="run-question-label" style={{ marginTop: "1.25rem" }}>
+            Alerts
+          </h3>
+          {graph.alerts.length === 0 ? (
+            <p className="muted">No alert metadata was reported for this run.</p>
+          ) : (
+            <ul className="alert-list" data-testid="alert-list">
+              {graph.alerts.map((alert) => (
+                <li key={alert.id} className="alert-list-item">
+                  <span className={`alert-chip alert-chip-${alert.level}`}>
+                    {alert.level}
+                  </span>
+                  <span>{alert.message}</span>
+                  <span className="source-list-item-meta">
+                    (weight {formatWeight(alert.weight)}
+                    {alert.missingEvidence ? ", evidence gap" : ""})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <h3 className="run-question-label" style={{ marginTop: "1.25rem" }}>
             Sources
           </h3>
           <ul className="source-list">
@@ -253,7 +337,7 @@ export function RunResultView({
               </>
             ) : (
               <p className="detail-placeholder">
-                Select a source from the list or graph.
+                Select a source from the list, graph, or claim links.
               </p>
             )}
           </div>

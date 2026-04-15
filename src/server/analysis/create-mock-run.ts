@@ -56,6 +56,33 @@ function buildMockGraph(params: {
         label: "supports",
       },
     ],
+    claims: [
+      {
+        id: "claim_traceability",
+        text: "The mock answer is traceable to at least one structured source.",
+        weight: 0.88,
+        missingEvidence: false,
+        sourceNodeIds: ["node_source_a", "node_source_b"],
+      },
+      {
+        id: "claim_internal_note",
+        text: "One support point depends on an internal note without a public URL.",
+        weight: 0.54,
+        missingEvidence: true,
+        sourceNodeIds: ["node_source_c"],
+      },
+    ],
+    alerts: [
+      {
+        id: "alert_missing_public_citation",
+        level: "warning",
+        message:
+          "Claim coverage is partial because one cited source has no public URL.",
+        weight: 0.7,
+        claimId: "claim_internal_note",
+        missingEvidence: true,
+      },
+    ],
   };
 
   answerGraphJsonSchema.parse(graph);

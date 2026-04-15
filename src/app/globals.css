@@ -306,3 +306,74 @@ button {
   font-size: 0.9rem;
   margin-top: 8px;
 }
+
+.claim-list,
+.alert-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.claim-list-item,
+.alert-list-item {
+  border: 1px solid var(--border);
+  background: rgba(5, 12, 24, 0.3);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.claim-source-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.claim-source-link {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+}
+
+.claim-source-link:hover {
+  border-color: var(--accent-strong);
+}
+
+.alert-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.alert-chip {
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+}
+
+.alert-chip-info {
+  color: #67e8f9;
+  border-color: rgba(103, 232, 249, 0.35);
+}
+
+.alert-chip-warning {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.alert-chip-critical {
+  color: #fda4af;
+  border-color: rgba(253, 164, 175, 0.4);
+}
