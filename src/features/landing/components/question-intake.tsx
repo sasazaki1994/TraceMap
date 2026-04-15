@@ -1,20 +1,18 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-import {
-  createMockRunAction,
-  type CreateRunFormState,
-} from "@/app/actions/create-run";
 import { Panel } from "@/components/ui/panel";
 
-const initialState: CreateRunFormState = {};
+type CreateQuestionResponse = {
+  runId: string;
+};
 
 export function QuestionIntake() {
-  const [state, formAction, isPending] = useActionState(
-    createMockRunAction,
-    initialState,
-  );
+  const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <Panel className="question-panel">
@@ -25,7 +23,48 @@ export function QuestionIntake() {
         with a simple evidence graph (no LLM yet).
       </p>
 
-      <form className="question-form" action={formAction}>
+      <form
+        className="question-form"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          const formData = new FormData(event.currentTarget);
+          const rawQuestion = formData.get("question");
+
+          if (typeof rawQuestion !== "string" || !rawQuestion.trim()) {
+            setError("Question is required.");
+            return;
+          }
+
+          setIsPending(true);
+          setError(null);
+
+          try {
+            const response = await fetch("/api/questions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ question: rawQuestion.trim() }),
+            });
+
+            if (!response.ok) {
+              const body = (await response.json().catch(() => null)) as
+                | { error?: string }
+                | null;
+              setError(body?.error ?? "Failed to create run.");
+              return;
+            }
+
+            const payload = (await response.json()) as CreateQuestionResponse;
+            router.push(`/runs/${payload.runId}`);
+          } catch (submitError) {
+            console.error("Failed to submit question", submitError);
+            setError("Failed to create run.");
+          } finally {
+            setIsPending(false);
+          }
+        }}
+      >
         <label className="question-label" htmlFor="question">
           Question
         </label>
@@ -37,7 +76,7 @@ export function QuestionIntake() {
           disabled={isPending}
           required
         />
-        {state.error ? <p className="form-error">{state.error}</p> : null}
+        {error ? <p className="form-error">{error}</p> : null}
         <div className="question-actions">
           <button type="submit" disabled={isPending}>
             {isPending ? "Running..." : "Analyze Sources"}

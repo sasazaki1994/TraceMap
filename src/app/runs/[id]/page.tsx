@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { PageContainer } from "@/components/ui/page-container";
 import { RunResultView } from "@/features/run/components/run-result-view";
-import { prisma } from "@/server/db/prisma";
+import { getRunDetails } from "@/server/analysis/get-run-details";
 import { parseAnswerGraphJson } from "@/types/answer-graph";
 
 type RunPageProps = {
@@ -12,38 +12,22 @@ type RunPageProps = {
 export default async function RunPage({ params }: RunPageProps) {
   const { id } = await params;
 
-  const run = await prisma.analysisRun.findUnique({
-    where: { id },
-    include: {
-      answerSnapshots: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-      },
-      sourceSnapshots: {
-        orderBy: { createdAt: "asc" },
-      },
-    },
-  });
+  const runDetails = await getRunDetails(id);
 
-  if (!run) {
+  if (!runDetails) {
     notFound();
   }
 
-  const answer = run.answerSnapshots[0];
-  if (!answer) {
-    notFound();
-  }
-
-  const graph = parseAnswerGraphJson(answer.graphJson);
+  const graph = parseAnswerGraphJson(runDetails.answerSnapshot.graphJson);
 
   return (
     <main>
       <PageContainer className="home-grid">
         <RunResultView
-          question={run.question}
-          answerTitle={answer.title}
-          answerContent={answer.content}
-          sources={run.sourceSnapshots.map((s) => ({
+          question={runDetails.run.question}
+          answerTitle={runDetails.answerSnapshot.title}
+          answerContent={runDetails.answerSnapshot.content}
+          sources={runDetails.sources.map((s) => ({
             id: s.id,
             label: s.label,
             url: s.url,
