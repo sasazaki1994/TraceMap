@@ -156,6 +156,17 @@ http://localhost:3000/api/health
 - Add feature code under `src/features/`
 - Keep shared primitives in `src/components/` and shared server logic in `src/server/`
 
+
+## AIエージェント運用
+
+このリポジトリでは、AIエージェント運用ルールの正本を `docs/ai/PROJECT_AGENT_GUIDE.md` に集約しています。
+
+- Codex / Cursor: `AGENTS.md` を入口として参照し、詳細は共通ガイドへ誘導
+- Claude Code: `CLAUDE.md` を入口として参照し、詳細は共通ガイドへ誘導
+- Cursor Project Rule: `.cursor/rules/project.mdc` は薄いラッパーとして共通ガイド参照を強制
+
+人間が運用ルールを更新する場合も、まず `docs/ai/PROJECT_AGENT_GUIDE.md` を更新し、必要最小限だけ各入口ファイルへ反映してください。
+
 ## CI
 
 GitHub Actions runs:
