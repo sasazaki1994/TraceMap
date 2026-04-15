@@ -1,0 +1,21 @@
+---
+description: TraceMap project rule (thin wrapper)
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# TraceMap Project Rule
+
+このルールは Cursor 向けの薄いラッパーです。  
+**共通運用ルールの正本は `docs/ai/PROJECT_AGENT_GUIDE.md`** です。
+
+## Instructions
+
+- 実装判断・開発フローは `docs/ai/PROJECT_AGENT_GUIDE.md` に従う
+- spec 起点で進め、必要に応じて `specs/` と `acceptance/` を更新する
+- TypeScript の型安全を維持し、`any` の多用を避ける
+- 過剰設計を避け、既存責務分離を尊重する
+- 完了時は変更点・実行コマンド・未対応事項を報告する
+
+Cursor 固有の補足は最小限に留め、ルール追加時はまず共通ガイドを更新すること。
