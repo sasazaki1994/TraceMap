@@ -20,6 +20,12 @@ enum SourceSnapshotType {
   note
 }
 
+enum AlertLevel {
+  info
+  warning
+  error
+}
+
 model AnalysisRun {
   id              String            @id @default(cuid())
   question        String
@@ -41,6 +47,8 @@ model AnswerSnapshot {
   model           String?
   graphJson       Json?            @map("graph_json")
   sourceSnapshots SourceSnapshot[]
+  claims          Claim[]
+  alerts          Alert[]
   createdAt       DateTime         @default(now()) @map("created_at")
   analysisRun     AnalysisRun      @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
 
@@ -75,4 +83,40 @@ model ShareLink {
 
   @@index([analysisRunId])
   @@map("share_links")
+}
+
+model Claim {
+  id               String         @id @default(cuid())
+  answerSnapshotId String         @map("answer_snapshot_id")
+  summary          String
+  graphNodeId      String?        @map("graph_node_id")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  answerSnapshot   AnswerSnapshot @relation(fields: [answerSnapshotId], references: [id], onDelete: Cascade)
+  counterpoints    Counterpoint[]
+
+  @@index([answerSnapshotId])
+  @@map("claims")
+}
+
+model Counterpoint {
+  id        String   @id @default(cuid())
+  claimId   String   @map("claim_id")
+  summary   String
+  createdAt DateTime @default(now()) @map("created_at")
+  claim     Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@map("counterpoints")
+}
+
+model Alert {
+  id               String         @id @default(cuid())
+  answerSnapshotId String         @map("answer_snapshot_id")
+  level            AlertLevel
+  message          String
+  createdAt        DateTime       @default(now()) @map("created_at")
+  answerSnapshot   AnswerSnapshot @relation(fields: [answerSnapshotId], references: [id], onDelete: Cascade)
+
+  @@index([answerSnapshotId])
+  @@map("alerts")
 }

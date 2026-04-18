@@ -13,3 +13,11 @@
 - One feature file per feature slice.
 - Keep scenarios concrete and user-observable.
 - Prefer business language over implementation details.
+
+## Feature files
+
+| Area | File |
+|------|------|
+| Question to answer graph | `question-to-answer-graph.feature` |
+| Source detail & sharing | `source-detail-and-sharing.feature` |
+| Visual design (cyber) | `visual-design-system-cyber.feature` |

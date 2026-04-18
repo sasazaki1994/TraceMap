@@ -3,7 +3,14 @@
 import { useMemo, useState } from "react";
 
 import { Panel } from "@/components/ui/panel";
+import { alertLevelLabel } from "@/features/run/lib/alert-level-label";
+import { describeGraphNodeTie } from "@/features/run/lib/graph-node-tie-label";
+import { cn } from "@/lib/cn";
 import type { AnswerGraphJson } from "@/types/answer-graph";
+import type {
+  RunEvidenceAlert,
+  RunEvidenceClaim,
+} from "@/types/run-evidence";
 
 export type RunSourceView = {
   id: string;
@@ -19,6 +26,10 @@ type RunResultViewProps = {
   answerContent: string;
   sources: RunSourceView[];
   graph: AnswerGraphJson;
+  /** Mock slice: claims + counterpoints from `claims` / `counterpoints` tables. */
+  evidenceClaims?: RunEvidenceClaim[];
+  /** Mock slice: alerts from `alerts` table. */
+  evidenceAlerts?: RunEvidenceAlert[];
 };
 
 const GRAPH_W = 420;
@@ -75,8 +86,13 @@ export function RunResultView({
   answerContent,
   sources,
   graph,
+  evidenceClaims = [],
+  evidenceAlerts = [],
 }: RunResultViewProps) {
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+  const [selectedGraphNodeId, setSelectedGraphNodeId] = useState<string | null>(
+    null,
+  );
 
   const positions = useMemo(() => layoutGraph(graph), [graph]);
 
@@ -97,6 +113,32 @@ export function RunResultView({
           <div className="run-answer-body" data-testid="run-answer">
             {answerContent}
           </div>
+
+          {evidenceAlerts.length > 0 ? (
+            <div data-testid="run-alerts" style={{ marginTop: "1.25rem" }}>
+              <h3 className="run-question-label">Alerts</h3>
+              <ul className="evidence-alert-list">
+                {evidenceAlerts.map((a) => (
+                  <li
+                    key={a.id}
+                    className={`evidence-alert evidence-alert--${a.level}`}
+                    data-alert-level={a.level}
+                    data-testid="run-alert"
+                  >
+                    <span
+                      className="evidence-alert-level"
+                      data-testid="run-alert-level"
+                    >
+                      {alertLevelLabel(a.level)}
+                    </span>
+                    <p className="run-answer-body" style={{ marginTop: 6 }}>
+                      {a.message}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           <h3 className="run-question-label" style={{ marginTop: "1.25rem" }}>
             Evidence graph
@@ -139,30 +181,49 @@ export function RunResultView({
                   }
                   const isSource = node.kind === "source";
                   const linkedId = node.sourceSnapshotId;
-                  const selected =
+                  const isAnswerOrQuestion =
+                    node.kind === "answer" || node.kind === "question";
+                  const graphInteract =
+                    (isSource && linkedId !== undefined) || isAnswerOrQuestion;
+
+                  const sourceSelected =
                     isSource &&
                     linkedId !== undefined &&
                     linkedId === selectedSourceId;
+                  const graphHighlight =
+                    isAnswerOrQuestion && selectedGraphNodeId === node.id;
+
+                  const selected = sourceSelected || graphHighlight;
+
                   return (
                     <g
                       key={node.id}
-                      className="graph-node"
+                      className={`graph-node${graphInteract ? " graph-node--interactive" : ""}`}
                       data-testid={`graph-node-${node.id}`}
-                      role={isSource && linkedId ? "button" : undefined}
-                      tabIndex={isSource && linkedId ? 0 : undefined}
+                      role={graphInteract ? "button" : undefined}
+                      tabIndex={graphInteract ? 0 : undefined}
                       onClick={() => {
                         if (isSource && linkedId) {
                           setSelectedSourceId(linkedId);
+                          setSelectedGraphNodeId(null);
+                        } else if (isAnswerOrQuestion) {
+                          setSelectedGraphNodeId(node.id);
+                          setSelectedSourceId(null);
                         }
                       }}
                       onKeyDown={(e) => {
                         if (
-                          isSource &&
-                          linkedId &&
+                          graphInteract &&
                           (e.key === "Enter" || e.key === " ")
                         ) {
                           e.preventDefault();
-                          setSelectedSourceId(linkedId);
+                          if (isSource && linkedId) {
+                            setSelectedSourceId(linkedId);
+                            setSelectedGraphNodeId(null);
+                          } else if (isAnswerOrQuestion) {
+                            setSelectedGraphNodeId(node.id);
+                            setSelectedSourceId(null);
+                          }
                         }
                       }}
                     >
@@ -201,6 +262,61 @@ export function RunResultView({
             )}
           </div>
 
+          {evidenceClaims.length > 0 ? (
+            <div data-testid="run-claims" style={{ marginTop: "1.25rem" }}>
+              <h3 className="run-question-label">Claims &amp; counterpoints</h3>
+              <ul className="evidence-claim-list">
+                {evidenceClaims.map((c) => {
+                  const tie = describeGraphNodeTie(graph, c.graphNodeId);
+                  const linkedActive =
+                    tie !== null &&
+                    selectedGraphNodeId !== null &&
+                    c.graphNodeId === selectedGraphNodeId;
+                  return (
+                    <li
+                      key={c.id}
+                      className={cn(
+                        "evidence-claim-block",
+                        linkedActive && "evidence-claim-block--linked-active",
+                      )}
+                      data-claim-matches-graph-node={
+                        linkedActive ? "true" : undefined
+                      }
+                      data-graph-node-id={c.graphNodeId ?? undefined}
+                      data-testid="run-claim"
+                    >
+                      {tie ? (
+                        <p
+                          className="muted evidence-claim-graph-link"
+                          data-testid="run-claim-graph-link"
+                        >
+                          Graph: {tie.kindLabel} — {tie.nodeLabel}{" "}
+                          <span className="evidence-claim-node-id">
+                            ({tie.nodeId})
+                          </span>
+                        </p>
+                      ) : null}
+                      <p className="source-list-item-title">{c.summary}</p>
+                      {c.counterpoints.length > 0 ? (
+                        <ul className="evidence-counterpoint-list">
+                          {c.counterpoints.map((cp) => (
+                            <li
+                              key={cp.id}
+                              className="evidence-counterpoint"
+                              data-testid="run-counterpoint"
+                            >
+                              {cp.summary}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : null}
+
           <h3 className="run-question-label" style={{ marginTop: "1.25rem" }}>
             Sources
           </h3>
@@ -213,6 +329,7 @@ export function RunResultView({
                   className={`source-list-item${selectedSourceId === s.id ? " selected" : ""}`}
                   onClick={() => {
                     setSelectedSourceId(s.id);
+                    setSelectedGraphNodeId(null);
                   }}
                 >
                   <div className="source-list-item-title">{s.label}</div>
