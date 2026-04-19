@@ -20,8 +20,11 @@ The codebase separates **generation** from **persistence** so a real LLM can be 
 - **Contract**: `AnswerGraphProvider` (`src/server/analysis/answer-graph-provider.ts`) — `generateAnswerGraph({ question })` returns `GenerateAnswerGraphResult` (`src/types/answer-graph-generation.ts`).
 - **Write path**: `persistGeneratedAnswerGraph` (`src/server/analysis/persist-generated-answer-graph.ts`) takes a `GeneratedAnswerGraphPayload` and creates `answer_snapshots` / `source_snapshots` / optional evidence rows in one transaction.
 - **Orchestration**: `createAnalysisRunFromProvider` (`src/server/analysis/create-analysis-run-from-provider.ts`) updates `analysis_runs.status` (`queued` → `processing` → `completed` | `failed`), persists `last_error_message` on failure, and logs unexpected errors to the server console.
-- **Providers today**: `mock` (default, parity with the former inline mock) and `stub` (minimal graph, no sources/evidence) under `src/server/analysis/providers/`. Switch with `TRACEMAP_ANSWER_GRAPH_PROVIDER=mock|stub`.
-- **Not in scope yet**: job queues, streaming, OpenAI SDK wiring — add a new provider implementation that satisfies `AnswerGraphProvider` when ready.
+- **Providers today** (under `src/server/analysis/providers/`):
+  - `mock` (default) — full mock parity (graph + sources + evidence).
+  - `stub` — minimal graph, no LLM.
+  - `openai` — real OpenAI Chat Completions + Structured Outputs (`src/server/analysis/providers/openai-answer-graph-provider.ts`). Enable with `TRACEMAP_ANSWER_GRAPH_PROVIDER=openai` **and** set `TRACEMAP_OPENAI_API_KEY` or `OPENAI_API_KEY`. Optional: `TRACEMAP_OPENAI_MODEL` (defaults to `gpt-4o-mini`), `TRACEMAP_OPENAI_TIMEOUT_MS` (defaults to `60000`). Missing key or API errors surface as `failed` runs with `last_error_message` via `GenerateAnswerGraphResult` `failure` (unchanged orchestration).
+- **Not in scope yet**: job queues, streaming, web/file search, retrieval/RAG, and other providers beyond this minimal OpenAI slice.
 
 ## Directory Intent
 
@@ -41,6 +44,8 @@ The codebase separates **generation** from **persistence** so a real LLM can be 
 
 ## Next Steps
 
-- Implement a real `AnswerGraphProvider` (e.g. OpenAI) behind env/feature flags
+- Harden OpenAI path: retries, richer source/evidence modeling, retrieval when a search stack exists
 - Optional: background jobs if generation outlives HTTP request budgets (status enum already exists)
 - Richer evidence UX (graph integration for claims, filters) once real data exists
+
+See also: `docs/adr/openai-answer-graph-provider.md`.

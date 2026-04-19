@@ -8,7 +8,7 @@ import type {
  * live under `src/server/analysis/providers/`.
  */
 export type AnswerGraphProvider = {
-  readonly id: "mock" | "stub";
+  readonly id: "mock" | "stub" | "openai";
   generateAnswerGraph(
     input: GenerateAnswerGraphInput,
   ): Promise<GenerateAnswerGraphResult>;

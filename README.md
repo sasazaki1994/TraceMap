@@ -181,3 +181,13 @@ GitHub Actions (`.github/workflows/ci.yml`) runs against a **PostgreSQL 16** ser
 - Health route at `/api/health`
 - Prisma schema for runs, snapshots, share links, and MVP evidence tables (`claims`, `counterpoints`, `alerts`) — mock runs seed one of each for UI verification
 - Vitest and Playwright coverage; see `specs/` and `acceptance/` for behavior
+
+## Optional: OpenAI answer graph (env-only)
+
+By default, runs use the **mock** answer-graph provider. To call OpenAI from the same persistence path:
+
+1. Set `TRACEMAP_ANSWER_GRAPH_PROVIDER=openai`.
+2. Set `TRACEMAP_OPENAI_API_KEY` (or `OPENAI_API_KEY`).
+3. Optionally set `TRACEMAP_OPENAI_MODEL` (default `gpt-4o-mini`) and `TRACEMAP_OPENAI_TIMEOUT_MS` (default `60000` ms).
+
+If the key is missing or the API errors, the run ends as **failed** and `last_error_message` is set. This path does not add web search, retrieval/RAG, background jobs, or streaming — see `docs/architecture.md` and `docs/adr/openai-answer-graph-provider.md`.
