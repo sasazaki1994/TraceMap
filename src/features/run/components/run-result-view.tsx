@@ -33,7 +33,8 @@ type RunResultViewProps = {
 };
 
 const GRAPH_W = 420;
-const GRAPH_H = 240;
+/** Taller when claim nodes exist (v2) so source → claim → answer fits. */
+const GRAPH_H = 260;
 const NODE_R = 22;
 
 function layoutGraph(graph: AnswerGraphJson): Map<string, { x: number; y: number }> {
@@ -42,22 +43,39 @@ function layoutGraph(graph: AnswerGraphJson): Map<string, { x: number; y: number
   const questionNode = graph.nodes.find((n) => n.kind === "question");
   const answerNode = graph.nodes.find((n) => n.kind === "answer");
   const sourceNodes = graph.nodes.filter((n) => n.kind === "source");
+  const claimNodes =
+    graph.version === 2
+      ? [...graph.nodes.filter((n) => n.kind === "claim")].sort((a, b) =>
+          a.id.localeCompare(b.id),
+        )
+      : [];
 
   if (questionNode) {
-    map.set(questionNode.id, { x: cx, y: 40 });
+    map.set(questionNode.id, { x: cx, y: 36 });
   }
   if (answerNode) {
-    map.set(answerNode.id, { x: cx, y: 120 });
+    map.set(answerNode.id, { x: cx, y: 104 });
   }
 
+  const sourceY = claimNodes.length > 0 ? 218 : 200;
   const n = sourceNodes.length;
   sourceNodes.forEach((node, i) => {
     if (n === 1) {
-      map.set(node.id, { x: cx, y: 200 });
+      map.set(node.id, { x: cx, y: sourceY });
       return;
     }
     const x = 64 + (i * (GRAPH_W - 128)) / Math.max(n - 1, 1);
-    map.set(node.id, { x, y: 200 });
+    map.set(node.id, { x, y: sourceY });
+  });
+
+  const m = claimNodes.length;
+  claimNodes.forEach((node, i) => {
+    if (m === 1) {
+      map.set(node.id, { x: cx, y: 162 });
+      return;
+    }
+    const x = 64 + (i * (GRAPH_W - 128)) / Math.max(m - 1, 1);
+    map.set(node.id, { x, y: 162 });
   });
 
   return map;
@@ -96,6 +114,17 @@ export function RunResultView({
   );
 
   const positions = useMemo(() => layoutGraph(graph), [graph]);
+
+  const selectedClaimSupportingSourceIds = useMemo(() => {
+    if (!selectedGraphNodeId) {
+      return new Set<string>();
+    }
+    const claim = evidenceClaims.find((c) => c.graphNodeId === selectedGraphNodeId);
+    if (!claim) {
+      return new Set<string>();
+    }
+    return new Set(claim.supportingSourceIds);
+  }, [evidenceClaims, selectedGraphNodeId]);
 
   const selectedSource = useMemo(
     () => sources.find((s) => s.id === selectedSourceId) ?? null,
@@ -212,17 +241,21 @@ export function RunResultView({
                   }
                   const isSource = node.kind === "source";
                   const linkedId = node.sourceSnapshotId;
+                  const isClaim = node.kind === "claim";
                   const isAnswerOrQuestion =
                     node.kind === "answer" || node.kind === "question";
                   const graphInteract =
-                    (isSource && linkedId !== undefined) || isAnswerOrQuestion;
+                    (isSource && linkedId !== undefined) ||
+                    isAnswerOrQuestion ||
+                    isClaim;
 
                   const sourceSelected =
                     isSource &&
                     linkedId !== undefined &&
                     linkedId === selectedSourceId;
                   const graphHighlight =
-                    isAnswerOrQuestion && selectedGraphNodeId === node.id;
+                    (isAnswerOrQuestion || isClaim) &&
+                    selectedGraphNodeId === node.id;
 
                   const selected = sourceSelected || graphHighlight;
 
@@ -240,6 +273,9 @@ export function RunResultView({
                         } else if (isAnswerOrQuestion) {
                           setSelectedGraphNodeId(node.id);
                           setSelectedSourceId(null);
+                        } else if (isClaim) {
+                          setSelectedGraphNodeId(node.id);
+                          setSelectedSourceId(null);
                         }
                       }}
                       onKeyDown={(e) => {
@@ -252,6 +288,9 @@ export function RunResultView({
                             setSelectedSourceId(linkedId);
                             setSelectedGraphNodeId(null);
                           } else if (isAnswerOrQuestion) {
+                            setSelectedGraphNodeId(node.id);
+                            setSelectedSourceId(null);
+                          } else if (isClaim) {
                             setSelectedGraphNodeId(node.id);
                             setSelectedSourceId(null);
                           }
@@ -284,7 +323,9 @@ export function RunResultView({
                           ? "Q"
                           : node.kind === "answer"
                             ? "A"
-                            : "S"}
+                            : node.kind === "claim"
+                              ? "C"
+                              : "S"}
                       </text>
                     </g>
                   );
@@ -386,7 +427,7 @@ export function RunResultView({
                 <button
                   type="button"
                   data-testid="source-row"
-                  className={`source-list-item${selectedSourceId === s.id ? " selected" : ""}`}
+                  className={`source-list-item${selectedSourceId === s.id ? " selected" : ""}${selectedClaimSupportingSourceIds.has(s.id) ? " source-list-item--claim-linked" : ""}`}
                   onClick={() => {
                     setSelectedSourceId(s.id);
                     setSelectedGraphNodeId(null);

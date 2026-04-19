@@ -15,12 +15,16 @@ export type GeneratedSourceSnapshot = {
   excerpt: string | null;
 };
 
-/** Optional structured evidence rows (mock slice); omit for minimal stub runs. */
+/** One claim row + graph node id + source placeholders (`__src_0__`, …) before persist. */
+export type GeneratedEvidenceClaimInput = {
+  summary: string;
+  graphNodeId: string | null;
+  supportedSourcePlaceholderIds: string[];
+};
+
+/** Optional structured evidence rows; omit for minimal stub runs. */
 export type GeneratedEvidenceBundle = {
-  claim: {
-    summary: string;
-    graphNodeId: string | null;
-  };
+  claims: GeneratedEvidenceClaimInput[];
   counterpoint: {
     summary: string;
   };

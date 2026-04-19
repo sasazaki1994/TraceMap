@@ -16,7 +16,9 @@ export function describeGraphNodeTie(
         ? "Answer"
         : node?.kind === "source"
           ? "Source"
-          : "Node";
+          : node?.kind === "claim"
+            ? "Claim"
+            : "Node";
 
   return {
     nodeId: graphNodeId,

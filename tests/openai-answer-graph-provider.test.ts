@@ -192,16 +192,21 @@ describe("realOpenAiAnswerGraphProvider", () => {
     if (result.kind !== "success") {
       return;
     }
-    expect(result.payload.answer.graphJson.version).toBe(1);
+    expect(result.payload.answer.graphJson.version).toBe(2);
     expect(result.payload.answer.graphJson.nodes.some((n) => n.kind === "answer")).toBe(
+      true,
+    );
+    expect(result.payload.answer.graphJson.nodes.some((n) => n.kind === "claim")).toBe(
       true,
     );
     expect(result.payload.sources).toHaveLength(2);
     expect(result.payload.sources[0].label).toBe("Example source one");
     expect(result.payload.sources[0].url).toBe("https://example.com/a");
-    expect(result.payload.evidence?.claim.graphNodeId).toBe("node_source_0");
-    expect(result.payload.evidence?.claim.summary).toContain("Claim one");
-    expect(result.payload.evidence?.claim.summary).toContain("Example source one");
+    expect(result.payload.evidence?.claims[0]?.graphNodeId).toBe("node_claim_0");
+    expect(result.payload.evidence?.claims[0]?.summary).toContain("Claim one");
+    expect(result.payload.evidence?.claims[0]?.supportedSourcePlaceholderIds).toContain(
+      "__src_0__",
+    );
   });
 
   it("returns failure when sufficient_grounding is false", async () => {

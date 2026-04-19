@@ -10,6 +10,7 @@ describe("mapAnswerEvidenceForView", () => {
           id: "c1",
           summary: "Claim one",
           graphNodeId: "node_answer",
+          claimSourceSnapshots: [{ sourceSnapshotId: "src-a" }],
           counterpoints: [{ id: "cp1", summary: "Counter one" }],
         },
       ],
@@ -20,6 +21,7 @@ describe("mapAnswerEvidenceForView", () => {
 
     expect(evidenceClaims).toHaveLength(1);
     expect(evidenceClaims[0]?.graphNodeId).toBe("node_answer");
+    expect(evidenceClaims[0]?.supportingSourceIds).toEqual(["src-a"]);
     expect(evidenceClaims[0]?.counterpoints).toEqual([
       { id: "cp1", summary: "Counter one" },
     ]);

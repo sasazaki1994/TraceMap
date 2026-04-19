@@ -4,24 +4,39 @@ import type { GeneratedAnswerGraphPayload } from "@/types/answer-graph-generatio
 import type { AnswerGraphJson } from "@/types/answer-graph";
 
 import { prisma } from "@/server/db/prisma";
+import { verifyPublicHttpUrl } from "@/server/analysis/verify-source-url";
+
+function isPublicHttpUrlForVerification(raw: string | null): raw is string {
+  if (raw === null) {
+    return false;
+  }
+  const t = raw.trim();
+  if (!t) {
+    return false;
+  }
+  try {
+    const u = new URL(t);
+    return (u.protocol === "http:" || u.protocol === "https:") && u.hostname.length > 0;
+  } catch {
+    return false;
+  }
+}
 
 function replaceGraphSourceIds(
   graph: AnswerGraphJson,
   idMap: Map<string, string>,
 ): AnswerGraphJson {
-  return {
-    ...graph,
-    nodes: graph.nodes.map((n) => {
-      if (n.kind !== "source" || !n.sourceSnapshotId) {
-        return n;
-      }
-      const next = idMap.get(n.sourceSnapshotId);
-      if (!next) {
-        return n;
-      }
-      return { ...n, sourceSnapshotId: next };
-    }),
-  };
+  const nextNodes = graph.nodes.map((n) => {
+    if (n.kind !== "source" || !n.sourceSnapshotId) {
+      return n;
+    }
+    const next = idMap.get(n.sourceSnapshotId);
+    if (!next) {
+      return n;
+    }
+    return { ...n, sourceSnapshotId: next };
+  });
+  return { ...graph, nodes: nextNodes } as AnswerGraphJson;
 }
 
 /**
@@ -33,6 +48,20 @@ export async function persistGeneratedAnswerGraph(params: {
   payload: GeneratedAnswerGraphPayload;
 }): Promise<void> {
   const { runId, payload } = params;
+
+  const verificationByIndex = await Promise.all(
+    payload.sources.map((src) =>
+      isPublicHttpUrlForVerification(src.url)
+        ? verifyPublicHttpUrl(src.url)
+        : Promise.resolve({
+            verificationStatus: "unverified" as const,
+            checkedAt: null as Date | null,
+            httpStatus: null as number | null,
+            finalUrl: null as string | null,
+            contentType: null as string | null,
+          }),
+    ),
+  );
 
   await prisma.$transaction(async (tx) => {
     const answer = await tx.answerSnapshot.create({
@@ -49,6 +78,7 @@ export async function persistGeneratedAnswerGraph(params: {
     for (let i = 0; i < payload.sources.length; i++) {
       const src = payload.sources[i];
       const placeholderId = `__src_${i}__`;
+      const v = verificationByIndex[i];
       const row = await tx.sourceSnapshot.create({
         data: {
           analysisRunId: runId,
@@ -57,6 +87,11 @@ export async function persistGeneratedAnswerGraph(params: {
           sourceType: src.sourceType,
           url: src.url,
           excerpt: src.excerpt,
+          verificationStatus: v.verificationStatus,
+          checkedAt: v.checkedAt,
+          httpStatus: v.httpStatus,
+          finalUrl: v.finalUrl,
+          contentType: v.contentType,
         },
       });
       idMap.set(placeholderId, row.id);
@@ -71,20 +106,48 @@ export async function persistGeneratedAnswerGraph(params: {
 
     if (payload.evidence) {
       const e = payload.evidence;
-      const claim = await tx.claim.create({
-        data: {
-          answerSnapshotId: answer.id,
-          summary: e.claim.summary,
-          graphNodeId: e.claim.graphNodeId,
-        },
-      });
 
-      await tx.counterpoint.create({
-        data: {
-          claimId: claim.id,
-          summary: e.counterpoint.summary,
-        },
-      });
+      let firstClaimId: string | null = null;
+
+      for (const c of e.claims) {
+        const claimRow = await tx.claim.create({
+          data: {
+            answerSnapshotId: answer.id,
+            summary: c.summary,
+            graphNodeId: c.graphNodeId,
+          },
+        });
+        if (firstClaimId === null) {
+          firstClaimId = claimRow.id;
+        }
+
+        const sourceIds = [
+          ...new Set(
+            c.supportedSourcePlaceholderIds
+              .map((ph) => idMap.get(ph))
+              .filter((x): x is string => x !== undefined),
+          ),
+        ];
+
+        if (sourceIds.length > 0) {
+          await tx.claimSourceSnapshot.createMany({
+            data: sourceIds.map((sourceSnapshotId) => ({
+              claimId: claimRow.id,
+              sourceSnapshotId,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+
+      if (firstClaimId !== null) {
+        await tx.counterpoint.create({
+          data: {
+            claimId: firstClaimId,
+            summary: e.counterpoint.summary,
+          },
+        });
+      }
 
       await tx.alert.create({
         data: {

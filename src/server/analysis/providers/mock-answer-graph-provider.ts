@@ -13,7 +13,7 @@ function buildMockGraph(params: {
   sourceIds: [string, string, string];
 }): AnswerGraphJson {
   const graph: AnswerGraphJson = {
-    version: 1,
+    version: 2,
     nodes: [
       { id: "node_question", kind: "question", label: params.questionPreview },
       { id: "node_answer", kind: "answer", label: "Synthesis (mock)" },
@@ -35,24 +35,46 @@ function buildMockGraph(params: {
         label: "Product memo (mock)",
         sourceSnapshotId: params.sourceIds[2],
       },
+      {
+        id: "node_claim_0",
+        kind: "claim",
+        label: "Primary claim (mock)",
+      },
+      {
+        id: "node_claim_1",
+        kind: "claim",
+        label: "Secondary claim (mock)",
+      },
     ],
     edges: [
       { id: "edge_q_a", from: "node_question", to: "node_answer" },
       {
-        id: "edge_s0_a",
+        id: "edge_s0_c0",
         from: "node_source_a",
-        to: "node_answer",
+        to: "node_claim_0",
         label: "supports",
       },
       {
-        id: "edge_s1_a",
+        id: "edge_s1_c0",
         from: "node_source_b",
+        to: "node_claim_0",
+        label: "supports",
+      },
+      {
+        id: "edge_s2_c1",
+        from: "node_source_c",
+        to: "node_claim_1",
+        label: "supports",
+      },
+      {
+        id: "edge_c0_a",
+        from: "node_claim_0",
         to: "node_answer",
         label: "supports",
       },
       {
-        id: "edge_s2_a",
-        from: "node_source_c",
+        id: "edge_c1_a",
+        from: "node_claim_1",
         to: "node_answer",
         label: "supports",
       },
@@ -113,11 +135,20 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
         },
       ],
       evidence: {
-        claim: {
-          summary:
-            "The synthesis aggregates mocked sources into a single narrative (mock claim).",
-          graphNodeId: "node_answer",
-        },
+        claims: [
+          {
+            summary:
+              "The synthesis aggregates mocked sources into a single narrative (mock claim).",
+            graphNodeId: "node_claim_0",
+            supportedSourcePlaceholderIds: ["__src_0__", "__src_1__"],
+          },
+          {
+            summary:
+              "The product memo supplements internal context without a public URL (mock).",
+            graphNodeId: "node_claim_1",
+            supportedSourcePlaceholderIds: ["__src_2__"],
+          },
+        ],
         counterpoint: {
           summary:
             "Mock counterpoint: in production, conflicting sources would surface here (mock).",

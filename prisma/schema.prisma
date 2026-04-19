@@ -26,6 +26,13 @@ enum AlertLevel {
   error
 }
 
+enum SourceVerificationStatus {
+  verified
+  unverified
+  unreachable
+  invalid
+}
+
 model AnalysisRun {
   id                String            @id @default(cuid())
   question          String
@@ -58,16 +65,22 @@ model AnswerSnapshot {
 }
 
 model SourceSnapshot {
-  id               String             @id @default(cuid())
-  analysisRunId    String             @map("analysis_run_id")
-  answerSnapshotId String?            @map("answer_snapshot_id")
-  label            String
-  sourceType       SourceSnapshotType @default(web) @map("source_type")
-  url              String?
-  excerpt          String?
-  createdAt        DateTime           @default(now()) @map("created_at")
-  analysisRun      AnalysisRun        @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
-  answerSnapshot   AnswerSnapshot?    @relation(fields: [answerSnapshotId], references: [id], onDelete: SetNull)
+  id                   String                   @id @default(cuid())
+  analysisRunId        String                   @map("analysis_run_id")
+  answerSnapshotId     String?                  @map("answer_snapshot_id")
+  label                String
+  sourceType           SourceSnapshotType       @default(web) @map("source_type")
+  url                  String?
+  excerpt              String?
+  verificationStatus   SourceVerificationStatus @default(unverified) @map("verification_status")
+  checkedAt            DateTime?                @map("checked_at")
+  httpStatus           Int?                     @map("http_status")
+  finalUrl             String?                  @map("final_url")
+  contentType          String?                  @map("content_type")
+  createdAt            DateTime                 @default(now()) @map("created_at")
+  analysisRun          AnalysisRun              @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
+  answerSnapshot       AnswerSnapshot?          @relation(fields: [answerSnapshotId], references: [id], onDelete: SetNull)
+  claimSourceSnapshots ClaimSourceSnapshot[]
 
   @@index([analysisRunId])
   @@index([answerSnapshotId])
@@ -87,16 +100,30 @@ model ShareLink {
 }
 
 model Claim {
-  id               String         @id @default(cuid())
-  answerSnapshotId String         @map("answer_snapshot_id")
-  summary          String
-  graphNodeId      String?        @map("graph_node_id")
-  createdAt        DateTime       @default(now()) @map("created_at")
-  answerSnapshot   AnswerSnapshot @relation(fields: [answerSnapshotId], references: [id], onDelete: Cascade)
-  counterpoints    Counterpoint[]
+  id                   String                @id @default(cuid())
+  answerSnapshotId     String                @map("answer_snapshot_id")
+  summary              String
+  graphNodeId          String?               @map("graph_node_id")
+  createdAt            DateTime              @default(now()) @map("created_at")
+  answerSnapshot       AnswerSnapshot        @relation(fields: [answerSnapshotId], references: [id], onDelete: Cascade)
+  counterpoints        Counterpoint[]
+  claimSourceSnapshots ClaimSourceSnapshot[]
 
   @@index([answerSnapshotId])
   @@map("claims")
+}
+
+model ClaimSourceSnapshot {
+  id                 String         @id @default(cuid())
+  claimId            String         @map("claim_id")
+  sourceSnapshotId   String         @map("source_snapshot_id")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  claim              Claim          @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  sourceSnapshot     SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Cascade)
+
+  @@unique([claimId, sourceSnapshotId])
+  @@index([sourceSnapshotId])
+  @@map("claim_source_snapshots")
 }
 
 model Counterpoint {

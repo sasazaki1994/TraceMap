@@ -4,6 +4,7 @@ const tx = {
   answerSnapshot: { create: vi.fn(), update: vi.fn() },
   sourceSnapshot: { create: vi.fn() },
   claim: { create: vi.fn() },
+  claimSourceSnapshot: { createMany: vi.fn() },
   counterpoint: { create: vi.fn() },
   alert: { create: vi.fn() },
 };
@@ -43,10 +44,13 @@ describe("createAnalysisRunFromProvider", () => {
       .mockResolvedValueOnce({ id: "src_b" })
       .mockResolvedValueOnce({ id: "src_c" });
     tx.answerSnapshot.update.mockResolvedValue({});
-    tx.claim.create.mockResolvedValue({ id: "claim_mock" });
+    tx.claim.create
+      .mockResolvedValueOnce({ id: "claim_mock_1" })
+      .mockResolvedValueOnce({ id: "claim_mock_2" });
+    tx.claimSourceSnapshot.createMany.mockResolvedValue({ count: 2 });
   });
 
-  it("persists claim, counterpoint, and alert when using the mock provider", async () => {
+  it("persists claims, claim–source links, counterpoint, and alert when using the mock provider", async () => {
     const { resolveAnswerGraphProvider } = await import(
       "@/server/analysis/resolve-answer-graph-provider"
     );
@@ -80,19 +84,27 @@ describe("createAnalysisRunFromProvider", () => {
       }),
     );
 
-    expect(tx.claim.create).toHaveBeenCalledTimes(1);
-    expect(tx.claim.create).toHaveBeenCalledWith({
+    expect(tx.claim.create).toHaveBeenCalledTimes(2);
+    expect(tx.claim.create).toHaveBeenNthCalledWith(1, {
       data: expect.objectContaining({
         answerSnapshotId: "answer_mock",
         summary: expect.stringContaining("mock claim"),
-        graphNodeId: "node_answer",
+        graphNodeId: "node_claim_0",
       }),
     });
+    expect(tx.claim.create).toHaveBeenNthCalledWith(2, {
+      data: expect.objectContaining({
+        answerSnapshotId: "answer_mock",
+        graphNodeId: "node_claim_1",
+      }),
+    });
+
+    expect(tx.claimSourceSnapshot.createMany).toHaveBeenCalled();
 
     expect(tx.counterpoint.create).toHaveBeenCalledTimes(1);
     expect(tx.counterpoint.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        claimId: "claim_mock",
+        claimId: "claim_mock_1",
         summary: expect.stringContaining("Mock counterpoint"),
       }),
     });

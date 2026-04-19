@@ -6,6 +6,7 @@ type AnswerWithEvidence = {
     summary: string;
     graphNodeId: string | null;
     counterpoints: Array<{ id: string; summary: string }>;
+    claimSourceSnapshots: Array<{ sourceSnapshotId: string }>;
   }>;
   alerts: Array<{ id: string; level: RunEvidenceAlert["level"]; message: string }>;
 };
@@ -20,6 +21,7 @@ export function mapAnswerEvidenceForView(answer: AnswerWithEvidence): {
       id: c.id,
       summary: c.summary,
       graphNodeId: c.graphNodeId,
+      supportingSourceIds: c.claimSourceSnapshots.map((x) => x.sourceSnapshotId),
       counterpoints: c.counterpoints.map((cp) => ({
         id: cp.id,
         summary: cp.summary,
