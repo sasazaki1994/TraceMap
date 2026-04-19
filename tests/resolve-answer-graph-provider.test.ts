@@ -27,4 +27,12 @@ describe("resolveAnswerGraphProvider", () => {
     );
     expect(resolveAnswerGraphProvider().id).toBe("stub");
   });
+
+  it("selects openai when TRACEMAP_ANSWER_GRAPH_PROVIDER is openai", async () => {
+    process.env.TRACEMAP_ANSWER_GRAPH_PROVIDER = "openai";
+    const { resolveAnswerGraphProvider } = await import(
+      "@/server/analysis/resolve-answer-graph-provider"
+    );
+    expect(resolveAnswerGraphProvider().id).toBe("openai");
+  });
 });
