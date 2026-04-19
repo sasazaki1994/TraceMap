@@ -53,6 +53,13 @@ test.describe("question-to-answer-graph", () => {
     await expect(page.getByTestId("graph-node-node_answer")).toBeVisible();
     await expect(page.getByTestId("graph-node-node_source_a")).toBeVisible();
 
+    await expect(page.getByTestId("run-claims-section")).toContainText("mock claim");
+    await expect(page.getByTestId("run-counterpoints-section")).toContainText(
+      "Mock counterpoint",
+    );
+    await expect(page.getByTestId("run-alerts-section")).toContainText("Mock alert");
+    await expect(page.getByTestId("run-alert-level").first()).toHaveText(/Warning/i);
+
     await page.getByTestId("source-row").first().click();
     await expect(page.getByTestId("source-detail-panel")).toContainText(
       "Interpretability survey (mock)",

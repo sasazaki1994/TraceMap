@@ -26,9 +26,7 @@ type RunResultViewProps = {
   answerContent: string;
   sources: RunSourceView[];
   graph: AnswerGraphJson;
-  /** Mock slice: claims + counterpoints from `claims` / `counterpoints` tables. */
   evidenceClaims?: RunEvidenceClaim[];
-  /** Mock slice: alerts from `alerts` table. */
   evidenceAlerts?: RunEvidenceAlert[];
 };
 
@@ -101,6 +99,18 @@ export function RunResultView({
     [sources, selectedSourceId],
   );
 
+  const flatCounterpoints = useMemo(
+    () =>
+      evidenceClaims.flatMap((c) =>
+        c.counterpoints.map((cp) => ({
+          claimId: c.id,
+          counterpointId: cp.id,
+          summary: cp.summary,
+        })),
+      ),
+    [evidenceClaims],
+  );
+
   return (
     <div className="run-grid">
       <div className="run-main">
@@ -115,28 +125,37 @@ export function RunResultView({
           </div>
 
           {evidenceAlerts.length > 0 ? (
-            <div data-testid="run-alerts" style={{ marginTop: "1.25rem" }}>
-              <h3 className="run-question-label">Alerts</h3>
-              <ul className="evidence-alert-list">
-                {evidenceAlerts.map((a) => (
-                  <li
-                    key={a.id}
-                    className={`evidence-alert evidence-alert--${a.level}`}
-                    data-alert-level={a.level}
-                    data-testid="run-alert"
-                  >
-                    <span
-                      className="evidence-alert-level"
-                      data-testid="run-alert-level"
+            <div
+              data-testid="run-alerts-section"
+              style={{ marginTop: "1.25rem" }}
+            >
+              <div data-testid="run-alerts">
+                <h3 className="run-question-label">Alerts</h3>
+                <ul className="evidence-alert-list">
+                  {evidenceAlerts.map((a) => (
+                    <li
+                      key={a.id}
+                      className={`evidence-alert evidence-alert--${a.level}`}
+                      data-alert-level={a.level}
+                      data-testid="run-alert"
                     >
-                      {alertLevelLabel(a.level)}
-                    </span>
-                    <p className="run-answer-body" style={{ marginTop: 6 }}>
-                      {a.message}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+                      <span
+                        className="evidence-alert-level"
+                        data-testid="run-alert-level"
+                      >
+                        {alertLevelLabel(a.level)}
+                      </span>
+                      <p
+                        className="run-answer-body"
+                        style={{ marginTop: 6 }}
+                        data-testid="run-alert-message"
+                      >
+                        {a.message}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           ) : null}
 
@@ -263,56 +282,85 @@ export function RunResultView({
           </div>
 
           {evidenceClaims.length > 0 ? (
-            <div data-testid="run-claims" style={{ marginTop: "1.25rem" }}>
-              <h3 className="run-question-label">Claims &amp; counterpoints</h3>
-              <ul className="evidence-claim-list">
-                {evidenceClaims.map((c) => {
-                  const tie = describeGraphNodeTie(graph, c.graphNodeId);
-                  const linkedActive =
-                    tie !== null &&
-                    selectedGraphNodeId !== null &&
-                    c.graphNodeId === selectedGraphNodeId;
-                  return (
-                    <li
-                      key={c.id}
-                      className={cn(
-                        "evidence-claim-block",
-                        linkedActive && "evidence-claim-block--linked-active",
-                      )}
-                      data-claim-matches-graph-node={
-                        linkedActive ? "true" : undefined
-                      }
-                      data-graph-node-id={c.graphNodeId ?? undefined}
-                      data-testid="run-claim"
-                    >
-                      {tie ? (
+            <div
+              data-testid="run-claims-section"
+              style={{ marginTop: "1.25rem" }}
+            >
+              <div data-testid="run-claims">
+                <h3 className="run-question-label">Claims &amp; counterpoints</h3>
+                <ul className="evidence-claim-list">
+                  {evidenceClaims.map((c) => {
+                    const tie = describeGraphNodeTie(graph, c.graphNodeId);
+                    const linkedActive =
+                      tie !== null &&
+                      selectedGraphNodeId !== null &&
+                      c.graphNodeId === selectedGraphNodeId;
+                    return (
+                      <li
+                        key={c.id}
+                        className={cn(
+                          "evidence-claim-block",
+                          linkedActive && "evidence-claim-block--linked-active",
+                        )}
+                        data-claim-matches-graph-node={
+                          linkedActive ? "true" : undefined
+                        }
+                        data-graph-node-id={c.graphNodeId ?? undefined}
+                        data-testid="run-claim"
+                      >
+                        {tie ? (
+                          <p
+                            className="muted evidence-claim-graph-link"
+                            data-testid="run-claim-graph-link"
+                          >
+                            Graph: {tie.kindLabel} — {tie.nodeLabel}{" "}
+                            <span className="evidence-claim-node-id">
+                              ({tie.nodeId})
+                            </span>
+                          </p>
+                        ) : null}
                         <p
-                          className="muted evidence-claim-graph-link"
-                          data-testid="run-claim-graph-link"
+                          className="source-list-item-title"
+                          data-testid="run-claim-item"
                         >
-                          Graph: {tie.kindLabel} — {tie.nodeLabel}{" "}
-                          <span className="evidence-claim-node-id">
-                            ({tie.nodeId})
-                          </span>
+                          {c.summary}
                         </p>
-                      ) : null}
-                      <p className="source-list-item-title">{c.summary}</p>
-                      {c.counterpoints.length > 0 ? (
-                        <ul className="evidence-counterpoint-list">
-                          {c.counterpoints.map((cp) => (
-                            <li
-                              key={cp.id}
-                              className="evidence-counterpoint"
-                              data-testid="run-counterpoint"
-                            >
-                              {cp.summary}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
-                    </li>
-                  );
-                })}
+                        {c.counterpoints.length > 0 ? (
+                          <ul className="evidence-counterpoint-list">
+                            {c.counterpoints.map((cp) => (
+                              <li
+                                key={cp.id}
+                                className="evidence-counterpoint"
+                                data-testid="run-counterpoint"
+                              >
+                                {cp.summary}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
+          ) : null}
+
+          {flatCounterpoints.length > 0 ? (
+            <div
+              data-testid="run-counterpoints-section"
+              style={{ marginTop: "1.25rem" }}
+            >
+              <h3 className="run-question-label">Counterpoints</h3>
+              <ul className="evidence-list">
+                {flatCounterpoints.map((cp) => (
+                  <li
+                    key={`${cp.claimId}-${cp.counterpointId}`}
+                    data-testid="run-counterpoint-item"
+                  >
+                    {cp.summary}
+                  </li>
+                ))}
               </ul>
             </div>
           ) : null}

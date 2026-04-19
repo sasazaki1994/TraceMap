@@ -25,7 +25,7 @@ Optional string **`graph_node_id`** on `claims` ties a claim row to a node `id` 
 ## Mock slice (current)
 
 - `createMockAnalysisRun` in `src/server/analysis/create-mock-run.ts` inserts **one** `Claim` (with optional `graph_node_id` pointing at `node_answer` in `graph_json`), **one** `Counterpoint` on that claim, and **one** `Alert` (`warning` level, synthetic copy).
-- Run and share pages load these via `mapAnswerEvidenceForView` and render read-only sections in `RunResultView` (`data-testid` hooks: `run-alerts`, `run-alert`, `run-alert-level`, `run-claims`, `run-claim`, `run-claim-graph-link`, `run-counterpoint`).
+- Run and share pages load these via `mapAnswerEvidenceForView` and render read-only sections in `RunResultView` (`data-testid` hooks: `run-alerts-section`, `run-alerts`, `run-alert`, `run-alert-level`, `run-alert-message`, `run-claims-section`, `run-claims`, `run-claim`, `run-claim-item`, `run-claim-graph-link`, `run-counterpoints-section`, `run-counterpoint`, `run-counterpoint-item`).
 - **Graph tie UX**: Claims with `graph_node_id` show a short “Graph: …” line (`run-claim-graph-link`). Clicking **Answer** or **Question** nodes in the SVG (`graph-node--interactive`) sets `selectedGraphNodeId` and adds `evidence-claim-block--linked-active` / `data-claim-matches-graph-node` on claims whose `graph_node_id` matches; clicking a **source** node clears that graph selection (source list selection unchanged).
 
 ## Out of scope (still)

@@ -141,7 +141,7 @@ export async function createMockAnalysisRun(question: string): Promise<string> {
       data: {
         claimId: claim.id,
         summary:
-          "Counterpoint: in production, conflicting sources would surface here (mock).",
+          "Mock counterpoint: in production, conflicting sources would surface here (mock).",
       },
     });
 

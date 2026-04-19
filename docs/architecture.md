@@ -8,6 +8,11 @@
 - Playwright for smoke-style E2E checks (CI runs against Postgres + migrated schema)
 - Specs in `specs/`, Gherkin-style acceptance in `acceptance/`
 
+### Mock slice layers (evidence)
+
+- **Question → answer graph**: `analysis_runs`, `answer_snapshots` (including `graph_json`), `source_snapshots`; created by `createMockAnalysisRun` and shown on `/runs/[id]` (graph + sources + detail panel).
+- **Claim / Counterpoint / Alert (read-only mock)**: `claims`, `counterpoints`, `alerts` on the **latest** `answer_snapshots` row (FK from claim/counterpoint/alert tables); `createMockAnalysisRun` inserts one of each with placeholder copy. `/runs/[id]` and `/share/[token]` map rows through `mapAnswerEvidenceForView` into `RunResultView`. No LLM or async pipeline.
+
 ## Directory Intent
 
 - `src/app`: routes, layouts, route handlers
