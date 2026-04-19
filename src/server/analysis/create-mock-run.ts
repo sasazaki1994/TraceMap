@@ -128,6 +128,29 @@ export async function createMockAnalysisRun(question: string): Promise<string> {
       data: { graphJson: graph as Prisma.InputJsonValue },
     });
 
+    await tx.claim.create({
+      data: {
+        analysisRunId: run.id,
+        body: "Mock claim: the synthesis above is supported by the listed sources and the graph links.",
+      },
+    });
+
+    await tx.counterpoint.create({
+      data: {
+        analysisRunId: run.id,
+        body: "Mock counterpoint: excerpts are shortened; verify originals before relying on citations.",
+      },
+    });
+
+    await tx.alert.create({
+      data: {
+        analysisRunId: run.id,
+        level: "medium",
+        message:
+          "Mock alert: this run uses placeholder evidence only (no LLM, no live retrieval).",
+      },
+    });
+
     return run.id;
   });
 }

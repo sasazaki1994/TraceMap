@@ -7,6 +7,11 @@
 - Vitest for unit tests
 - Playwright for smoke-style E2E checks
 
+### Mock slice layers (evidence)
+
+- **Question → answer graph**: `analysis_runs`, `answer_snapshots` (including `graph_json`), `source_snapshots`; created by `createMockAnalysisRun` and shown on `/runs/[id]` (graph + sources + detail panel).
+- **Claim / Counterpoint / Alert (read-only mock)**: `claims`, `counterpoints`, `alerts` on the same run; populated alongside the mock graph in `createMockAnalysisRun` and displayed as read-only sections on the run page. No LLM or async pipeline—placeholder text only.
+
 ## Directory Intent
 
 - `src/app`: routes, layouts, route handlers

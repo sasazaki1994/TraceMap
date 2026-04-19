@@ -13,10 +13,32 @@ export type RunSourceView = {
   sourceType: "web" | "document" | "note";
 };
 
+export type RunClaimView = {
+  id: string;
+  body: string;
+};
+
+export type RunCounterpointView = {
+  id: string;
+  body: string;
+};
+
+/** Mirrors `AlertLevel` in Prisma; kept client-safe without importing @prisma/client. */
+export type RunAlertLevel = "info" | "low" | "medium" | "high";
+
+export type RunAlertView = {
+  id: string;
+  level: RunAlertLevel;
+  message: string;
+};
+
 type RunResultViewProps = {
   question: string;
   answerTitle: string | null;
   answerContent: string;
+  claims: RunClaimView[];
+  counterpoints: RunCounterpointView[];
+  alerts: RunAlertView[];
   sources: RunSourceView[];
   graph: AnswerGraphJson;
 };
@@ -73,6 +95,9 @@ export function RunResultView({
   question,
   answerTitle,
   answerContent,
+  claims,
+  counterpoints,
+  alerts,
   sources,
   graph,
 }: RunResultViewProps) {
@@ -96,6 +121,69 @@ export function RunResultView({
           {answerTitle ? <h2>{answerTitle}</h2> : <h2>Answer</h2>}
           <div className="run-answer-body" data-testid="run-answer">
             {answerContent}
+          </div>
+
+          <div
+            className="run-evidence-block"
+            data-testid="run-claims-section"
+            style={{ marginTop: "1.25rem" }}
+          >
+            <h3 className="run-question-label">Claims</h3>
+            {claims.length === 0 ? (
+              <p className="muted">No claims for this run.</p>
+            ) : (
+              <ul className="evidence-list">
+                {claims.map((c) => (
+                  <li key={c.id} data-testid="run-claim-item">
+                    {c.body}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div
+            className="run-evidence-block"
+            data-testid="run-counterpoints-section"
+            style={{ marginTop: "1.25rem" }}
+          >
+            <h3 className="run-question-label">Counterpoints</h3>
+            {counterpoints.length === 0 ? (
+              <p className="muted">No counterpoints for this run.</p>
+            ) : (
+              <ul className="evidence-list">
+                {counterpoints.map((c) => (
+                  <li key={c.id} data-testid="run-counterpoint-item">
+                    {c.body}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div
+            className="run-evidence-block"
+            data-testid="run-alerts-section"
+            style={{ marginTop: "1.25rem" }}
+          >
+            <h3 className="run-question-label">Alerts</h3>
+            {alerts.length === 0 ? (
+              <p className="muted">No alerts for this run.</p>
+            ) : (
+              <ul className="evidence-list evidence-alert-list">
+                {alerts.map((a) => (
+                  <li key={a.id} data-testid="run-alert-item">
+                    <span
+                      className="run-alert-level"
+                      data-testid="run-alert-level"
+                    >
+                      {a.level}
+                    </span>
+                    <span data-testid="run-alert-message">{a.message}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <h3 className="run-question-label" style={{ marginTop: "1.25rem" }}>

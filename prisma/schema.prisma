@@ -20,6 +20,13 @@ enum SourceSnapshotType {
   note
 }
 
+enum AlertLevel {
+  info
+  low
+  medium
+  high
+}
+
 model AnalysisRun {
   id              String            @id @default(cuid())
   question        String
@@ -27,6 +34,9 @@ model AnalysisRun {
   answerSnapshots AnswerSnapshot[]
   sourceSnapshots SourceSnapshot[]
   shareLinks      ShareLink[]
+  claims          Claim[]
+  counterpoints   Counterpoint[]
+  alerts          Alert[]
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
 
@@ -75,4 +85,38 @@ model ShareLink {
 
   @@index([analysisRunId])
   @@map("share_links")
+}
+
+model Claim {
+  id            String      @id @default(cuid())
+  analysisRunId String      @map("analysis_run_id")
+  body          String
+  createdAt     DateTime    @default(now()) @map("created_at")
+  analysisRun   AnalysisRun @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
+
+  @@index([analysisRunId])
+  @@map("claims")
+}
+
+model Counterpoint {
+  id            String      @id @default(cuid())
+  analysisRunId String      @map("analysis_run_id")
+  body          String
+  createdAt     DateTime    @default(now()) @map("created_at")
+  analysisRun   AnalysisRun @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
+
+  @@index([analysisRunId])
+  @@map("counterpoints")
+}
+
+model Alert {
+  id            String      @id @default(cuid())
+  analysisRunId String      @map("analysis_run_id")
+  level         AlertLevel
+  message       String
+  createdAt     DateTime    @default(now()) @map("created_at")
+  analysisRun   AnalysisRun @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
+
+  @@index([analysisRunId])
+  @@map("alerts")
 }

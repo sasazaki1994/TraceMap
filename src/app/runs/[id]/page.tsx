@@ -22,6 +22,15 @@ export default async function RunPage({ params }: RunPageProps) {
       sourceSnapshots: {
         orderBy: { createdAt: "asc" },
       },
+      claims: {
+        orderBy: { createdAt: "asc" },
+      },
+      counterpoints: {
+        orderBy: { createdAt: "asc" },
+      },
+      alerts: {
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 
@@ -43,6 +52,16 @@ export default async function RunPage({ params }: RunPageProps) {
           question={run.question}
           answerTitle={answer.title}
           answerContent={answer.content}
+          claims={run.claims.map((c) => ({ id: c.id, body: c.body }))}
+          counterpoints={run.counterpoints.map((c) => ({
+            id: c.id,
+            body: c.body,
+          }))}
+          alerts={run.alerts.map((a) => ({
+            id: a.id,
+            level: a.level,
+            message: a.message,
+          }))}
           sources={run.sourceSnapshots.map((s) => ({
             id: s.id,
             label: s.label,
