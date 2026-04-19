@@ -27,9 +27,10 @@ describe("createMockAnalysisRun", () => {
       .mockResolvedValueOnce({ id: "src_b" })
       .mockResolvedValueOnce({ id: "src_c" });
     tx.answerSnapshot.update.mockResolvedValue({});
+    tx.claim.create.mockResolvedValue({ id: "claim_mock" });
   });
 
-  it("persists at least one claim, counterpoint, and alert for the run", async () => {
+  it("persists at least one claim, counterpoint, and alert for the answer snapshot", async () => {
     const { createMockAnalysisRun } = await import(
       "@/server/analysis/create-mock-run"
     );
@@ -41,24 +42,25 @@ describe("createMockAnalysisRun", () => {
     expect(tx.claim.create).toHaveBeenCalledTimes(1);
     expect(tx.claim.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        analysisRunId: "run_mock",
-        body: expect.stringContaining("Mock claim"),
+        answerSnapshotId: "answer_mock",
+        summary: expect.stringContaining("mock claim"),
+        graphNodeId: "node_answer",
       }),
     });
 
     expect(tx.counterpoint.create).toHaveBeenCalledTimes(1);
     expect(tx.counterpoint.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        analysisRunId: "run_mock",
-        body: expect.stringContaining("Mock counterpoint"),
+        claimId: "claim_mock",
+        summary: expect.stringContaining("Mock counterpoint"),
       }),
     });
 
     expect(tx.alert.create).toHaveBeenCalledTimes(1);
     expect(tx.alert.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        analysisRunId: "run_mock",
-        level: "medium",
+        answerSnapshotId: "answer_mock",
+        level: "warning",
         message: expect.stringContaining("Mock alert"),
       }),
     });

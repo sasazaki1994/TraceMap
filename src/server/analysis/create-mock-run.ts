@@ -128,26 +128,29 @@ export async function createMockAnalysisRun(question: string): Promise<string> {
       data: { graphJson: graph as Prisma.InputJsonValue },
     });
 
-    await tx.claim.create({
+    const claim = await tx.claim.create({
       data: {
-        analysisRunId: run.id,
-        body: "Mock claim: the synthesis above is supported by the listed sources and the graph links.",
+        answerSnapshotId: answer.id,
+        summary:
+          "The synthesis aggregates mocked sources into a single narrative (mock claim).",
+        graphNodeId: "node_answer",
       },
     });
 
     await tx.counterpoint.create({
       data: {
-        analysisRunId: run.id,
-        body: "Mock counterpoint: excerpts are shortened; verify originals before relying on citations.",
+        claimId: claim.id,
+        summary:
+          "Mock counterpoint: in production, conflicting sources would surface here (mock).",
       },
     });
 
     await tx.alert.create({
       data: {
-        analysisRunId: run.id,
-        level: "medium",
+        answerSnapshotId: answer.id,
+        level: "warning",
         message:
-          "Mock alert: this run uses placeholder evidence only (no LLM, no live retrieval).",
+          "Mock alert: evidence is synthetic; do not rely on this output for decisions.",
       },
     });
 

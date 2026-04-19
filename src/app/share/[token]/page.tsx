@@ -2,44 +2,52 @@ import { notFound } from "next/navigation";
 
 import { PageContainer } from "@/components/ui/page-container";
 import { RunResultView } from "@/features/run/components/run-result-view";
-import { RunShareControls } from "@/features/run/components/run-share-controls";
 import { mapAnswerEvidenceForView } from "@/server/analysis/map-run-evidence";
 import { prisma } from "@/server/db/prisma";
 import { parseAnswerGraphJson } from "@/types/answer-graph";
 
-type RunPageProps = {
-  params: Promise<{ id: string }>;
+type SharePageProps = {
+  params: Promise<{ token: string }>;
 };
 
-export default async function RunPage({ params }: RunPageProps) {
-  const { id } = await params;
+export default async function SharePage({ params }: SharePageProps) {
+  const { token } = await params;
 
-  const run = await prisma.analysisRun.findUnique({
-    where: { id },
+  const shareLink = await prisma.shareLink.findUnique({
+    where: { token },
     include: {
-      answerSnapshots: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
+      analysisRun: {
         include: {
-          claims: {
-            orderBy: { createdAt: "asc" },
+          answerSnapshots: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
             include: {
-              counterpoints: { orderBy: { createdAt: "asc" } },
+              claims: {
+                orderBy: { createdAt: "asc" },
+                include: {
+                  counterpoints: { orderBy: { createdAt: "asc" } },
+                },
+              },
+              alerts: { orderBy: { createdAt: "asc" } },
             },
           },
-          alerts: { orderBy: { createdAt: "asc" } },
+          sourceSnapshots: {
+            orderBy: { createdAt: "asc" },
+          },
         },
-      },
-      sourceSnapshots: {
-        orderBy: { createdAt: "asc" },
       },
     },
   });
 
-  if (!run) {
+  if (!shareLink) {
     notFound();
   }
 
+  if (shareLink.expiresAt !== null && shareLink.expiresAt < new Date()) {
+    notFound();
+  }
+
+  const run = shareLink.analysisRun;
   const answer = run.answerSnapshots[0];
   if (!answer) {
     notFound();
@@ -51,7 +59,9 @@ export default async function RunPage({ params }: RunPageProps) {
   return (
     <main>
       <PageContainer className="home-grid">
-        <RunShareControls analysisRunId={run.id} />
+        <p className="eyebrow" style={{ marginBottom: "-8px" }}>
+          Shared view · read-only
+        </p>
         <RunResultView
           question={run.question}
           answerTitle={answer.title}

@@ -28,17 +28,37 @@ test.describe("question-to-answer-graph", () => {
     await expect(page).toHaveURL(/\/runs\//);
     await expect(page.getByText("Why is interpretability important?")).toBeVisible();
     await expect(page.getByTestId("run-answer")).toContainText("Mock trace snapshot");
+
+    await expect(page.getByTestId("run-alerts")).toBeVisible();
+    const alertRow = page.getByTestId("run-alert").first();
+    await expect(alertRow).toBeVisible();
+    await expect(alertRow).toHaveAttribute("data-alert-level", "warning");
+    await expect(alertRow.getByTestId("run-alert-level")).toHaveText(/Warning/i);
+
     await expect(page.getByTestId("run-graph")).toBeVisible();
+    await expect(page.getByTestId("run-claim-graph-link")).toContainText(
+      "node_answer",
+    );
+
+    await page.getByTestId("graph-node-node_answer").click();
+    await expect(page.getByTestId("run-claim").first()).toHaveAttribute(
+      "data-claim-matches-graph-node",
+      "true",
+    );
+
+    await expect(page.getByTestId("run-claims")).toBeVisible();
+    await expect(page.getByTestId("run-claim").first()).toBeVisible();
+    await expect(page.getByTestId("run-counterpoint").first()).toBeVisible();
     await expect(page.getByTestId("graph-node-node_question")).toBeVisible();
     await expect(page.getByTestId("graph-node-node_answer")).toBeVisible();
     await expect(page.getByTestId("graph-node-node_source_a")).toBeVisible();
 
-    await expect(page.getByTestId("run-claims-section")).toContainText("Mock claim");
+    await expect(page.getByTestId("run-claims-section")).toContainText("mock claim");
     await expect(page.getByTestId("run-counterpoints-section")).toContainText(
       "Mock counterpoint",
     );
     await expect(page.getByTestId("run-alerts-section")).toContainText("Mock alert");
-    await expect(page.getByTestId("run-alert-level").first()).toHaveText("medium");
+    await expect(page.getByTestId("run-alert-level").first()).toHaveText(/Warning/i);
 
     await page.getByTestId("source-row").first().click();
     await expect(page.getByTestId("source-detail-panel")).toContainText(

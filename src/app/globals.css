@@ -1,3 +1,7 @@
+/*
+ * TraceMap visual design tokens (cyber baseline).
+ * Spec: specs/visual-design-system-cyber.md — use these variables instead of ad hoc colors in new CSS.
+ */
 :root {
   color-scheme: dark;
   --background: #07111f;
@@ -327,10 +331,14 @@ button {
 }
 
 .graph-node {
+  cursor: default;
+}
+
+.graph-node--interactive {
   cursor: pointer;
 }
 
-.graph-node:hover circle {
+.graph-node--interactive:hover circle {
   stroke: var(--accent-strong);
 }
 
@@ -343,4 +351,89 @@ button {
   color: #f9a8a8;
   font-size: 0.9rem;
   margin-top: 8px;
+}
+
+.evidence-alert-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.evidence-alert {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(5, 12, 24, 0.35);
+  padding: 12px 14px;
+}
+
+.evidence-alert--info {
+  border-color: rgba(110, 231, 249, 0.35);
+}
+
+.evidence-alert--warning {
+  border-color: rgba(250, 204, 21, 0.45);
+}
+
+.evidence-alert--error {
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.evidence-alert-level {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.evidence-claim-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.evidence-claim-block {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(5, 12, 24, 0.25);
+  padding: 12px 14px;
+}
+
+.evidence-claim-block--linked-active {
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 1px var(--accent-strong);
+}
+
+.evidence-claim-node-id {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.evidence-claim-graph-link {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+}
+
+.evidence-counterpoint-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  border-left: 2px solid var(--accent-strong);
+  padding-left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.evidence-counterpoint {
+  font-size: 0.92rem;
+  color: var(--muted);
+  line-height: 1.45;
 }
