@@ -397,6 +397,15 @@ export function RunResultView({
                     {s.sourceType}
                     {s.url ? ` · ${s.url}` : ""}
                   </div>
+                  {s.excerpt ? (
+                    <div
+                      className="muted"
+                      data-testid="source-row-excerpt-preview"
+                      style={{ marginTop: "0.35rem", fontSize: "0.85em", lineHeight: 1.35 }}
+                    >
+                      {s.excerpt.length > 140 ? `${s.excerpt.slice(0, 137)}…` : s.excerpt}
+                    </div>
+                  ) : null}
                 </button>
               </li>
             ))}

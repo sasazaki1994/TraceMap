@@ -19,3 +19,7 @@ TraceMap persists generated graphs via `persistGeneratedAnswerGraph` behind the 
 
 - One synchronous HTTP call per run creation when OpenAI is selected; request timeouts are bounded by `TRACEMAP_OPENAI_TIMEOUT_MS`.
 - OpenAI SDK usage is confined to the provider module; orchestration (`createAnalysisRunFromProvider`) is unchanged.
+
+## Source-grounded slice (addendum)
+
+Structured output includes **`sufficient_grounding`**. When `false`, the provider returns **`GenerateAnswerGraphFailure`** with a stable user-facing message so the run stays **`failed`** (not `completed`). Successful outputs require **at least two** sources, each **http** or **https** URL with a host (validated in code, no domain allowlist). Claims include **`supported_by_source_ids`**; the persisted single claim’s **`graph_node_id`** points at a **source** node so the UI can show claim ↔ source linkage. There is no retrieval layer or URL verification beyond parsing.

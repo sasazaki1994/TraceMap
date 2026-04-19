@@ -25,12 +25,14 @@ Optional string **`graph_node_id`** on `claims` ties a claim row to a node `id` 
 ## Mock slice (current)
 
 - The **mock** answer-graph provider (`src/server/analysis/providers/mock-answer-graph-provider.ts`), invoked via `createAnalysisRunFromProvider`, yields a payload that persistence writes as **one** `Claim` (with optional `graph_node_id` pointing at `node_answer` in `graph_json`), **one** `Counterpoint` on that claim, and **one** `Alert` (`warning` level, synthetic copy). The **stub** provider omits evidence rows (empty claims/alerts) by design.
+- The **openai** provider (`src/server/analysis/providers/openai-answer-graph-provider.ts`) also persists **one** claim / counterpoint / alert bundle, but builds the claim summary from model **claims** with **`supported_by_source_ids`** referencing `sources[].id`, and sets **`graph_node_id`** to a **source** node (`node_source_*`) when validation passes. If the model reports insufficient grounding (`sufficient_grounding: false`) or validation fails (e.g. fewer than two valid URLs), the run does not complete successfully.
 - Run and share pages load these via `mapAnswerEvidenceForView` and render read-only sections in `RunResultView` (`data-testid` hooks: `run-alerts-section`, `run-alerts`, `run-alert`, `run-alert-level`, `run-alert-message`, `run-claims-section`, `run-claims`, `run-claim`, `run-claim-item`, `run-claim-graph-link`, `run-counterpoints-section`, `run-counterpoint`, `run-counterpoint-item`).
 - **Graph tie UX**: Claims with `graph_node_id` show a short “Graph: …” line (`run-claim-graph-link`). Clicking **Answer** or **Question** nodes in the SVG (`graph-node--interactive`) sets `selectedGraphNodeId` and adds `evidence-claim-block--linked-active` / `data-claim-matches-graph-node` on claims whose `graph_node_id` matches; clicking a **source** node clears that graph selection (source list selection unchanged).
 
 ## Out of scope (still)
 
-- Real LLM / retrieval pipelines writing these rows (the **interface** for plugging one in exists; no vendor SDK is wired by default).
+- Multiple `Claim` rows per answer snapshot (still one aggregated claim row in DB for the OpenAI path).
+- Retrieval/RAG pipelines and live URL verification beyond the OpenAI provider’s structural checks.
 - Editing, moderation, or async job workflows.
 
 ## Related specs

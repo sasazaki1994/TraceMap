@@ -191,3 +191,5 @@ By default, runs use the **mock** answer-graph provider. To call OpenAI from the
 3. Optionally set `TRACEMAP_OPENAI_MODEL` (default `gpt-4o-mini`) and `TRACEMAP_OPENAI_TIMEOUT_MS` (default `60000` ms).
 
 If the key is missing or the API errors, the run ends as **failed** and `last_error_message` is set. This path does not add web search, retrieval/RAG, background jobs, or streaming — see `docs/architecture.md` and `docs/adr/openai-answer-graph-provider.md`.
+
+**Source-grounded slice (OpenAI only):** the model must return at least **two** sources with **http** or **https** URLs (hostname required). Claims must reference those sources by id. If the model sets **`sufficient_grounding`** to **false** (cannot ground the answer), the run **fails** — it is not marked completed. There is no live URL fetch; validation is structural only. Default provider remains **mock**; use `TRACEMAP_ANSWER_GRAPH_PROVIDER=openai` to enable this path.

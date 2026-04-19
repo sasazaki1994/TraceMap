@@ -8,10 +8,19 @@ import type {
   GenerateAnswerGraphResult,
 } from "@/types/answer-graph-generation";
 
+/** User-visible when `sufficient_grounding` is false in structured output. */
+export const OPENAI_INSUFFICIENT_GROUNDING_MESSAGE =
+  "The model could not ground this answer with sufficient evidence from real sources.";
+
 const OPENAI_STRUCTURED_SCHEMA = {
   type: "object",
   additionalProperties: false,
   properties: {
+    sufficient_grounding: {
+      type: "boolean",
+      description:
+        "Set to false if you cannot cite at least two distinct real http(s) URLs and tie claims to them. Do not invent URLs to pass validation.",
+    },
     answer_title: {
       type: "string",
       description: "Short title for the synthesized answer.",
@@ -22,20 +31,26 @@ const OPENAI_STRUCTURED_SCHEMA = {
     },
     claims: {
       type: "array",
-      description: "Short atomic claims that the answer rests on.",
+      description: "Atomic claims; each must cite source ids from the sources array.",
       items: {
         type: "object",
         additionalProperties: false,
         properties: {
           id: { type: "string" },
           summary: { type: "string" },
+          supported_by_source_ids: {
+            type: "array",
+            items: { type: "string" },
+            minItems: 1,
+            description: "Ids from sources[].id that support this claim.",
+          },
         },
-        required: ["id", "summary"],
+        required: ["id", "summary", "supported_by_source_ids"],
       },
     },
     sources: {
       type: "array",
-      description: "References the answer cites; map to graph source nodes.",
+      description: "At least two distinct real web pages (http or https URLs with a host).",
       items: {
         type: "object",
         additionalProperties: false,
@@ -48,8 +63,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
           },
           url: {
             type: "string",
-            description:
-              "Canonical URL when applicable; use empty string when unknown.",
+            description: "Real public http(s) URL; must not be empty when sufficient_grounding is true.",
           },
           excerpt: { type: "string" },
         },
@@ -74,6 +88,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
     },
   },
   required: [
+    "sufficient_grounding",
     "answer_title",
     "answer_content",
     "claims",
@@ -84,9 +99,14 @@ const OPENAI_STRUCTURED_SCHEMA = {
 } as const;
 
 type StructuredAnswerPayload = {
+  sufficient_grounding: boolean;
   answer_title: string;
   answer_content: string;
-  claims: { id: string; summary: string }[];
+  claims: {
+    id: string;
+    summary: string;
+    supported_by_source_ids: string[];
+  }[];
   sources: {
     id: string;
     label: string;
@@ -112,9 +132,123 @@ function getOpenAiConfig(): { apiKey: string | undefined; model: string; timeout
   };
 }
 
+/** http(s) only, parseable URL, non-empty host. */
+export function isValidPublicHttpUrl(raw: string): boolean {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return false;
+  }
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    return false;
+  }
+  return url.hostname.length > 0;
+}
+
+export type ValidateStructuredPayloadResult =
+  | { kind: "ok"; normalizedSources: { url: string }[] }
+  | Extract<GenerateAnswerGraphResult, { kind: "failure" }>;
+
+/**
+ * Validates structured output after JSON parse. Returns failure result or normalized sources (trimmed URLs).
+ */
+export function validateStructuredAnswerPayload(
+  parsed: StructuredAnswerPayload,
+): ValidateStructuredPayloadResult {
+  if (parsed.sufficient_grounding !== true) {
+    return {
+      kind: "failure",
+      errorMessage: OPENAI_INSUFFICIENT_GROUNDING_MESSAGE,
+      cause: parsed,
+    };
+  }
+
+  if (!Array.isArray(parsed.sources) || parsed.sources.length < 2) {
+    return {
+      kind: "failure",
+      errorMessage:
+        "OpenAI structured output must include at least two sources with valid http(s) URLs.",
+      cause: parsed,
+    };
+  }
+
+  const seenSourceIds = new Set<string>();
+  const sourceIdToIndex = new Map<string, number>();
+
+  const normalizedSources: { url: string }[] = [];
+
+  for (let i = 0; i < parsed.sources.length; i++) {
+    const s = parsed.sources[i];
+    const id = s.id?.trim() ?? "";
+    if (!id) {
+      return {
+        kind: "failure",
+        errorMessage: "Each source must have a non-empty id.",
+        cause: parsed,
+      };
+    }
+    if (seenSourceIds.has(id)) {
+      return {
+        kind: "failure",
+        errorMessage: "Duplicate source id in structured output.",
+        cause: parsed,
+      };
+    }
+    seenSourceIds.add(id);
+    sourceIdToIndex.set(id, i);
+
+    const urlTrimmed = s.url.trim();
+    if (!isValidPublicHttpUrl(urlTrimmed)) {
+      return {
+        kind: "failure",
+        errorMessage:
+          "Invalid source URL: only http or https URLs with a host are allowed.",
+        cause: parsed,
+      };
+    }
+    normalizedSources.push({ url: urlTrimmed });
+  }
+
+  if (!Array.isArray(parsed.claims) || parsed.claims.length === 0) {
+    return {
+      kind: "failure",
+      errorMessage: "OpenAI structured output must include at least one claim linked to sources.",
+      cause: parsed,
+    };
+  }
+
+  for (const claim of parsed.claims) {
+    const ids = claim.supported_by_source_ids;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return {
+        kind: "failure",
+        errorMessage: "Each claim must list at least one supported_by_source_ids entry.",
+        cause: parsed,
+      };
+    }
+    for (const sid of ids) {
+      if (!sourceIdToIndex.has(sid)) {
+        return {
+          kind: "failure",
+          errorMessage: `Claim references unknown source id: ${sid}.`,
+          cause: parsed,
+        };
+      }
+    }
+  }
+
+  return { kind: "ok", normalizedSources };
+}
+
 function buildGraphAndPayload(
   question: string,
   structured: StructuredAnswerPayload,
+  normalizedUrls: string[],
   modelLabel: string,
 ): GenerateAnswerGraphResult {
   const preview =
@@ -130,6 +264,24 @@ function buildGraphAndPayload(
     label: s.label,
     sourceSnapshotId: placeholderIds[i],
   }));
+
+  const sourceIdToIndex = new Map<string, number>();
+  structured.sources.forEach((s, i) => {
+    sourceIdToIndex.set(s.id, i);
+  });
+
+  const firstClaim = structured.claims[0];
+  const primarySourceIdx = sourceIdToIndex.get(
+    firstClaim.supported_by_source_ids[0],
+  );
+  if (primarySourceIdx === undefined) {
+    return {
+      kind: "failure",
+      errorMessage: "Could not resolve primary source for claim graph link.",
+      cause: structured,
+    };
+  }
+  const claimGraphNodeId = `node_source_${primarySourceIdx}`;
 
   const nodes: AnswerGraphJson["nodes"] = [
     { id: "node_question", kind: "question", label: preview },
@@ -150,10 +302,22 @@ function buildGraphAndPayload(
   const graph: AnswerGraphJson = { version: 1, nodes, edges };
   answerGraphJsonSchema.parse(graph);
 
-  const claimSummary =
-    structured.claims.length > 0
-      ? structured.claims.map((c) => `• ${c.summary}`).join("\n")
-      : structured.answer_content.slice(0, 400);
+  const claimSummary = structured.claims
+    .map((c) => {
+      const srcLabels = c.supported_by_source_ids
+        .map((sid) => {
+          const idx = sourceIdToIndex.get(sid);
+          if (idx === undefined) {
+            return null;
+          }
+          return structured.sources[idx].label;
+        })
+        .filter((x): x is string => x !== null);
+      const cite =
+        srcLabels.length > 0 ? ` [sources: ${srcLabels.join(", ")}]` : "";
+      return `• ${c.summary}${cite}`;
+    })
+    .join("\n");
 
   const payload: GeneratedAnswerGraphPayload = {
     answer: {
@@ -162,16 +326,16 @@ function buildGraphAndPayload(
       content: structured.answer_content,
       graphJson: graph,
     },
-    sources: structured.sources.map((s) => ({
+    sources: structured.sources.map((s, i) => ({
       label: s.label,
       sourceType: s.source_type,
-      url: s.url.trim() ? s.url.trim() : null,
+      url: normalizedUrls[i] ?? s.url.trim(),
       excerpt: s.excerpt.trim() ? s.excerpt : null,
     })),
     evidence: {
       claim: {
         summary: claimSummary,
-        graphNodeId: "node_answer",
+        graphNodeId: claimGraphNodeId,
       },
       counterpoint: {
         summary: structured.counterpoint_summary,
@@ -212,7 +376,6 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
       maxRetries: 0,
     });
 
-    let raw: string | undefined;
     try {
       const completion = await client.chat.completions.create({
         model,
@@ -222,9 +385,10 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
             role: "system",
             content: [
               "You produce TraceMap answer graphs as JSON matching the given schema.",
-              "Ground the answer in generic knowledge; do not invent specific URLs.",
-              "If you lack a real URL, set url to an empty string and keep excerpt substantive.",
-              "Provide at least one source row with a meaningful excerpt.",
+              "When sufficient_grounding is true: include at least two distinct sources, each with a real public http or https URL you could verify (well-known references, standards, documentation, or authoritative pages).",
+              "Do not invent URLs. If you cannot meet that bar, set sufficient_grounding to false (the run will fail — do not add fake links).",
+              "Every claim must list supported_by_source_ids referencing sources[].id values.",
+              "Separate 'cannot answer from sources' (sufficient_grounding false) from 'answer with caveats' (sufficient_grounding true, use alert.warning for limitations).",
             ].join(" "),
           },
           {
@@ -243,7 +407,7 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
         },
       });
 
-      raw = completion.choices[0]?.message?.content ?? undefined;
+      const raw = completion.choices[0]?.message?.content ?? undefined;
       if (!raw) {
         return {
           kind: "failure",
@@ -262,15 +426,14 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
         };
       }
 
-      if (!Array.isArray(parsed.sources) || parsed.sources.length === 0) {
-        return {
-          kind: "failure",
-          errorMessage: "OpenAI structured output missing non-empty sources.",
-          cause: parsed,
-        };
+      const validated = validateStructuredAnswerPayload(parsed);
+      if (validated.kind === "failure") {
+        return validated;
       }
 
-      return buildGraphAndPayload(input.question, parsed, model);
+      const normalizedUrls = validated.normalizedSources.map((s) => s.url);
+
+      return buildGraphAndPayload(input.question, parsed, normalizedUrls, model);
     } catch (cause) {
       const message =
         cause instanceof Error ? cause.message : "OpenAI answer graph generation failed.";
