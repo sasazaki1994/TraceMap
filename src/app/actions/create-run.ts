@@ -3,7 +3,7 @@
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 
-import { createMockAnalysisRun } from "@/server/analysis/create-mock-run";
+import { createAnalysisRunFromProvider } from "@/server/analysis/create-analysis-run-from-provider";
 
 export type CreateRunFormState = {
   error?: string;
@@ -18,6 +18,6 @@ export async function createMockRunAction(
     return { error: "Question is required." };
   }
 
-  const runId = await createMockAnalysisRun(raw.trim());
+  const runId = await createAnalysisRunFromProvider(raw.trim());
   redirect(`/runs/${runId}` as Route);
 }
