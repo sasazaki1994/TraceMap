@@ -169,16 +169,15 @@ http://localhost:3000/api/health
 
 ## CI
 
-GitHub Actions runs:
+GitHub Actions (`.github/workflows/ci.yml`) runs against a **PostgreSQL 16** service:
 
-- install
-- lint
-- typecheck
-- test
+- Install, `prisma generate`, **`prisma migrate deploy`**
+- Lint, typecheck, Vitest
+- Playwright (Chromium) E2E, including a dev server with `DATABASE_URL` pointing at the job database
 
 ## Current MVP Baseline
 
-- Top page at `/`
+- Top page at `/`, run detail at `/runs/[id]`, read-only share view at `/share/[token]`
 - Health route at `/api/health`
-- Prisma schema for `analysis_runs`, `answer_snapshots`, `source_snapshots`, and `share_links`
-- Sample Vitest and Playwright coverage
+- Prisma schema for runs, snapshots, share links, and MVP evidence tables (`claims`, `counterpoints`, `alerts`) — mock runs seed one of each for UI verification
+- Vitest and Playwright coverage; see `specs/` and `acceptance/` for behavior

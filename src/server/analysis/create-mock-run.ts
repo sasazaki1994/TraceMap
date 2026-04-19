@@ -128,6 +128,32 @@ export async function createMockAnalysisRun(question: string): Promise<string> {
       data: { graphJson: graph as Prisma.InputJsonValue },
     });
 
+    const claim = await tx.claim.create({
+      data: {
+        answerSnapshotId: answer.id,
+        summary:
+          "The synthesis aggregates mocked sources into a single narrative (mock claim).",
+        graphNodeId: "node_answer",
+      },
+    });
+
+    await tx.counterpoint.create({
+      data: {
+        claimId: claim.id,
+        summary:
+          "Counterpoint: in production, conflicting sources would surface here (mock).",
+      },
+    });
+
+    await tx.alert.create({
+      data: {
+        answerSnapshotId: answer.id,
+        level: "warning",
+        message:
+          "Mock alert: evidence is synthetic; do not rely on this output for decisions.",
+      },
+    });
+
     return run.id;
   });
 }
