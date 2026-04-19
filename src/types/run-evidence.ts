@@ -4,6 +4,8 @@ export type RunEvidenceClaim = {
   summary: string;
   /** When set, ties this claim to `graph_json.nodes[].id` (visual graph + optional highlight). */
   graphNodeId: string | null;
+  /** `source_snapshots.id` values linked via `claim_source_snapshots`. */
+  supportingSourceIds: string[];
   counterpoints: { id: string; summary: string }[];
 };
 

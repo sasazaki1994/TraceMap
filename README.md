@@ -179,7 +179,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs against a **PostgreSQL 16** ser
 
 - Top page at `/`, run detail at `/runs/[id]`, read-only share view at `/share/[token]`
 - Health route at `/api/health`
-- Prisma schema for runs, snapshots, share links, and MVP evidence tables (`claims`, `counterpoints`, `alerts`) — mock runs seed one of each for UI verification
+- Prisma schema for runs, snapshots, share links, and MVP evidence tables (`claims`, `claim_source_snapshots`, `counterpoints`, `alerts`, plus optional URL verification columns on `source_snapshots`) — mock runs seed multiple claims and one counterpoint for UI verification
 - Vitest and Playwright coverage; see `specs/` and `acceptance/` for behavior
 
 ## Optional: OpenAI answer graph (env-only)
@@ -192,4 +192,4 @@ By default, runs use the **mock** answer-graph provider. To call OpenAI from the
 
 If the key is missing or the API errors, the run ends as **failed** and `last_error_message` is set. This path does not add web search, retrieval/RAG, background jobs, or streaming — see `docs/architecture.md` and `docs/adr/openai-answer-graph-provider.md`.
 
-**Source-grounded slice (OpenAI only):** the model must return at least **two** sources with **http** or **https** URLs (hostname required). Claims must reference those sources by id. If the model sets **`sufficient_grounding`** to **false** (cannot ground the answer), the run **fails** — it is not marked completed. There is no live URL fetch; validation is structural only. Default provider remains **mock**; use `TRACEMAP_ANSWER_GRAPH_PROVIDER=openai` to enable this path.
+**Source-grounded slice (OpenAI only):** the model must return at least **two** sources with **http** or **https** URLs (hostname required). Claims must reference those sources by id. If the model sets **`sufficient_grounding`** to **false** (cannot ground the answer), the run **fails** — it is not marked completed. Structural validation is the gate for **`completed`** runs. On persist, the server performs a **best-effort** HTTP check per http(s) URL and stores verification metadata on **`source_snapshots`**; unreachable URLs do **not** by themselves fail the run. Default provider remains **mock**; use `TRACEMAP_ANSWER_GRAPH_PROVIDER=openai` to enable this path.

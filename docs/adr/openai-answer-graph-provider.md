@@ -22,4 +22,12 @@ TraceMap persists generated graphs via `persistGeneratedAnswerGraph` behind the 
 
 ## Source-grounded slice (addendum)
 
-Structured output includes **`sufficient_grounding`**. When `false`, the provider returns **`GenerateAnswerGraphFailure`** with a stable user-facing message so the run stays **`failed`** (not `completed`). Successful outputs require **at least two** sources, each **http** or **https** URL with a host (validated in code, no domain allowlist). Claims include **`supported_by_source_ids`**; the persisted single claim’s **`graph_node_id`** points at a **source** node so the UI can show claim ↔ source linkage. There is no retrieval layer or URL verification beyond parsing.
+Structured output includes **`sufficient_grounding`**. When `false`, the provider returns **`GenerateAnswerGraphFailure`** with a stable user-facing message so the run stays **`failed`** (not `completed`). Successful outputs require **at least two** sources, each **http** or **https** URL with a host (validated in code, no domain allowlist). Claims include **`supported_by_source_ids`** referencing `sources[].id`.
+
+**Persistence**: each model claim becomes a **`claims`** row; **`claim_source_snapshots`** stores the many-to-many link to **`source_snapshots`**. **`graph_json`** uses **version 2**: nodes include **`claim`**, with edges **source → claim** and **claim → answer** (no direct source → answer in new graphs). **`graph_node_id`** on each claim points at **`node_claim_*`** in `graph_json`.
+
+**Counterpoint / alert**: still **one** counterpoint and **one** alert per answer snapshot in the structured payload; the counterpoint is stored against the **first** claim.
+
+**URL verification**: `persistGeneratedAnswerGraph` performs a **best-effort** HTTP probe (HEAD with GET fallback) per http(s) source URL and stores metadata on **`source_snapshots`**. Failures to reach a host do **not** fail the run; they set **`unreachable`** (or similar) instead of changing the structural success criteria.
+
+There is no retrieval layer; structural validation remains the gate for **`completed`** runs.

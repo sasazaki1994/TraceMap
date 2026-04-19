@@ -245,6 +245,14 @@ export function validateStructuredAnswerPayload(
   return { kind: "ok", normalizedSources };
 }
 
+function claimNodeLabel(summary: string): string {
+  const t = summary.trim();
+  if (t.length <= 72) {
+    return t;
+  }
+  return `${t.slice(0, 69)}...`;
+}
+
 function buildGraphAndPayload(
   question: string,
   structured: StructuredAnswerPayload,
@@ -270,54 +278,55 @@ function buildGraphAndPayload(
     sourceIdToIndex.set(s.id, i);
   });
 
-  const firstClaim = structured.claims[0];
-  const primarySourceIdx = sourceIdToIndex.get(
-    firstClaim.supported_by_source_ids[0],
-  );
-  if (primarySourceIdx === undefined) {
-    return {
-      kind: "failure",
-      errorMessage: "Could not resolve primary source for claim graph link.",
-      cause: structured,
-    };
-  }
-  const claimGraphNodeId = `node_source_${primarySourceIdx}`;
+  const claimNodes = structured.claims.map((c, ci) => ({
+    id: `node_claim_${ci}`,
+    kind: "claim" as const,
+    label: claimNodeLabel(c.summary),
+  }));
 
   const nodes: AnswerGraphJson["nodes"] = [
     { id: "node_question", kind: "question", label: preview },
     { id: "node_answer", kind: "answer", label: "Synthesis" },
     ...sourceNodes,
+    ...claimNodes,
   ];
 
   const edges: AnswerGraphJson["edges"] = [
     { id: "edge_q_a", from: "node_question", to: "node_answer" },
-    ...sourceNodes.map((n, i) => ({
-      id: `edge_s${i}_a`,
-      from: n.id,
-      to: "node_answer",
-      label: "supports" as const,
-    })),
   ];
 
-  const graph: AnswerGraphJson = { version: 1, nodes, edges };
-  answerGraphJsonSchema.parse(graph);
+  for (let ci = 0; ci < structured.claims.length; ci++) {
+    const c = structured.claims[ci];
+    const claimId = `node_claim_${ci}`;
+    const seen = new Set<string>();
+    for (const sid of c.supported_by_source_ids) {
+      const idx = sourceIdToIndex.get(sid);
+      if (idx === undefined) {
+        continue;
+      }
+      const sourceId = `node_source_${idx}`;
+      const dedupeKey = `${sourceId}->${claimId}`;
+      if (seen.has(dedupeKey)) {
+        continue;
+      }
+      seen.add(dedupeKey);
+      edges.push({
+        id: `edge_s${idx}_c${ci}`,
+        from: sourceId,
+        to: claimId,
+        label: "supports",
+      });
+    }
+    edges.push({
+      id: `edge_c${ci}_a`,
+      from: claimId,
+      to: "node_answer",
+      label: "supports",
+    });
+  }
 
-  const claimSummary = structured.claims
-    .map((c) => {
-      const srcLabels = c.supported_by_source_ids
-        .map((sid) => {
-          const idx = sourceIdToIndex.get(sid);
-          if (idx === undefined) {
-            return null;
-          }
-          return structured.sources[idx].label;
-        })
-        .filter((x): x is string => x !== null);
-      const cite =
-        srcLabels.length > 0 ? ` [sources: ${srcLabels.join(", ")}]` : "";
-      return `• ${c.summary}${cite}`;
-    })
-    .join("\n");
+  const graph: AnswerGraphJson = { version: 2, nodes, edges };
+  answerGraphJsonSchema.parse(graph);
 
   const payload: GeneratedAnswerGraphPayload = {
     answer: {
@@ -333,10 +342,14 @@ function buildGraphAndPayload(
       excerpt: s.excerpt.trim() ? s.excerpt : null,
     })),
     evidence: {
-      claim: {
-        summary: claimSummary,
-        graphNodeId: claimGraphNodeId,
-      },
+      claims: structured.claims.map((c, ci) => ({
+        summary: c.summary,
+        graphNodeId: `node_claim_${ci}`,
+        supportedSourcePlaceholderIds: c.supported_by_source_ids.flatMap((sid) => {
+          const idx = sourceIdToIndex.get(sid);
+          return idx !== undefined ? [`__src_${idx}__`] : [];
+        }),
+      })),
       counterpoint: {
         summary: structured.counterpoint_summary,
       },

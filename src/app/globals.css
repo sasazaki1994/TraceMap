@@ -306,6 +306,11 @@ button {
   box-shadow: 0 0 0 1px var(--accent-strong);
 }
 
+.source-list-item--claim-linked:not(.selected) {
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+}
+
 .source-list-item-title {
   font-weight: 600;
 }

@@ -41,11 +41,11 @@ test.describe("question-to-answer-graph", () => {
     await expect(alertRow.getByTestId("run-alert-level")).toHaveText(/Warning/i);
 
     await expect(page.getByTestId("run-graph")).toBeVisible();
-    await expect(page.getByTestId("run-claim-graph-link")).toContainText(
-      "node_answer",
+    await expect(page.getByTestId("run-claim-graph-link").first()).toContainText(
+      "node_claim_0",
     );
 
-    await page.getByTestId("graph-node-node_answer").click();
+    await page.getByTestId("graph-node-node_claim_0").click();
     await expect(page.getByTestId("run-claim").first()).toHaveAttribute(
       "data-claim-matches-graph-node",
       "true",
