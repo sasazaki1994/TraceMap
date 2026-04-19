@@ -27,10 +27,11 @@ enum AlertLevel {
 }
 
 model AnalysisRun {
-  id              String            @id @default(cuid())
-  question        String
-  status          AnalysisRunStatus @default(queued)
-  answerSnapshots AnswerSnapshot[]
+  id                String            @id @default(cuid())
+  question          String
+  status            AnalysisRunStatus @default(queued)
+  lastErrorMessage  String?           @map("last_error_message")
+  answerSnapshots   AnswerSnapshot[]
   sourceSnapshots SourceSnapshot[]
   shareLinks      ShareLink[]
   createdAt       DateTime          @default(now()) @map("created_at")

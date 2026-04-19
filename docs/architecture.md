@@ -10,8 +10,18 @@
 
 ### Mock slice layers (evidence)
 
-- **Question → answer graph**: `analysis_runs`, `answer_snapshots` (including `graph_json`), `source_snapshots`; created by `createMockAnalysisRun` and shown on `/runs/[id]` (graph + sources + detail panel).
-- **Claim / Counterpoint / Alert (read-only mock)**: `claims`, `counterpoints`, `alerts` on the **latest** `answer_snapshots` row (FK from claim/counterpoint/alert tables); `createMockAnalysisRun` inserts one of each with placeholder copy. `/runs/[id]` and `/share/[token]` map rows through `mapAnswerEvidenceForView` into `RunResultView`. No LLM or async pipeline.
+- **Question → answer graph**: `analysis_runs`, `answer_snapshots` (including `graph_json`), `source_snapshots`; created by `createAnalysisRunFromProvider` (server action from the landing form) and shown on `/runs/[id]` (graph + sources + detail panel).
+- **Claim / Counterpoint / Alert (read-only mock)**: `claims`, `counterpoints`, `alerts` on the **latest** `answer_snapshots` row (FK from claim/counterpoint/alert tables); the **mock** answer-graph provider inserts one of each with placeholder copy. `/runs/[id]` and `/share/[token]` map rows through `mapAnswerEvidenceForView` into `RunResultView`. No external LLM in default config.
+
+### AI boundary (mock slice → future real model)
+
+The codebase separates **generation** from **persistence** so a real LLM can be added later without rewriting the Prisma write path:
+
+- **Contract**: `AnswerGraphProvider` (`src/server/analysis/answer-graph-provider.ts`) — `generateAnswerGraph({ question })` returns `GenerateAnswerGraphResult` (`src/types/answer-graph-generation.ts`).
+- **Write path**: `persistGeneratedAnswerGraph` (`src/server/analysis/persist-generated-answer-graph.ts`) takes a `GeneratedAnswerGraphPayload` and creates `answer_snapshots` / `source_snapshots` / optional evidence rows in one transaction.
+- **Orchestration**: `createAnalysisRunFromProvider` (`src/server/analysis/create-analysis-run-from-provider.ts`) updates `analysis_runs.status` (`queued` → `processing` → `completed` | `failed`), persists `last_error_message` on failure, and logs unexpected errors to the server console.
+- **Providers today**: `mock` (default, parity with the former inline mock) and `stub` (minimal graph, no sources/evidence) under `src/server/analysis/providers/`. Switch with `TRACEMAP_ANSWER_GRAPH_PROVIDER=mock|stub`.
+- **Not in scope yet**: job queues, streaming, OpenAI SDK wiring — add a new provider implementation that satisfies `AnswerGraphProvider` when ready.
 
 ## Directory Intent
 
@@ -24,13 +34,13 @@
 
 ## Implemented Baseline
 
-- Question intake on `/` persists mock `analysis_runs` / `answer_snapshots` / `source_snapshots` and navigates to `/runs/[id]`
-- Run page renders answer, mock `claims` / `counterpoints` / `alerts` (see `create-mock-run.ts`), SVG evidence graph from `graph_json`, then claims (with `graph_node_id` ↔ graph node labels and Answer/Question click highlight), and source detail panel
-- Share links via `share_links` and read-only `/share/[token]` (same evidence sections as run page)
-- Domain tables `claims`, `counterpoints`, `alerts` — populated by the mock run path; real pipelines TBD
+- Question intake on `/` creates an `analysis_runs` row via `createAnalysisRunFromProvider`, persists snapshots, and navigates to `/runs/[id]`
+- Run page renders answer, mock `claims` / `counterpoints` / `alerts` when the **mock** provider is selected (see `mock-answer-graph-provider.ts`), SVG evidence graph from `graph_json`, then claims (with `graph_node_id` ↔ graph node labels and Answer/Question click highlight), and source detail panel; failed runs show `last_error_message` in a status banner
+- Share links via `share_links` and read-only `/share/[token]` (same evidence sections as run page when completed)
+- Domain tables `claims`, `counterpoints`, `alerts` — populated by the mock provider path; a future real provider returns the same payload shape
 
 ## Next Steps
 
-- AI orchestration and non-mock answer generation
-- Background jobs for `queued` / `processing` analysis runs
+- Implement a real `AnswerGraphProvider` (e.g. OpenAI) behind env/feature flags
+- Optional: background jobs if generation outlives HTTP request budgets (status enum already exists)
 - Richer evidence UX (graph integration for claims, filters) once real data exists

@@ -41,8 +41,52 @@ export default async function RunPage({ params }: RunPageProps) {
   }
 
   const answer = run.answerSnapshots[0];
-  if (!answer) {
-    notFound();
+
+  if (run.status === "failed") {
+    return (
+      <main>
+        <PageContainer className="home-grid">
+          <RunShareControls analysisRunId={run.id} />
+          <RunResultView
+            question={run.question}
+            answerTitle={null}
+            answerContent=""
+            runStatusBanner={
+              run.lastErrorMessage ??
+              "This analysis run did not complete successfully."
+            }
+            evidenceAlerts={[]}
+            evidenceClaims={[]}
+            sources={[]}
+            graph={{ version: 1, nodes: [], edges: [] }}
+          />
+        </PageContainer>
+      </main>
+    );
+  }
+
+  if (run.status !== "completed" || !answer) {
+    const phase =
+      run.status === "queued"
+        ? "This run is queued."
+        : "This run is still processing.";
+    return (
+      <main>
+        <PageContainer className="home-grid">
+          <RunShareControls analysisRunId={run.id} />
+          <RunResultView
+            question={run.question}
+            answerTitle={null}
+            answerContent=""
+            runStatusBanner={`${phase} Refresh the page in a moment.`}
+            evidenceAlerts={[]}
+            evidenceClaims={[]}
+            sources={[]}
+            graph={{ version: 1, nodes: [], edges: [] }}
+          />
+        </PageContainer>
+      </main>
+    );
   }
 
   const graph = parseAnswerGraphJson(answer.graphJson);

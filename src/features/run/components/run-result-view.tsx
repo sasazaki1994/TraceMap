@@ -28,6 +28,8 @@ type RunResultViewProps = {
   graph: AnswerGraphJson;
   evidenceClaims?: RunEvidenceClaim[];
   evidenceAlerts?: RunEvidenceAlert[];
+  /** Shown when the run did not complete successfully (e.g. failed pipeline). */
+  runStatusBanner?: string | null;
 };
 
 const GRAPH_W = 420;
@@ -86,6 +88,7 @@ export function RunResultView({
   graph,
   evidenceClaims = [],
   evidenceAlerts = [],
+  runStatusBanner,
 }: RunResultViewProps) {
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [selectedGraphNodeId, setSelectedGraphNodeId] = useState<string | null>(
@@ -119,6 +122,15 @@ export function RunResultView({
             <div className="run-question-label">Question</div>
             <p>{question}</p>
           </div>
+          {runStatusBanner ? (
+            <p
+              className="muted"
+              data-testid="run-status-banner"
+              style={{ marginTop: "0.75rem" }}
+            >
+              {runStatusBanner}
+            </p>
+          ) : null}
           {answerTitle ? <h2>{answerTitle}</h2> : <h2>Answer</h2>}
           <div className="run-answer-body" data-testid="run-answer">
             {answerContent}
