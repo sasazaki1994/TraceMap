@@ -38,7 +38,9 @@ test.describe("source-detail-and-sharing", () => {
     await page.goto(href!);
 
     await expect(page.getByText("Shared view · read-only")).toBeVisible();
-    await expect(page.getByText("Share link E2E question?")).toBeVisible();
+    await expect(
+      page.locator(".run-question").getByText("Share link E2E question?", { exact: true }),
+    ).toBeVisible();
     await expect(page.getByTestId("run-answer")).toBeVisible();
     await expect(page.getByTestId("run-graph")).toBeVisible();
 

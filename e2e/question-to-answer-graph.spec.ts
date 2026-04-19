@@ -26,7 +26,12 @@ test.describe("question-to-answer-graph", () => {
     await page.getByRole("button", { name: "Analyze Sources" }).click();
 
     await expect(page).toHaveURL(/\/runs\//);
-    await expect(page.getByText("Why is interpretability important?")).toBeVisible();
+    // Scope to the question panel: the same text is repeated inside the mock answer body.
+    await expect(
+      page.locator(".run-question").getByText("Why is interpretability important?", {
+        exact: true,
+      }),
+    ).toBeVisible();
     await expect(page.getByTestId("run-answer")).toContainText("Mock trace snapshot");
 
     await expect(page.getByTestId("run-alerts")).toBeVisible();
