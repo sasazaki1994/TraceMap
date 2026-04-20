@@ -20,15 +20,26 @@ export type GeneratedEvidenceClaimInput = {
   summary: string;
   graphNodeId: string | null;
   supportedSourcePlaceholderIds: string[];
+  /** When set, persisted as `counterpoints` rows for this claim. */
+  counterpoints?: { summary: string }[];
+  /** When set, persisted as `alerts` rows with this claim's id. */
+  alerts?: { level: AlertLevel; message: string }[];
 };
 
 /** Optional structured evidence rows; omit for minimal stub runs. */
 export type GeneratedEvidenceBundle = {
   claims: GeneratedEvidenceClaimInput[];
-  counterpoint: {
+  /**
+   * Legacy: one counterargument applied to the first claim when that claim has no `counterpoints`.
+   * Prefer per-claim `counterpoints` on each `claims[]` entry.
+   */
+  counterpoint?: {
     summary: string;
   };
-  alert: {
+  /**
+   * Legacy: answer-scoped alert (`alerts.claim_id` null). Prefer per-claim `alerts` on `claims[]`.
+   */
+  alert?: {
     level: AlertLevel;
     message: string;
   };

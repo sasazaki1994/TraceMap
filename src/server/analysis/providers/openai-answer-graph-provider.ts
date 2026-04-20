@@ -44,6 +44,34 @@ const OPENAI_STRUCTURED_SCHEMA = {
             minItems: 1,
             description: "Ids from sources[].id that support this claim.",
           },
+          counterpoints: {
+            type: "array",
+            description: "Counterarguments or caveats specific to this claim.",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                summary: { type: "string" },
+              },
+              required: ["summary"],
+            },
+          },
+          alerts: {
+            type: "array",
+            description: "Alerts scoped to this claim (quality, policy).",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                level: {
+                  type: "string",
+                  enum: ["info", "warning", "error"],
+                },
+                message: { type: "string" },
+              },
+              required: ["level", "message"],
+            },
+          },
         },
         required: ["id", "summary", "supported_by_source_ids"],
       },
@@ -72,11 +100,13 @@ const OPENAI_STRUCTURED_SCHEMA = {
     },
     counterpoint_summary: {
       type: "string",
-      description: "One counterargument or caveat.",
+      description:
+        "Legacy: one counterargument for the first claim when per-claim counterpoints are omitted.",
     },
     alert: {
       type: "object",
       additionalProperties: false,
+      description: "Legacy: answer-wide alert when claim-level alerts are omitted.",
       properties: {
         level: {
           type: "string",
@@ -87,15 +117,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
       required: ["level", "message"],
     },
   },
-  required: [
-    "sufficient_grounding",
-    "answer_title",
-    "answer_content",
-    "claims",
-    "sources",
-    "counterpoint_summary",
-    "alert",
-  ],
+  required: ["sufficient_grounding", "answer_title", "answer_content", "claims", "sources"],
 } as const;
 
 type StructuredAnswerPayload = {
@@ -106,6 +128,8 @@ type StructuredAnswerPayload = {
     id: string;
     summary: string;
     supported_by_source_ids: string[];
+    counterpoints?: { summary: string }[];
+    alerts?: { level: "info" | "warning" | "error"; message: string }[];
   }[];
   sources: {
     id: string;
@@ -114,8 +138,8 @@ type StructuredAnswerPayload = {
     url: string;
     excerpt: string;
   }[];
-  counterpoint_summary: string;
-  alert: { level: "info" | "warning" | "error"; message: string };
+  counterpoint_summary?: string;
+  alert?: { level: "info" | "warning" | "error"; message: string };
 };
 
 function getOpenAiConfig(): { apiKey: string | undefined; model: string; timeoutMs: number } {
@@ -341,23 +365,48 @@ function buildGraphAndPayload(
       url: normalizedUrls[i] ?? s.url.trim(),
       excerpt: s.excerpt.trim() ? s.excerpt : null,
     })),
-    evidence: {
-      claims: structured.claims.map((c, ci) => ({
-        summary: c.summary,
-        graphNodeId: `node_claim_${ci}`,
-        supportedSourcePlaceholderIds: c.supported_by_source_ids.flatMap((sid) => {
+    evidence: (() => {
+      const legacyCp =
+        structured.counterpoint_summary !== undefined &&
+        structured.counterpoint_summary.trim() !== ""
+          ? { summary: structured.counterpoint_summary.trim() }
+          : undefined;
+
+      const claims = structured.claims.map((c, ci) => {
+        const supportedSourcePlaceholderIds = c.supported_by_source_ids.flatMap((sid) => {
           const idx = sourceIdToIndex.get(sid);
           return idx !== undefined ? [`__src_${idx}__`] : [];
-        }),
-      })),
-      counterpoint: {
-        summary: structured.counterpoint_summary,
-      },
-      alert: {
-        level: structured.alert.level,
-        message: structured.alert.message,
-      },
-    },
+        });
+
+        const counterpointsFromModel =
+          c.counterpoints?.filter((x) => x.summary.trim() !== "") ?? [];
+        const counterpoints =
+          counterpointsFromModel.length > 0
+            ? counterpointsFromModel
+            : ci === 0 && legacyCp
+              ? [legacyCp]
+              : undefined;
+
+        const alerts = c.alerts?.filter((a) => a.message.trim() !== "");
+
+        return {
+          summary: c.summary,
+          graphNodeId: `node_claim_${ci}`,
+          supportedSourcePlaceholderIds,
+          ...(counterpoints ? { counterpoints } : {}),
+          ...(alerts && alerts.length > 0 ? { alerts } : {}),
+        };
+      });
+
+      const bundle: GeneratedAnswerGraphPayload["evidence"] = { claims };
+      if (structured.alert) {
+        bundle.alert = {
+          level: structured.alert.level,
+          message: structured.alert.message,
+        };
+      }
+      return bundle;
+    })(),
   };
 
   return { kind: "success", payload };
@@ -401,6 +450,7 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
               "When sufficient_grounding is true: include at least two distinct sources, each with a real public http or https URL you could verify (well-known references, standards, documentation, or authoritative pages).",
               "Do not invent URLs. If you cannot meet that bar, set sufficient_grounding to false (the run will fail — do not add fake links).",
               "Every claim must list supported_by_source_ids referencing sources[].id values.",
+              "Prefer per-claim counterpoints and alerts when caveats differ by claim; use top-level counterpoint_summary and alert only for a single shared caveat or answer-wide note.",
               "Separate 'cannot answer from sources' (sufficient_grounding false) from 'answer with caveats' (sufficient_grounding true, use alert.warning for limitations).",
             ].join(" "),
           },
