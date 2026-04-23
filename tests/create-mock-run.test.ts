@@ -7,6 +7,8 @@ const tx = {
   claimSourceSnapshot: { createMany: vi.fn() },
   claimConfidence: { create: vi.fn() },
   counterpoint: { create: vi.fn() },
+  claimPropagationChain: { create: vi.fn() },
+  claimPropagationStep: { create: vi.fn() },
   alert: { create: vi.fn() },
 };
 
@@ -50,6 +52,8 @@ describe("createAnalysisRunFromProvider", () => {
       .mockResolvedValueOnce({ id: "claim_mock_2" });
     tx.claimSourceSnapshot.createMany.mockResolvedValue({ count: 2 });
     tx.claimConfidence.create.mockResolvedValue({});
+    tx.claimPropagationChain.create.mockResolvedValue({ id: "chain_mock_1" });
+    tx.claimPropagationStep.create.mockResolvedValue({});
   });
 
   it("persists claims, claim-support metadata, confidence, counterpoint, and alert when using the mock provider", async () => {
@@ -141,12 +145,37 @@ describe("createAnalysisRunFromProvider", () => {
       data: expect.objectContaining({
         claimId: "claim_mock_1",
         summary: expect.stringContaining("Mock counterpoint"),
+        relationKind: "contradiction",
       }),
     });
     expect(tx.counterpoint.create).toHaveBeenNthCalledWith(2, {
       data: expect.objectContaining({
         claimId: "claim_mock_2",
         summary: expect.stringContaining("Mock counterpoint"),
+        relationKind: "different_premise",
+      }),
+    });
+    expect(tx.claimPropagationChain.create).toHaveBeenCalledTimes(2);
+    expect(tx.claimPropagationChain.create).toHaveBeenNthCalledWith(1, {
+      data: expect.objectContaining({
+        claimId: "claim_mock_1",
+        lensHint: null,
+        summary: null,
+      }),
+    });
+    expect(tx.claimPropagationStep.create).toHaveBeenCalled();
+    expect(tx.claimPropagationStep.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        claimPropagationChainId: "chain_mock_1",
+        ordinal: 0,
+        stepKind: "source",
+      }),
+    });
+    expect(tx.claimPropagationStep.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        claimPropagationChainId: "chain_mock_1",
+        ordinal: 4,
+        stepKind: "answer_segment",
       }),
     });
 

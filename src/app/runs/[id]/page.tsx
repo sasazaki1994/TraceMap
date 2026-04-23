@@ -28,7 +28,9 @@ export default async function RunPage({ params }: RunPageProps) {
           claims: {
             orderBy: { createdAt: "asc" },
             include: {
-              counterpoints: { orderBy: { createdAt: "asc" } },
+              counterpoints: {
+                orderBy: { createdAt: "asc" },
+              },
               claimSourceSnapshots: {
                 orderBy: { createdAt: "asc" },
                 include: {
@@ -36,8 +38,18 @@ export default async function RunPage({ params }: RunPageProps) {
                     select: {
                       id: true,
                       label: true,
+                      sourceType: true,
+                      url: true,
                       publishedAt: true,
                     },
+                  },
+                },
+              },
+              claimPropagationChains: {
+                orderBy: { createdAt: "asc" },
+                include: {
+                  steps: {
+                    orderBy: { ordinal: "asc" },
                   },
                 },
               },
@@ -54,7 +66,8 @@ export default async function RunPage({ params }: RunPageProps) {
     notFound();
   }
 
-  const { answer, sources } = selectLatestAnswerSnapshotForView(run.answerSnapshots);
+  const answer = run.answerSnapshots[0] ?? null;
+  const { sources } = selectLatestAnswerSnapshotForView(run.answerSnapshots);
 
   if (run.status === "failed") {
     return (

@@ -13,7 +13,7 @@ function buildMockGraph(params: {
   sourceIds: [string, string, string];
 }): AnswerGraphJson {
   const graph: AnswerGraphJson = {
-    version: 2,
+    version: 3,
     nodes: [
       { id: "node_question", kind: "question", label: params.questionPreview },
       { id: "node_answer", kind: "answer", label: "Synthesis (mock)" },
@@ -44,6 +44,21 @@ function buildMockGraph(params: {
         id: "node_claim_1",
         kind: "claim",
         label: "Secondary claim (mock)",
+      },
+      {
+        id: "node_counterclaim_0",
+        kind: "counterclaim",
+        label: "Alternative premise (mock)",
+      },
+      {
+        id: "node_interpretation_0",
+        kind: "interpretation",
+        label: "Interpretation layer (mock)",
+      },
+      {
+        id: "node_answer_segment_0",
+        kind: "answer_segment",
+        label: "Decision-ready segment (mock)",
       },
     ],
     edges: [
@@ -80,6 +95,34 @@ function buildMockGraph(params: {
         from: "node_claim_1",
         to: "node_answer",
         label: "supports",
+      },
+      {
+        id: "edge_s0_i0",
+        from: "node_source_a",
+        to: "node_interpretation_0",
+        label: "interpreted as",
+        relationType: "interprets",
+      },
+      {
+        id: "edge_i0_c0",
+        from: "node_interpretation_0",
+        to: "node_claim_0",
+        label: "forms",
+        relationType: "supports",
+      },
+      {
+        id: "edge_c0_segment0",
+        from: "node_claim_0",
+        to: "node_answer_segment_0",
+        label: "phrased as",
+        relationType: "supports",
+      },
+      {
+        id: "edge_counterclaim0_c0",
+        from: "node_counterclaim_0",
+        to: "node_claim_0",
+        label: "different premise",
+        relationType: "different_premise",
       },
     ],
   };
@@ -167,6 +210,44 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
               {
                 summary:
                   "Mock counterpoint: web and document sources may disagree on scope (claim 1).",
+                relationKind: "contradiction",
+                graphNodeId: "node_counterclaim_0",
+              },
+            ],
+            propagationChain: [
+              {
+                stepKind: "source",
+                order: 0,
+                label: "Interpretability survey (mock)",
+                sourcePlaceholderId: "__src_0__",
+              },
+              {
+                stepKind: "evidence_snippet",
+                order: 1,
+                label: "Quoted evidence",
+                sourcePlaceholderId: "__src_0__",
+                detail:
+                  "Interpretability helps users trust outputs and debug failures.",
+              },
+              {
+                stepKind: "source_interpretation",
+                order: 2,
+                label: "Interpretation",
+                detail:
+                  "The source is interpreted as support for operational trust and debugging value.",
+              },
+              {
+                stepKind: "claim",
+                order: 3,
+                label: "Primary claim (mock)",
+                claimGraphNodeId: "node_claim_0",
+              },
+              {
+                stepKind: "answer_segment",
+                order: 4,
+                label: "Decision-ready segment",
+                detail:
+                  "Use interpretability evidence when deciding whether an AI answer should be adopted.",
               },
             ],
             alerts: [
@@ -195,6 +276,28 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
               {
                 summary:
                   "Mock counterpoint: internal notes may be stale relative to web sources (claim 2).",
+                relationKind: "different_premise",
+              },
+            ],
+            propagationChain: [
+              {
+                stepKind: "source",
+                order: 0,
+                label: "Product memo (mock)",
+                sourcePlaceholderId: "__src_2__",
+              },
+              {
+                stepKind: "source_interpretation",
+                order: 1,
+                label: "Operational interpretation",
+                detail:
+                  "The internal note is interpreted as local operational context rather than directly verifiable evidence.",
+              },
+              {
+                stepKind: "claim",
+                order: 2,
+                label: "Secondary claim (mock)",
+                claimGraphNodeId: "node_claim_1",
               },
             ],
             alerts: [

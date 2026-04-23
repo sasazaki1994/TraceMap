@@ -7,6 +7,8 @@ const tx = {
   claimSourceSnapshot: { createMany: vi.fn() },
   claimConfidence: { create: vi.fn() },
   counterpoint: { create: vi.fn() },
+  claimPropagationChain: { create: vi.fn() },
+  claimPropagationStep: { create: vi.fn() },
   alert: { create: vi.fn() },
 };
 
@@ -38,10 +40,12 @@ describe("persistGeneratedAnswerGraph", () => {
     tx.claimSourceSnapshot.createMany.mockResolvedValue({ count: 2 });
     tx.claimConfidence.create.mockResolvedValue({ id: "confidence-1" });
     tx.counterpoint.create.mockResolvedValue({ id: "cp-1" });
+    tx.claimPropagationChain.create.mockResolvedValue({ id: "chain-1" });
+    tx.claimPropagationStep.create.mockResolvedValue({ id: "chain-step-1" });
     tx.alert.create.mockResolvedValue({ id: "alert-1" });
   });
 
-  it("persists claim support metadata, confidence, and graph/source alignment", async () => {
+  it("persists support metadata, counterpoint taxonomy, chain rows, and graph alignment", async () => {
     const { persistGeneratedAnswerGraph } = await import(
       "@/server/analysis/persist-generated-answer-graph"
     );
@@ -54,7 +58,7 @@ describe("persistGeneratedAnswerGraph", () => {
           model: "mock",
           content: "Body",
           graphJson: {
-            version: 2,
+            version: 3,
             nodes: [
               { id: "node_question", kind: "question", label: "Q" },
               { id: "node_answer", kind: "answer", label: "A" },
@@ -71,6 +75,21 @@ describe("persistGeneratedAnswerGraph", () => {
                 sourceSnapshotId: "__src_1__",
               },
               { id: "node_claim_0", kind: "claim", label: "Claim" },
+              {
+                id: "node_counterclaim_0",
+                kind: "counterclaim",
+                label: "Counterclaim",
+              },
+              {
+                id: "node_interpretation_0",
+                kind: "interpretation",
+                label: "Interpretation",
+              },
+              {
+                id: "node_answer_segment_0",
+                kind: "answer_segment",
+                label: "Answer segment",
+              },
             ],
             edges: [
               { id: "edge_q_a", from: "node_question", to: "node_answer" },
@@ -80,6 +99,13 @@ describe("persistGeneratedAnswerGraph", () => {
                 to: "node_claim_0",
                 label: "supports",
                 supportType: "direct",
+              },
+              {
+                id: "edge_counter_0",
+                from: "node_counterclaim_0",
+                to: "node_claim_0",
+                label: "counterpoint",
+                relationType: "different_premise",
               },
             ],
           },
@@ -117,6 +143,34 @@ describe("persistGeneratedAnswerGraph", () => {
                   sourcePlaceholderId: "__src_1__",
                   supportKind: "supplemental",
                   contradictionNote: "Conflicts on scope",
+                },
+              ],
+              counterpoints: [
+                {
+                  summary: "Counter summary",
+                  relationKind: "different_premise",
+                  graphNodeId: "node_counterclaim_0",
+                },
+              ],
+              propagationChain: [
+                {
+                  stepKind: "evidence_snippet",
+                  order: 0,
+                  label: "Quoted text",
+                  detail: "Quoted text",
+                  sourcePlaceholderId: "__src_0__",
+                },
+                {
+                  stepKind: "source_interpretation",
+                  order: 1,
+                  label: "Interpretation",
+                  detail: "Interpretation layer",
+                },
+                {
+                  stepKind: "answer_segment",
+                  order: 2,
+                  label: "Decision-facing sentence",
+                  detail: "Decision-facing sentence",
                 },
               ],
             },
@@ -157,11 +211,52 @@ describe("persistGeneratedAnswerGraph", () => {
       }),
     });
 
+    expect(tx.counterpoint.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        claimId: "claim-db-1",
+        summary: "Counter summary",
+        relationKind: "different_premise",
+        graphNodeId: "node_counterclaim_0",
+      }),
+    });
+
+    expect(tx.claimPropagationChain.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        claimId: "claim-db-1",
+      }),
+    });
+    expect(tx.claimPropagationStep.create).toHaveBeenCalledTimes(3);
+    expect(tx.claimPropagationStep.create).toHaveBeenNthCalledWith(1, {
+      data: expect.objectContaining({
+        claimPropagationChainId: "chain-1",
+        ordinal: 0,
+        stepKind: "evidence_snippet",
+        detail: "Quoted text",
+        sourceSnapshotId: "src-db-1",
+      }),
+    });
+    expect(tx.claimPropagationStep.create).toHaveBeenNthCalledWith(2, {
+      data: expect.objectContaining({
+        claimPropagationChainId: "chain-1",
+        ordinal: 1,
+        stepKind: "source_interpretation",
+        detail: "Interpretation layer",
+      }),
+    });
+    expect(tx.claimPropagationStep.create).toHaveBeenNthCalledWith(3, {
+      data: expect.objectContaining({
+        claimPropagationChainId: "chain-1",
+        ordinal: 2,
+        stepKind: "answer_segment",
+        detail: "Decision-facing sentence",
+      }),
+    });
+
     expect(tx.answerSnapshot.update).toHaveBeenCalledWith({
       where: { id: "answer-1" },
       data: {
         graphJson: expect.objectContaining({
-          version: 2,
+          version: 3,
           nodes: expect.arrayContaining([
             expect.objectContaining({
               id: "node_source_0",

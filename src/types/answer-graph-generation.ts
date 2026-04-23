@@ -1,8 +1,10 @@
 import type {
   AlertLevel,
   ClaimConfidenceLevel,
+  CounterpointRelationKind,
   ClaimRecencyStatus,
   ClaimSupportKind,
+  PropagationStepKind,
   SourceSnapshotType,
 } from "@prisma/client";
 
@@ -41,6 +43,22 @@ export type GeneratedClaimConfidenceInput = {
   hasContradiction: boolean;
 };
 
+export type GeneratedCounterpointInput = {
+  summary: string;
+  relationKind?: CounterpointRelationKind;
+  graphNodeId?: string | null;
+};
+
+export type GeneratedPropagationChainStepInput = {
+  stepKind: PropagationStepKind;
+  order: number;
+  label: string;
+  detail?: string | null;
+  sourcePlaceholderId?: string | null;
+  claimGraphNodeId?: string | null;
+  answerSegmentKey?: string | null;
+};
+
 /** One claim row + graph node id + source placeholders (`__src_0__`, …) before persist. */
 export type GeneratedEvidenceClaimInput = {
   summary: string;
@@ -52,7 +70,9 @@ export type GeneratedEvidenceClaimInput = {
   /** Explainable confidence for this claim. */
   confidence?: GeneratedClaimConfidenceInput;
   /** When set, persisted as `counterpoints` rows for this claim. */
-  counterpoints?: { summary: string }[];
+  counterpoints?: GeneratedCounterpointInput[];
+  /** Ordered provenance/explanation chain for this claim. */
+  propagationChain?: GeneratedPropagationChainStepInput[];
   /** When set, persisted as `alerts` rows with this claim's id. */
   alerts?: { level: AlertLevel; message: string }[];
 };

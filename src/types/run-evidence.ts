@@ -3,6 +3,19 @@ export type AlertLevel = "info" | "warning" | "error";
 export type RunClaimSupportKind = "direct" | "supplemental" | "indirect";
 export type RunClaimConfidenceLevel = "high" | "medium" | "low" | "insufficient";
 export type RunClaimRecencyStatus = "current" | "stale" | "unknown";
+export type RunCounterpointRelationKind =
+  | "contradiction"
+  | "alternative_interpretation"
+  | "different_premise"
+  | "different_definition"
+  | "temporal_mismatch";
+export type RunPropagationStepKind =
+  | "source"
+  | "evidence_snippet"
+  | "source_interpretation"
+  | "claim"
+  | "answer_segment";
+export type RunLens = "rigor" | "timeliness" | "practical";
 
 export type RunClaimSupport = {
   sourceId: string;
@@ -26,6 +39,23 @@ export type RunClaimConfidence = {
   hasContradiction: boolean;
 };
 
+export type RunEvidenceCounterpoint = {
+  id: string;
+  summary: string;
+  relationKind: RunCounterpointRelationKind;
+  graphNodeId: string | null;
+};
+
+export type RunEvidencePropagationStep = {
+  id: string;
+  orderIndex: number;
+  stepKind: RunPropagationStepKind;
+  boundary: "primary" | "interpretation";
+  label: string;
+  content: string | null;
+  sourceId: string | null;
+};
+
 /** Serializable claim row + nested counterpoints for run / share pages. */
 export type RunEvidenceClaim = {
   id: string;
@@ -36,7 +66,9 @@ export type RunEvidenceClaim = {
   supportingSourceIds: string[];
   supports: RunClaimSupport[];
   confidence: RunClaimConfidence | null;
-  counterpoints: { id: string; summary: string }[];
+  counterpoints: RunEvidenceCounterpoint[];
+  propagationSteps: RunEvidencePropagationStep[];
+  lensScore: number;
   /** Alerts scoped to this claim (`alerts.claim_id` set). */
   alerts: { id: string; level: AlertLevel; message: string }[];
 };

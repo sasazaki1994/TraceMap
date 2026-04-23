@@ -612,3 +612,142 @@ button {
 .source-detail-claims p {
   margin: 0;
 }
+
+.knowledge-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 1.25rem;
+}
+
+.knowledge-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.knowledge-toggle {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(5, 12, 24, 0.35);
+  color: var(--foreground);
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.knowledge-toggle--active {
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 1px var(--accent-strong);
+  background: rgba(139, 92, 246, 0.16);
+}
+
+.claim-rank-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(110, 231, 249, 0.22);
+  background: rgba(110, 231, 249, 0.06);
+  padding: 4px 10px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.counterpoint-list,
+.chain-step-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.counterpoint-item,
+.chain-step-item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(5, 12, 24, 0.38);
+  padding: 12px 14px;
+}
+
+.counterpoint-kind-badge,
+.chain-kind-badge,
+.lens-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.counterpoint-kind-badge {
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.1);
+  color: #fca5a5;
+}
+
+.counterpoint-kind-badge--different_premise,
+.counterpoint-kind-badge--different_definition,
+.counterpoint-kind-badge--alternative_interpretation {
+  border-color: rgba(110, 231, 249, 0.24);
+  background: rgba(110, 231, 249, 0.08);
+  color: var(--accent);
+}
+
+.counterpoint-kind-badge--temporal_mismatch {
+  border-color: rgba(250, 204, 21, 0.32);
+  background: rgba(250, 204, 21, 0.12);
+  color: #fde68a;
+}
+
+.chain-kind-badge {
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  background: rgba(139, 92, 246, 0.12);
+  color: #d8b4fe;
+}
+
+.lens-badge {
+  border: 1px solid rgba(110, 231, 249, 0.22);
+  background: rgba(110, 231, 249, 0.08);
+  color: var(--accent);
+}
+
+.chain-step-item--primary {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.chain-step-item--interpretation {
+  border-color: rgba(250, 204, 21, 0.3);
+}
+
+.chain-step-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.chain-step-note,
+.counterpoint-detail {
+  margin-top: 8px;
+}
+
+.detail-section {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}

@@ -6,6 +6,23 @@ export const graphEdgeSchema = z.object({
   to: z.string().min(1),
   label: z.string().optional(),
   supportType: z.enum(["direct", "supplemental", "indirect"]).optional(),
+  relationType: z
+    .enum([
+      "supports",
+      "derived_from",
+      "contradiction",
+      "alternative_interpretation",
+      "different_premise",
+      "different_definition",
+      "temporal_mismatch",
+      "interpretation",
+      "interprets",
+      "quotes",
+      "summarizes",
+      "propagates_to",
+      "contributes_to",
+    ])
+    .optional(),
 });
 
 const graphNodeV1Schema = z.object({
@@ -22,6 +39,21 @@ const graphNodeV2Schema = z.object({
   sourceSnapshotId: z.string().min(1).optional(),
 });
 
+const graphNodeV3Schema = z.object({
+  id: z.string().min(1),
+  kind: z.enum([
+    "question",
+    "answer",
+    "source",
+    "claim",
+    "counterclaim",
+    "interpretation",
+    "answer_segment",
+  ]),
+  label: z.string(),
+  sourceSnapshotId: z.string().min(1).optional(),
+});
+
 export const answerGraphJsonSchema = z.union([
   z.object({
     version: z.literal(1),
@@ -31,6 +63,11 @@ export const answerGraphJsonSchema = z.union([
   z.object({
     version: z.literal(2),
     nodes: z.array(graphNodeV2Schema),
+    edges: z.array(graphEdgeSchema),
+  }),
+  z.object({
+    version: z.literal(3),
+    nodes: z.array(graphNodeV3Schema),
     edges: z.array(graphEdgeSchema),
   }),
 ]);
@@ -51,4 +88,11 @@ export function isAnswerGraphV2(graph: AnswerGraphJson): graph is Extract<
   { version: 2 }
 > {
   return graph.version === 2;
+}
+
+export function isAnswerGraphV3(graph: AnswerGraphJson): graph is Extract<
+  AnswerGraphJson,
+  { version: 3 }
+> {
+  return graph.version === 3;
 }

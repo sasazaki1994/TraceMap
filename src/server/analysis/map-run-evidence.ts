@@ -1,7 +1,14 @@
+import {
+  orderClaimsForLens,
+  orderSourceSupportingClaimsForLens,
+  type RunLens,
+} from "@/server/analysis/run-lens";
 import type {
   RunClaimConfidence,
+  RunCounterpointRelationKind,
   RunEvidenceAlert,
   RunEvidenceClaim,
+  RunEvidencePropagationStep,
   RunSourceSupportingClaim,
 } from "@/types/run-evidence";
 
@@ -11,7 +18,22 @@ type AnswerWithEvidence = {
     summary: string;
     graphNodeId: string | null;
     confidence: RunClaimConfidence | null;
-    counterpoints: Array<{ id: string; summary: string }>;
+    counterpoints: Array<{
+      id: string;
+      summary: string;
+      relationKind: RunCounterpointRelationKind;
+      graphNodeId: string | null;
+    }>;
+    claimPropagationChains?: Array<{
+      id: string;
+      summary: string | null;
+      steps: Array<RunEvidencePropagationStep>;
+    }>;
+    propagationChain?: Array<{
+      id: string;
+      summary: string | null;
+      steps: Array<RunEvidencePropagationStep>;
+    }>;
     claimSourceSnapshots: Array<{
       sourceSnapshotId: string;
       supportKind: RunEvidenceClaim["supports"][number]["supportKind"];
@@ -32,7 +54,10 @@ type AnswerWithEvidence = {
 };
 
 /** Maps Prisma-loaded claims/alerts into client-serializable run view props. */
-export function mapAnswerEvidenceForView(answer: AnswerWithEvidence): {
+export function mapAnswerEvidenceForView(
+  answer: AnswerWithEvidence,
+  lens: RunLens = "rigor",
+): {
   evidenceClaims: RunEvidenceClaim[];
   evidenceAlerts: RunEvidenceAlert[];
   sourceSupportingClaims: Map<string, RunSourceSupportingClaim[]>;
@@ -72,10 +97,18 @@ export function mapAnswerEvidenceForView(answer: AnswerWithEvidence): {
         supportingQuote: relation.supportingQuote,
         contradictionNote: relation.contradictionNote,
       });
-      sourceSupportingClaims.set(relation.sourceSnapshotId, list);
+      sourceSupportingClaims.set(
+        relation.sourceSnapshotId,
+        orderSourceSupportingClaimsForLens(list, lens),
+      );
 
       return support;
     });
+
+    const claimChains = c.claimPropagationChains ?? c.propagationChain ?? [];
+    const propagationSteps = claimChains.flatMap((chain) =>
+      [...chain.steps].sort((a, b) => a.orderIndex - b.orderIndex),
+    );
 
     return {
       id: c.id,
@@ -96,13 +129,17 @@ export function mapAnswerEvidenceForView(answer: AnswerWithEvidence): {
       counterpoints: c.counterpoints.map((cp) => ({
         id: cp.id,
         summary: cp.summary,
+        relationKind: cp.relationKind,
+        graphNodeId: cp.graphNodeId,
       })),
+      propagationSteps,
+      lensScore: 0,
       alerts: claimAlertsByClaimId.get(c.id) ?? [],
     } satisfies RunEvidenceClaim;
   });
 
   return {
-    evidenceClaims,
+    evidenceClaims: orderClaimsForLens(evidenceClaims, lens),
     evidenceAlerts: answer.alerts
       .filter((a) => a.claimId === null)
       .map((a) => ({

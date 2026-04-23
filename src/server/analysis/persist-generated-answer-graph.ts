@@ -209,8 +209,38 @@ export async function persistGeneratedAnswerGraph(params: {
             data: {
               claimId: claimRow.id,
               summary: cp.summary,
+              relationKind: cp.relationKind ?? "contradiction",
+              graphNodeId: cp.graphNodeId ?? null,
+              basedOnClaimId: null,
             },
           });
+        }
+
+        if (c.propagationChain) {
+          const chainRow = await tx.claimPropagationChain.create({
+            data: {
+              claimId: claimRow.id,
+              lensHint: null,
+              summary: null,
+            },
+          });
+          for (let chainIndex = 0; chainIndex < c.propagationChain.length; chainIndex += 1) {
+            const step = c.propagationChain[chainIndex];
+            const sourceSnapshotId =
+              step.sourcePlaceholderId != null ? (idMap.get(step.sourcePlaceholderId) ?? null) : null;
+            await tx.claimPropagationStep.create({
+              data: {
+                claimPropagationChainId: chainRow.id,
+                ordinal: step.order,
+                stepKind: step.stepKind,
+                label: step.label,
+                detail: step.detail ?? null,
+                graphNodeId:
+                  step.claimGraphNodeId ?? step.answerSegmentKey ?? null,
+                sourceSnapshotId,
+              },
+            });
+          }
         }
 
         if (c.alerts) {

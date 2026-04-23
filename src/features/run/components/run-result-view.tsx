@@ -5,13 +5,17 @@ import { useMemo, useState } from "react";
 import { Panel } from "@/components/ui/panel";
 import { alertLevelLabel } from "@/features/run/lib/alert-level-label";
 import { describeGraphNodeTie } from "@/features/run/lib/graph-node-tie-label";
+import { lensLabel, orderClaimsForLens } from "@/features/run/lib/run-lens";
 import { cn } from "@/lib/cn";
 import type { AnswerGraphJson } from "@/types/answer-graph";
 import type {
+  RunCounterpointRelationKind,
   RunClaimSupport,
   RunClaimSupportKind,
   RunEvidenceAlert,
   RunEvidenceClaim,
+  RunEvidencePropagationStep,
+  RunLens,
 } from "@/types/run-evidence";
 
 export type RunSourceView = {
@@ -81,6 +85,40 @@ function confidenceLevelLabel(
     case "insufficient":
       return "Insufficient";
   }
+}
+
+function counterpointKindLabel(kind: RunCounterpointRelationKind): string {
+  switch (kind) {
+    case "contradiction":
+      return "Contradiction";
+    case "alternative_interpretation":
+      return "Alternative interpretation";
+    case "different_premise":
+      return "Different premise";
+    case "different_definition":
+      return "Different definition";
+    case "temporal_mismatch":
+      return "Temporal mismatch";
+  }
+}
+
+function chainStepKindLabel(kind: RunEvidencePropagationStep["stepKind"]): string {
+  switch (kind) {
+    case "source":
+      return "Source";
+    case "evidence_snippet":
+      return "Evidence snippet";
+    case "source_interpretation":
+      return "Interpretation";
+    case "claim":
+      return "Claim";
+    case "answer_segment":
+      return "Answer segment";
+  }
+}
+
+function chainBoundaryLabel(boundary: RunEvidencePropagationStep["boundary"]): string {
+  return boundary === "primary" ? "Primary information" : "Interpretation";
 }
 
 function layoutGraph(graph: AnswerGraphJson): Map<string, { x: number; y: number }> {
@@ -158,19 +196,27 @@ export function RunResultView({
   const [selectedGraphNodeId, setSelectedGraphNodeId] = useState<string | null>(
     null,
   );
+  const [selectedLens, setSelectedLens] = useState<RunLens>("rigor");
+  const [knowledgeMode, setKnowledgeMode] = useState<"claims" | "counterpoints" | "chains">(
+    "claims",
+  );
 
   const positions = useMemo(() => layoutGraph(graph), [graph]);
+  const lensClaims = useMemo(
+    () => orderClaimsForLens(evidenceClaims, selectedLens),
+    [evidenceClaims, selectedLens],
+  );
 
   const selectedClaimSupportingSourceIds = useMemo(() => {
     if (!selectedGraphNodeId) {
       return new Set<string>();
     }
-    const claim = evidenceClaims.find((c) => c.graphNodeId === selectedGraphNodeId);
+    const claim = lensClaims.find((c) => c.graphNodeId === selectedGraphNodeId);
     if (!claim) {
       return new Set<string>();
     }
     return new Set(claim.supportingSourceIds);
-  }, [evidenceClaims, selectedGraphNodeId]);
+  }, [lensClaims, selectedGraphNodeId]);
 
   const selectedSourceSupportingClaims = useMemo(() => {
     if (!selectedSourceId) {
@@ -179,12 +225,12 @@ export function RunResultView({
         support: RunClaimSupport;
       }>;
     }
-    return evidenceClaims.flatMap((claim) =>
+    return lensClaims.flatMap((claim) =>
       claim.supports
         .filter((support) => support.sourceId === selectedSourceId)
         .map((support) => ({ claim, support })),
     );
-  }, [evidenceClaims, selectedSourceId]);
+  }, [lensClaims, selectedSourceId]);
 
   const selectedSource = useMemo(
     () => sources.find((s) => s.id === selectedSourceId) ?? null,
@@ -193,14 +239,23 @@ export function RunResultView({
 
   const flatCounterpoints = useMemo(
     () =>
-      evidenceClaims.flatMap((c) =>
+      lensClaims.flatMap((c) =>
         c.counterpoints.map((cp) => ({
           claimId: c.id,
           counterpointId: cp.id,
+          relationKind: cp.relationKind,
           summary: cp.summary,
         })),
       ),
-    [evidenceClaims],
+    [lensClaims],
+  );
+
+  const visibleChains = useMemo(
+    () =>
+      lensClaims
+        .filter((claim) => claim.propagationSteps.length > 0)
+        .map((claim) => ({ claim, steps: claim.propagationSteps })),
+    [lensClaims],
   );
 
   return (
@@ -259,6 +314,41 @@ export function RunResultView({
               </div>
             </div>
           ) : null}
+
+          <div className="knowledge-toolbar" data-testid="knowledge-toolbar">
+            <div className="knowledge-lens-group" role="tablist" aria-label="Knowledge lens">
+              {(["rigor", "timeliness", "practical"] as const).map((lens) => (
+                <button
+                  key={lens}
+                  type="button"
+                  className={`knowledge-toggle${selectedLens === lens ? " knowledge-toggle--active" : ""}`}
+                  data-testid={`lens-${lens}`}
+                  onClick={() => setSelectedLens(lens)}
+                >
+                  {lensLabel(lens)}
+                </button>
+              ))}
+            </div>
+            <div className="knowledge-mode-group" role="tablist" aria-label="Knowledge mode">
+              {(
+                [
+                  ["claims", "Claims"],
+                  ["counterpoints", "Counterpoints"],
+                  ["chains", "Propagation chains"],
+                ] as const
+              ).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`knowledge-toggle${knowledgeMode === mode ? " knowledge-toggle--active" : ""}`}
+                  data-testid={`knowledge-mode-${mode}`}
+                  onClick={() => setKnowledgeMode(mode)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <h3 className="run-question-label" style={{ marginTop: "1.25rem" }}>
             Evidence graph
@@ -394,7 +484,7 @@ export function RunResultView({
             )}
           </div>
 
-          {evidenceClaims.length > 0 ? (
+          {lensClaims.length > 0 && knowledgeMode === "claims" ? (
             <div
               data-testid="run-claims-section"
               style={{ marginTop: "1.25rem" }}
@@ -402,7 +492,7 @@ export function RunResultView({
               <div data-testid="run-claims">
                 <h3 className="run-question-label">Claims &amp; counterpoints</h3>
                 <ul className="evidence-claim-list">
-                  {evidenceClaims.map((c) => {
+                  {lensClaims.map((c) => {
                     const tie = describeGraphNodeTie(graph, c.graphNodeId);
                     const linkedActive =
                       tie !== null &&
@@ -551,6 +641,9 @@ export function RunResultView({
                                 className="evidence-counterpoint"
                                 data-testid="run-counterpoint"
                               >
+                                <span className="counterpoint-kind-badge">
+                                  {counterpointKindLabel(cp.relationKind)}
+                                </span>{" "}
                                 {cp.summary}
                               </li>
                             ))}
@@ -594,7 +687,7 @@ export function RunResultView({
             </div>
           ) : null}
 
-          {flatCounterpoints.length > 0 ? (
+          {flatCounterpoints.length > 0 && knowledgeMode === "counterpoints" ? (
             <div
               data-testid="run-counterpoints-section"
               style={{ marginTop: "1.25rem" }}
@@ -606,7 +699,64 @@ export function RunResultView({
                     key={`${cp.claimId}-${cp.counterpointId}`}
                     data-testid="run-counterpoint-item"
                   >
+                    <span className="counterpoint-kind-badge">
+                      {counterpointKindLabel(cp.relationKind)}
+                    </span>{" "}
                     {cp.summary}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {visibleChains.length > 0 && knowledgeMode === "chains" ? (
+            <div
+              data-testid="run-propagation-chains-section"
+              style={{ marginTop: "1.25rem" }}
+            >
+              <h3 className="run-question-label">Propagation chains</h3>
+              <ul className="chain-list">
+                {visibleChains.map(
+                  ({
+                    claim,
+                    steps,
+                  }: {
+                    claim: RunEvidenceClaim;
+                    steps: RunEvidenceClaim["propagationSteps"];
+                  }) => (
+                  <li
+                    key={`${claim.id}-chain`}
+                    className="chain-list-item"
+                    data-testid="run-propagation-chain"
+                  >
+                    <p className="source-list-item-title">{claim.summary}</p>
+                    <div className="muted" style={{ marginTop: "6px" }}>
+                      Source to answer interpretation chain
+                    </div>
+                    <ol className="chain-steps">
+                      {steps.map((step: RunEvidenceClaim["propagationSteps"][number]) => (
+                        <li
+                          key={step.id}
+                          className="chain-step"
+                          data-testid="run-propagation-step"
+                        >
+                          <div className="chain-step-header">
+                            <span className="claim-support-kind">
+                              {chainStepKindLabel(step.stepKind)}
+                            </span>
+                            <span className="chain-boundary-badge">
+                              {chainBoundaryLabel(
+                                step.stepKind === "source" || step.stepKind === "evidence_snippet"
+                                  ? "primary"
+                                  : "interpretation",
+                              )}
+                            </span>
+                          </div>
+                          <p className="source-list-item-title">{step.label}</p>
+                          {step.content ? <p className="muted">{step.content}</p> : null}
+                        </li>
+                      ))}
+                    </ol>
                   </li>
                 ))}
               </ul>
@@ -703,6 +853,51 @@ export function RunResultView({
                           ) : null}
                         </li>
                       ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {selectedSourceSupportingClaims.length > 0 ? (
+                  <div
+                    style={{ marginTop: "16px" }}
+                    data-testid="source-detail-chain-explanations"
+                  >
+                    <h4 className="run-question-label">Chain explanations</h4>
+                    <ul className="chain-list">
+                      {selectedSourceSupportingClaims.flatMap(
+                        ({ claim }: { claim: RunEvidenceClaim; support: RunClaimSupport }) => [
+                          <li
+                            key={`${selectedSource.id}-${claim.id}`}
+                            className="chain-list-item"
+                          >
+                            <p className="source-list-item-title">
+                              Source to answer interpretation chain
+                            </p>
+                            <ol className="chain-steps">
+                              {claim.propagationSteps.map(
+                                (step: RunEvidenceClaim["propagationSteps"][number]) => (
+                                <li key={step.id} className="chain-step">
+                                  <div className="chain-step-header">
+                                    <span className="claim-support-kind">
+                                      {chainStepKindLabel(step.stepKind)}
+                                    </span>
+                                    <span className="chain-boundary-badge">
+                                      {chainBoundaryLabel(
+                                        step.stepKind === "source" ||
+                                          step.stepKind === "evidence_snippet"
+                                          ? "primary"
+                                          : "interpretation",
+                                      )}
+                                    </span>
+                                  </div>
+                                  <p className="muted" style={{ marginTop: "6px" }}>
+                                    {step.label}
+                                  </p>
+                                </li>
+                              ))}
+                            </ol>
+                          </li>
+                        ],
+                      )}
                     </ul>
                   </div>
                 ) : null}
