@@ -62,6 +62,15 @@ test.describe("question-to-answer-graph", () => {
     await expect(page.getByTestId("run-counterpoints-section")).toContainText(
       "Mock counterpoint",
     );
+    await expect(page.getByTestId("run-claim-alert")).toHaveCount(2);
+    await expect(page.getByTestId("run-claim-alert").first()).toHaveAttribute(
+      "data-alert-level",
+      "info",
+    );
+    await expect(page.getByTestId("run-claim-alert").nth(1)).toHaveAttribute(
+      "data-alert-level",
+      "warning",
+    );
     await expect(page.getByTestId("run-alerts-section")).toContainText("Mock alert");
     await expect(page.getByTestId("run-alert-level").first()).toHaveText(/Warning/i);
 

@@ -107,9 +107,8 @@ export async function persistGeneratedAnswerGraph(params: {
     if (payload.evidence) {
       const e = payload.evidence;
 
-      let firstClaimId: string | null = null;
-
-      for (const c of e.claims) {
+      for (let i = 0; i < e.claims.length; i++) {
+        const c = e.claims[i];
         const claimRow = await tx.claim.create({
           data: {
             answerSnapshotId: answer.id,
@@ -117,9 +116,6 @@ export async function persistGeneratedAnswerGraph(params: {
             graphNodeId: c.graphNodeId,
           },
         });
-        if (firstClaimId === null) {
-          firstClaimId = claimRow.id;
-        }
 
         const sourceIds = [
           ...new Set(
@@ -138,24 +134,47 @@ export async function persistGeneratedAnswerGraph(params: {
             skipDuplicates: true,
           });
         }
+
+        const counterpointsToWrite =
+          c.counterpoints !== undefined && c.counterpoints.length > 0
+            ? c.counterpoints
+            : i === 0 && e.counterpoint
+              ? [{ summary: e.counterpoint.summary }]
+              : [];
+
+        for (const cp of counterpointsToWrite) {
+          await tx.counterpoint.create({
+            data: {
+              claimId: claimRow.id,
+              summary: cp.summary,
+            },
+          });
+        }
+
+        if (c.alerts) {
+          for (const al of c.alerts) {
+            await tx.alert.create({
+              data: {
+                answerSnapshotId: answer.id,
+                claimId: claimRow.id,
+                level: al.level,
+                message: al.message,
+              },
+            });
+          }
+        }
       }
 
-      if (firstClaimId !== null) {
-        await tx.counterpoint.create({
+      if (e.alert) {
+        await tx.alert.create({
           data: {
-            claimId: firstClaimId,
-            summary: e.counterpoint.summary,
+            answerSnapshotId: answer.id,
+            claimId: null,
+            level: e.alert.level,
+            message: e.alert.message,
           },
         });
       }
-
-      await tx.alert.create({
-        data: {
-          answerSnapshotId: answer.id,
-          level: e.alert.level,
-          message: e.alert.message,
-        },
-      });
     }
   });
 }

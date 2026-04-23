@@ -108,6 +108,7 @@ model Claim {
   answerSnapshot       AnswerSnapshot        @relation(fields: [answerSnapshotId], references: [id], onDelete: Cascade)
   counterpoints        Counterpoint[]
   claimSourceSnapshots ClaimSourceSnapshot[]
+  alerts               Alert[]
 
   @@index([answerSnapshotId])
   @@map("claims")
@@ -140,11 +141,14 @@ model Counterpoint {
 model Alert {
   id               String         @id @default(cuid())
   answerSnapshotId String         @map("answer_snapshot_id")
+  claimId          String?        @map("claim_id")
   level            AlertLevel
   message          String
   createdAt        DateTime       @default(now()) @map("created_at")
   answerSnapshot   AnswerSnapshot @relation(fields: [answerSnapshotId], references: [id], onDelete: Cascade)
+  claim            Claim?         @relation(fields: [claimId], references: [id], onDelete: Cascade)
 
   @@index([answerSnapshotId])
+  @@index([claimId])
   @@map("alerts")
 }

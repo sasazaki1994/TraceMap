@@ -141,18 +141,40 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
               "The synthesis aggregates mocked sources into a single narrative (mock claim).",
             graphNodeId: "node_claim_0",
             supportedSourcePlaceholderIds: ["__src_0__", "__src_1__"],
+            counterpoints: [
+              {
+                summary:
+                  "Mock counterpoint: web and document sources may disagree on scope (claim 1).",
+              },
+            ],
+            alerts: [
+              {
+                level: "info",
+                message:
+                  "Mock claim alert: check whether both sources cover the same time range.",
+              },
+            ],
           },
           {
             summary:
               "The product memo supplements internal context without a public URL (mock).",
             graphNodeId: "node_claim_1",
             supportedSourcePlaceholderIds: ["__src_2__"],
+            counterpoints: [
+              {
+                summary:
+                  "Mock counterpoint: internal notes may be stale relative to web sources (claim 2).",
+              },
+            ],
+            alerts: [
+              {
+                level: "warning",
+                message:
+                  "Mock claim alert: note-type sources are not publicly verifiable.",
+              },
+            ],
           },
         ],
-        counterpoint: {
-          summary:
-            "Mock counterpoint: in production, conflicting sources would surface here (mock).",
-        },
         alert: {
           level: "warning",
           message:

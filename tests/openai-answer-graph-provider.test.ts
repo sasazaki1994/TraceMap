@@ -207,6 +207,67 @@ describe("realOpenAiAnswerGraphProvider", () => {
     expect(result.payload.evidence?.claims[0]?.supportedSourcePlaceholderIds).toContain(
       "__src_0__",
     );
+    expect(result.payload.evidence?.alert).toEqual({
+      level: "info",
+      message: "Heuristic note.",
+    });
+  });
+
+  it("maps per-claim counterpoints and alerts and omits legacy fields when absent", async () => {
+    process.env.TRACEMAP_OPENAI_API_KEY = "sk-test";
+    const extended = {
+      ...baseStructured,
+      claims: [
+        {
+          id: "c1",
+          summary: "Claim one.",
+          supported_by_source_ids: ["s1"],
+          counterpoints: [{ summary: "Cp for claim 1." }],
+          alerts: [{ level: "warning" as const, message: "Alert for claim 1." }],
+        },
+        {
+          id: "c2",
+          summary: "Claim two.",
+          supported_by_source_ids: ["s2"],
+          counterpoints: [{ summary: "Cp for claim 2." }],
+        },
+      ],
+    };
+    delete (extended as { counterpoint_summary?: string }).counterpoint_summary;
+    delete (extended as { alert?: unknown }).alert;
+
+    createCompletion.mockResolvedValue({
+      choices: [
+        {
+          message: { content: JSON.stringify(extended) },
+        },
+      ],
+    });
+
+    const { realOpenAiAnswerGraphProvider } = await import(
+      "@/server/analysis/providers/openai-answer-graph-provider"
+    );
+
+    const result = await realOpenAiAnswerGraphProvider.generateAnswerGraph({
+      question: "What is 2+2?",
+    });
+
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") {
+      return;
+    }
+    expect(result.payload.evidence?.claims).toHaveLength(2);
+    expect(result.payload.evidence?.claims[0]?.counterpoints).toEqual([
+      { summary: "Cp for claim 1." },
+    ]);
+    expect(result.payload.evidence?.claims[0]?.alerts).toEqual([
+      { level: "warning", message: "Alert for claim 1." },
+    ]);
+    expect(result.payload.evidence?.claims[1]?.counterpoints).toEqual([
+      { summary: "Cp for claim 2." },
+    ]);
+    expect(result.payload.evidence?.claims[1]?.alerts).toBeUndefined();
+    expect(result.payload.evidence?.alert).toBeUndefined();
   });
 
   it("returns failure when sufficient_grounding is false", async () => {

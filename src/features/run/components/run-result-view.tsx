@@ -391,6 +391,36 @@ export function RunResultView({
                             ))}
                           </ul>
                         ) : null}
+                        {c.alerts.length > 0 ? (
+                          <ul
+                            className="evidence-alert-list"
+                            style={{ marginTop: "0.65rem" }}
+                            data-testid="run-claim-alerts"
+                          >
+                            {c.alerts.map((a) => (
+                              <li
+                                key={a.id}
+                                className={`evidence-alert evidence-alert--${a.level}`}
+                                data-alert-level={a.level}
+                                data-testid="run-claim-alert"
+                              >
+                                <span
+                                  className="evidence-alert-level"
+                                  data-testid="run-claim-alert-level"
+                                >
+                                  {alertLevelLabel(a.level)}
+                                </span>
+                                <p
+                                  className="run-answer-body"
+                                  style={{ marginTop: 6 }}
+                                  data-testid="run-claim-alert-message"
+                                >
+                                  {a.message}
+                                </p>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
                       </li>
                     );
                   })}

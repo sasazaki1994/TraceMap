@@ -101,18 +101,41 @@ describe("createAnalysisRunFromProvider", () => {
 
     expect(tx.claimSourceSnapshot.createMany).toHaveBeenCalled();
 
-    expect(tx.counterpoint.create).toHaveBeenCalledTimes(1);
-    expect(tx.counterpoint.create).toHaveBeenCalledWith({
+    expect(tx.counterpoint.create).toHaveBeenCalledTimes(2);
+    expect(tx.counterpoint.create).toHaveBeenNthCalledWith(1, {
       data: expect.objectContaining({
         claimId: "claim_mock_1",
         summary: expect.stringContaining("Mock counterpoint"),
       }),
     });
+    expect(tx.counterpoint.create).toHaveBeenNthCalledWith(2, {
+      data: expect.objectContaining({
+        claimId: "claim_mock_2",
+        summary: expect.stringContaining("Mock counterpoint"),
+      }),
+    });
 
-    expect(tx.alert.create).toHaveBeenCalledTimes(1);
-    expect(tx.alert.create).toHaveBeenCalledWith({
+    expect(tx.alert.create).toHaveBeenCalledTimes(3);
+    expect(tx.alert.create).toHaveBeenNthCalledWith(1, {
       data: expect.objectContaining({
         answerSnapshotId: "answer_mock",
+        claimId: "claim_mock_1",
+        level: "info",
+        message: expect.stringContaining("Mock claim alert"),
+      }),
+    });
+    expect(tx.alert.create).toHaveBeenNthCalledWith(2, {
+      data: expect.objectContaining({
+        answerSnapshotId: "answer_mock",
+        claimId: "claim_mock_2",
+        level: "warning",
+        message: expect.stringContaining("Mock claim alert"),
+      }),
+    });
+    expect(tx.alert.create).toHaveBeenNthCalledWith(3, {
+      data: expect.objectContaining({
+        answerSnapshotId: "answer_mock",
+        claimId: null,
         level: "warning",
         message: expect.stringContaining("Mock alert"),
       }),

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { mapAnswerEvidenceForView } from "@/server/analysis/map-run-evidence";
 
 describe("mapAnswerEvidenceForView", () => {
-  it("maps nested claims and alerts for the run view", () => {
+  it("maps nested claims, claim-scoped alerts, and answer-scoped alerts for the run view", () => {
     const { evidenceClaims, evidenceAlerts } = mapAnswerEvidenceForView({
       claims: [
         {
@@ -15,7 +15,8 @@ describe("mapAnswerEvidenceForView", () => {
         },
       ],
       alerts: [
-        { id: "a1", level: "warning", message: "Look out" },
+        { id: "a1", claimId: "c1", level: "info", message: "Claim note" },
+        { id: "a2", claimId: null, level: "warning", message: "Look out" },
       ],
     });
 
@@ -25,8 +26,11 @@ describe("mapAnswerEvidenceForView", () => {
     expect(evidenceClaims[0]?.counterpoints).toEqual([
       { id: "cp1", summary: "Counter one" },
     ]);
+    expect(evidenceClaims[0]?.alerts).toEqual([
+      { id: "a1", level: "info", message: "Claim note" },
+    ]);
     expect(evidenceAlerts).toEqual([
-      { id: "a1", level: "warning", message: "Look out" },
+      { id: "a2", level: "warning", message: "Look out" },
     ]);
   });
 });
