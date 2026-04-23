@@ -4,6 +4,7 @@ import { PageContainer } from "@/components/ui/page-container";
 import { RunResultView } from "@/features/run/components/run-result-view";
 import { RunShareControls } from "@/features/run/components/run-share-controls";
 import { mapAnswerEvidenceForView } from "@/server/analysis/map-run-evidence";
+import { selectLatestAnswerSnapshotForView } from "@/server/analysis/select-latest-answer-snapshot";
 import { prisma } from "@/server/db/prisma";
 import { parseAnswerGraphJson } from "@/types/answer-graph";
 
@@ -21,6 +22,9 @@ export default async function RunPage({ params }: RunPageProps) {
         orderBy: { createdAt: "desc" },
         take: 1,
         include: {
+          sourceSnapshots: {
+            orderBy: { createdAt: "asc" },
+          },
           claims: {
             orderBy: { createdAt: "asc" },
             include: {
@@ -31,9 +35,6 @@ export default async function RunPage({ params }: RunPageProps) {
           alerts: { orderBy: { createdAt: "asc" } },
         },
       },
-      sourceSnapshots: {
-        orderBy: { createdAt: "asc" },
-      },
     },
   });
 
@@ -41,7 +42,7 @@ export default async function RunPage({ params }: RunPageProps) {
     notFound();
   }
 
-  const answer = run.answerSnapshots[0];
+  const { answer, sources } = selectLatestAnswerSnapshotForView(run.answerSnapshots);
 
   if (run.status === "failed") {
     return (
@@ -103,13 +104,7 @@ export default async function RunPage({ params }: RunPageProps) {
           answerContent={answer.content}
           evidenceAlerts={evidenceAlerts}
           evidenceClaims={evidenceClaims}
-          sources={run.sourceSnapshots.map((s) => ({
-            id: s.id,
-            label: s.label,
-            url: s.url,
-            excerpt: s.excerpt,
-            sourceType: s.sourceType,
-          }))}
+          sources={sources}
           graph={graph}
         />
       </PageContainer>
