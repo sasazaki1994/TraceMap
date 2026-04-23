@@ -20,6 +20,7 @@ Feature: Source detail and sharing
     And I should see the answer region
     And I should see the graph region
     And I should see at least one source row
+    And the visible source rows should belong to the latest answer snapshot for that run
 
   Scenario: Select source on share page updates detail panel
     Given I am viewing "/share/{token}" with multiple sources
