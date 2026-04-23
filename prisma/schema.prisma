@@ -33,6 +33,41 @@ enum SourceVerificationStatus {
   invalid
 }
 
+enum ClaimSupportKind {
+  direct
+  supplemental
+  indirect
+}
+
+enum CounterpointRelationKind {
+  contradiction
+  alternative_interpretation
+  different_premise
+  different_definition
+  temporal_mismatch
+}
+
+enum ClaimConfidenceLevel {
+  high
+  medium
+  low
+  insufficient
+}
+
+enum ClaimRecencyStatus {
+  current
+  stale
+  unknown
+}
+
+enum PropagationStepKind {
+  source
+  evidence_snippet
+  source_interpretation
+  claim
+  answer_segment
+}
+
 model AnalysisRun {
   id                String            @id @default(cuid())
   question          String
@@ -72,6 +107,7 @@ model SourceSnapshot {
   sourceType           SourceSnapshotType       @default(web) @map("source_type")
   url                  String?
   excerpt              String?
+  publishedAt          DateTime?                @map("published_at")
   verificationStatus   SourceVerificationStatus @default(unverified) @map("verification_status")
   checkedAt            DateTime?                @map("checked_at")
   httpStatus           Int?                     @map("http_status")
@@ -81,6 +117,7 @@ model SourceSnapshot {
   analysisRun          AnalysisRun              @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
   answerSnapshot       AnswerSnapshot?          @relation(fields: [answerSnapshotId], references: [id], onDelete: SetNull)
   claimSourceSnapshots ClaimSourceSnapshot[]
+  propagationSteps     ClaimPropagationStep[]
 
   @@index([analysisRunId])
   @@index([answerSnapshotId])
@@ -108,6 +145,8 @@ model Claim {
   answerSnapshot       AnswerSnapshot        @relation(fields: [answerSnapshotId], references: [id], onDelete: Cascade)
   counterpoints        Counterpoint[]
   claimSourceSnapshots ClaimSourceSnapshot[]
+  confidence           ClaimConfidence?
+  propagationChains    ClaimPropagationChain[]
   alerts               Alert[]
 
   @@index([answerSnapshotId])
@@ -115,27 +154,81 @@ model Claim {
 }
 
 model ClaimSourceSnapshot {
-  id                 String         @id @default(cuid())
-  claimId            String         @map("claim_id")
-  sourceSnapshotId   String         @map("source_snapshot_id")
-  createdAt          DateTime       @default(now()) @map("created_at")
-  claim              Claim          @relation(fields: [claimId], references: [id], onDelete: Cascade)
-  sourceSnapshot     SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Cascade)
+  id                String           @id @default(cuid())
+  claimId           String           @map("claim_id")
+  sourceSnapshotId  String           @map("source_snapshot_id")
+  supportKind       ClaimSupportKind @default(direct) @map("support_kind")
+  isPrimarySource   Boolean          @default(false) @map("is_primary_source")
+  supportingQuote   String?          @map("supporting_quote")
+  contradictionNote String?          @map("contradiction_note")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  claim             Claim            @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  sourceSnapshot    SourceSnapshot   @relation(fields: [sourceSnapshotId], references: [id], onDelete: Cascade)
 
   @@unique([claimId, sourceSnapshotId])
   @@index([sourceSnapshotId])
   @@map("claim_source_snapshots")
 }
 
+model ClaimConfidence {
+  id                     String               @id @default(cuid())
+  claimId                String               @unique @map("claim_id")
+  score                  Int
+  level                  ClaimConfidenceLevel
+  summary                String
+  hasPrimarySource       Boolean              @default(false) @map("has_primary_source")
+  independentSourceCount Int                  @default(0) @map("independent_source_count")
+  hasSupportingQuote     Boolean              @default(false) @map("has_supporting_quote")
+  recencyStatus          ClaimRecencyStatus   @default(unknown) @map("recency_status")
+  hasContradiction       Boolean              @default(false) @map("has_contradiction")
+  createdAt              DateTime             @default(now()) @map("created_at")
+  claim                  Claim                @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@map("claim_confidences")
+}
+
 model Counterpoint {
-  id        String   @id @default(cuid())
-  claimId   String   @map("claim_id")
-  summary   String
-  createdAt DateTime @default(now()) @map("created_at")
-  claim     Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  id             String                   @id @default(cuid())
+  claimId        String                   @map("claim_id")
+  summary        String
+  relationKind   CounterpointRelationKind @default(contradiction) @map("relation_kind")
+  graphNodeId    String?                  @map("graph_node_id")
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  claim          Claim                    @relation(fields: [claimId], references: [id], onDelete: Cascade)
 
   @@index([claimId])
   @@map("counterpoints")
+}
+
+model ClaimPropagationChain {
+  id              String                 @id @default(cuid())
+  claimId         String                 @map("claim_id")
+  lensHint        String?                @map("lens_hint")
+  summary         String?
+  createdAt       DateTime               @default(now()) @map("created_at")
+  claim           Claim                  @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  steps           ClaimPropagationStep[]
+
+  @@index([claimId])
+  @@map("claim_propagation_chains")
+}
+
+model ClaimPropagationStep {
+  id                  String               @id @default(cuid())
+  claimPropagationChainId String           @map("claim_propagation_chain_id")
+  ordinal             Int
+  stepKind            PropagationStepKind  @map("step_kind")
+  label               String
+  detail              String?
+  sourceSnapshotId    String?              @map("source_snapshot_id")
+  graphNodeId         String?              @map("graph_node_id")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  claimPropagationChain ClaimPropagationChain @relation(fields: [claimPropagationChainId], references: [id], onDelete: Cascade)
+  sourceSnapshot      SourceSnapshot?      @relation(fields: [sourceSnapshotId], references: [id], onDelete: SetNull)
+
+  @@index([claimPropagationChainId, ordinal])
+  @@index([sourceSnapshotId])
+  @@map("claim_propagation_steps")
 }
 
 model Alert {

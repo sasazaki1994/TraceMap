@@ -1,12 +1,49 @@
-import type { RunEvidenceAlert, RunEvidenceClaim } from "@/types/run-evidence";
+import {
+  orderClaimsForLens,
+  orderSourceSupportingClaimsForLens,
+  type RunLens,
+} from "@/server/analysis/run-lens";
+import type {
+  RunClaimConfidence,
+  RunCounterpointRelationKind,
+  RunEvidenceAlert,
+  RunEvidenceClaim,
+  RunEvidencePropagationStep,
+  RunSourceSupportingClaim,
+} from "@/types/run-evidence";
 
 type AnswerWithEvidence = {
   claims: Array<{
     id: string;
     summary: string;
     graphNodeId: string | null;
-    counterpoints: Array<{ id: string; summary: string }>;
-    claimSourceSnapshots: Array<{ sourceSnapshotId: string }>;
+    confidence: RunClaimConfidence | null;
+    counterpoints: Array<{
+      id: string;
+      summary: string;
+      relationKind: RunCounterpointRelationKind;
+      graphNodeId: string | null;
+    }>;
+    claimPropagationChains?: Array<{
+      id: string;
+      summary: string | null;
+      steps: Array<RunEvidencePropagationStep>;
+    }>;
+    propagationChain?: Array<{
+      id: string;
+      summary: string | null;
+      steps: Array<RunEvidencePropagationStep>;
+    }>;
+    claimSourceSnapshots: Array<{
+      sourceSnapshotId: string;
+      supportKind: RunEvidenceClaim["supports"][number]["supportKind"];
+      isPrimarySource: boolean;
+      supportingQuote: string | null;
+      contradictionNote: string | null;
+      sourceSnapshot: {
+        label: string;
+      };
+    }>;
   }>;
   alerts: Array<{
     id: string;
@@ -17,9 +54,13 @@ type AnswerWithEvidence = {
 };
 
 /** Maps Prisma-loaded claims/alerts into client-serializable run view props. */
-export function mapAnswerEvidenceForView(answer: AnswerWithEvidence): {
+export function mapAnswerEvidenceForView(
+  answer: AnswerWithEvidence,
+  lens: RunLens = "rigor",
+): {
   evidenceClaims: RunEvidenceClaim[];
   evidenceAlerts: RunEvidenceAlert[];
+  sourceSupportingClaims: Map<string, RunSourceSupportingClaim[]>;
 } {
   const claimAlertsByClaimId = new Map<
     string,
@@ -34,18 +75,71 @@ export function mapAnswerEvidenceForView(answer: AnswerWithEvidence): {
     claimAlertsByClaimId.set(a.claimId, list);
   }
 
-  return {
-    evidenceClaims: answer.claims.map((c) => ({
+  const sourceSupportingClaims = new Map<string, RunSourceSupportingClaim[]>();
+
+  const evidenceClaims = answer.claims.map((c) => {
+    const supports = c.claimSourceSnapshots.map((relation) => {
+      const support = {
+        sourceId: relation.sourceSnapshotId,
+        sourceLabel: relation.sourceSnapshot.label,
+        supportKind: relation.supportKind,
+        isPrimarySource: relation.isPrimarySource,
+        supportingQuote: relation.supportingQuote,
+        contradictionNote: relation.contradictionNote,
+      };
+
+      const list = sourceSupportingClaims.get(relation.sourceSnapshotId) ?? [];
+      list.push({
+        claimId: c.id,
+        claimSummary: c.summary,
+        supportKind: relation.supportKind,
+        isPrimarySource: relation.isPrimarySource,
+        supportingQuote: relation.supportingQuote,
+        contradictionNote: relation.contradictionNote,
+      });
+      sourceSupportingClaims.set(
+        relation.sourceSnapshotId,
+        orderSourceSupportingClaimsForLens(list, lens),
+      );
+
+      return support;
+    });
+
+    const claimChains = c.claimPropagationChains ?? c.propagationChain ?? [];
+    const propagationSteps = claimChains.flatMap((chain) =>
+      [...chain.steps].sort((a, b) => a.orderIndex - b.orderIndex),
+    );
+
+    return {
       id: c.id,
       summary: c.summary,
       graphNodeId: c.graphNodeId,
-      supportingSourceIds: c.claimSourceSnapshots.map((x) => x.sourceSnapshotId),
+      supportingSourceIds: supports.map((x) => x.sourceId),
+      supports,
+      confidence: c.confidence ?? {
+        score: 0,
+        level: "insufficient",
+        summary: "Confidence breakdown unavailable for this snapshot.",
+        hasPrimarySource: false,
+        independentSourceCount: 0,
+        hasSupportingQuote: false,
+        recencyStatus: "unknown",
+        hasContradiction: false,
+      },
       counterpoints: c.counterpoints.map((cp) => ({
         id: cp.id,
         summary: cp.summary,
+        relationKind: cp.relationKind,
+        graphNodeId: cp.graphNodeId,
       })),
+      propagationSteps,
+      lensScore: 0,
       alerts: claimAlertsByClaimId.get(c.id) ?? [],
-    })),
+    } satisfies RunEvidenceClaim;
+  });
+
+  return {
+    evidenceClaims: orderClaimsForLens(evidenceClaims, lens),
     evidenceAlerts: answer.alerts
       .filter((a) => a.claimId === null)
       .map((a) => ({
@@ -53,5 +147,6 @@ export function mapAnswerEvidenceForView(answer: AnswerWithEvidence): {
         level: a.level,
         message: a.message,
       })),
+    sourceSupportingClaims,
   };
 }

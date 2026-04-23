@@ -12,7 +12,7 @@ test.describe("question-to-answer-graph", () => {
     databaseConnected = body.database?.status === "connected";
   });
 
-  test("home to submit to run page shows answer graph and source detail", async ({
+  test("home to submit to run page shows lenses, counterpoints, and chain detail", async ({
     page,
   }) => {
     test.skip(
@@ -50,6 +50,14 @@ test.describe("question-to-answer-graph", () => {
       "data-claim-matches-graph-node",
       "true",
     );
+    await expect(page.locator(".source-list-item--claim-linked")).toHaveCount(2);
+    await expect(page.getByTestId("run-claim-confidence").first()).toContainText("Confidence");
+    await expect(page.getByTestId("run-claim-support-item").first()).toContainText(
+      /direct support/i,
+    );
+    await expect(page.getByTestId("run-lens-toolbar")).toBeVisible();
+    await page.getByRole("button", { name: /timeliness first/i }).click();
+    await expect(page.getByTestId("run-lens-toolbar")).toContainText("Timeliness first");
 
     await expect(page.getByTestId("run-claims")).toBeVisible();
     await expect(page.getByTestId("run-claim").first()).toBeVisible();
@@ -78,5 +86,16 @@ test.describe("question-to-answer-graph", () => {
     await expect(page.getByTestId("source-detail-panel")).toContainText(
       "Interpretability survey (mock)",
     );
+    await expect(page.getByTestId("source-detail-supporting-claims")).toContainText(
+      "direct support",
+    );
+    await expect(page.getByTestId("source-detail-supporting-claims")).toContainText(
+      "The synthesis aggregates mocked sources into a single narrative",
+    );
+    await page.getByRole("button", { name: /counterpoints \/ alternate views/i }).click();
+    await expect(page.getByTestId("run-counterpoints-section")).toContainText("Contradiction");
+    await page.getByRole("button", { name: /propagation chains/i }).click();
+    await expect(page.getByTestId("run-chain-section")).toBeVisible();
+    await expect(page.getByTestId("run-chain-step").first()).toContainText(/Primary evidence/i);
   });
 });
