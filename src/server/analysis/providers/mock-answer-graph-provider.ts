@@ -53,18 +53,21 @@ function buildMockGraph(params: {
         from: "node_source_a",
         to: "node_claim_0",
         label: "supports",
+        supportType: "direct",
       },
       {
         id: "edge_s1_c0",
         from: "node_source_b",
         to: "node_claim_0",
         label: "supports",
+        supportType: "supplemental",
       },
       {
         id: "edge_s2_c1",
         from: "node_source_c",
         to: "node_claim_1",
         label: "supports",
+        supportType: "indirect",
       },
       {
         id: "edge_c0_a",
@@ -119,6 +122,7 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
           url: "https://example.com/mock/interpretability",
           excerpt:
             "Mock excerpt: interpretability helps users trust outputs and debug failures.",
+          publishedAt: new Date("2025-10-01T00:00:00.000Z"),
         },
         {
           label: "Retrieval quality notes (mock)",
@@ -126,12 +130,14 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
           url: "https://example.com/mock/retrieval",
           excerpt:
             "Mock excerpt: retrieval quality changes which sources enter the graph.",
+          publishedAt: new Date("2024-04-14T00:00:00.000Z"),
         },
         {
           label: "Product memo (mock)",
           sourceType: "note",
           url: null,
           excerpt: "Mock excerpt: internal note without a public URL.",
+          publishedAt: null,
         },
       ],
       evidence: {
@@ -141,6 +147,22 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
               "The synthesis aggregates mocked sources into a single narrative (mock claim).",
             graphNodeId: "node_claim_0",
             supportedSourcePlaceholderIds: ["__src_0__", "__src_1__"],
+            supports: [
+              {
+                sourcePlaceholderId: "__src_0__",
+                supportKind: "direct",
+                isPrimarySource: true,
+                supportingQuote:
+                  "Interpretability helps users trust outputs and debug failures.",
+              },
+              {
+                sourcePlaceholderId: "__src_1__",
+                supportKind: "supplemental",
+                isPrimarySource: false,
+                supportingQuote:
+                  "Retrieval quality changes which sources enter the graph.",
+              },
+            ],
             counterpoints: [
               {
                 summary:
@@ -160,6 +182,15 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
               "The product memo supplements internal context without a public URL (mock).",
             graphNodeId: "node_claim_1",
             supportedSourcePlaceholderIds: ["__src_2__"],
+            supports: [
+              {
+                sourcePlaceholderId: "__src_2__",
+                supportKind: "indirect",
+                isPrimarySource: false,
+                contradictionNote:
+                  "Internal notes can disagree with public sources and may not be independently verifiable.",
+              },
+            ],
             counterpoints: [
               {
                 summary:

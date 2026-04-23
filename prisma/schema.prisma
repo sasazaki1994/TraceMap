@@ -33,6 +33,25 @@ enum SourceVerificationStatus {
   invalid
 }
 
+enum ClaimSupportKind {
+  direct
+  supplemental
+  indirect
+}
+
+enum ClaimConfidenceLevel {
+  high
+  medium
+  low
+  insufficient
+}
+
+enum ClaimRecencyStatus {
+  current
+  stale
+  unknown
+}
+
 model AnalysisRun {
   id                String            @id @default(cuid())
   question          String
@@ -72,6 +91,7 @@ model SourceSnapshot {
   sourceType           SourceSnapshotType       @default(web) @map("source_type")
   url                  String?
   excerpt              String?
+  publishedAt          DateTime?                @map("published_at")
   verificationStatus   SourceVerificationStatus @default(unverified) @map("verification_status")
   checkedAt            DateTime?                @map("checked_at")
   httpStatus           Int?                     @map("http_status")
@@ -108,6 +128,7 @@ model Claim {
   answerSnapshot       AnswerSnapshot        @relation(fields: [answerSnapshotId], references: [id], onDelete: Cascade)
   counterpoints        Counterpoint[]
   claimSourceSnapshots ClaimSourceSnapshot[]
+  confidence           ClaimConfidence?
   alerts               Alert[]
 
   @@index([answerSnapshotId])
@@ -115,16 +136,37 @@ model Claim {
 }
 
 model ClaimSourceSnapshot {
-  id                 String         @id @default(cuid())
-  claimId            String         @map("claim_id")
-  sourceSnapshotId   String         @map("source_snapshot_id")
-  createdAt          DateTime       @default(now()) @map("created_at")
-  claim              Claim          @relation(fields: [claimId], references: [id], onDelete: Cascade)
-  sourceSnapshot     SourceSnapshot @relation(fields: [sourceSnapshotId], references: [id], onDelete: Cascade)
+  id                String           @id @default(cuid())
+  claimId           String           @map("claim_id")
+  sourceSnapshotId  String           @map("source_snapshot_id")
+  supportKind       ClaimSupportKind @default(direct) @map("support_kind")
+  isPrimarySource   Boolean          @default(false) @map("is_primary_source")
+  supportingQuote   String?          @map("supporting_quote")
+  contradictionNote String?          @map("contradiction_note")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  claim             Claim            @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  sourceSnapshot    SourceSnapshot   @relation(fields: [sourceSnapshotId], references: [id], onDelete: Cascade)
 
   @@unique([claimId, sourceSnapshotId])
   @@index([sourceSnapshotId])
   @@map("claim_source_snapshots")
+}
+
+model ClaimConfidence {
+  id                     String               @id @default(cuid())
+  claimId                String               @unique @map("claim_id")
+  score                  Int
+  level                  ClaimConfidenceLevel
+  summary                String
+  hasPrimarySource       Boolean              @default(false) @map("has_primary_source")
+  independentSourceCount Int                  @default(0) @map("independent_source_count")
+  hasSupportingQuote     Boolean              @default(false) @map("has_supporting_quote")
+  recencyStatus          ClaimRecencyStatus   @default(unknown) @map("recency_status")
+  hasContradiction       Boolean              @default(false) @map("has_contradiction")
+  createdAt              DateTime             @default(now()) @map("created_at")
+  claim                  Claim                @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@map("claim_confidences")
 }
 
 model Counterpoint {

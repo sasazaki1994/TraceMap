@@ -50,6 +50,11 @@ test.describe("question-to-answer-graph", () => {
       "data-claim-matches-graph-node",
       "true",
     );
+    await expect(page.locator(".source-list-item--claim-linked")).toHaveCount(2);
+    await expect(page.getByTestId("run-claim-confidence").first()).toContainText("Confidence");
+    await expect(page.getByTestId("run-claim-support-item").first()).toContainText(
+      /direct support/i,
+    );
 
     await expect(page.getByTestId("run-claims")).toBeVisible();
     await expect(page.getByTestId("run-claim").first()).toBeVisible();
@@ -77,6 +82,12 @@ test.describe("question-to-answer-graph", () => {
     await page.getByTestId("source-row").first().click();
     await expect(page.getByTestId("source-detail-panel")).toContainText(
       "Interpretability survey (mock)",
+    );
+    await expect(page.getByTestId("source-detail-supporting-claims")).toContainText(
+      "direct support",
+    );
+    await expect(page.getByTestId("source-detail-supporting-claims")).toContainText(
+      "The synthesis aggregates mocked sources into a single narrative",
     );
   });
 });

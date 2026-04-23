@@ -128,6 +128,13 @@ type StructuredAnswerPayload = {
     id: string;
     summary: string;
     supported_by_source_ids: string[];
+    support_relations?: {
+      source_id: string;
+      support_kind: "direct" | "supplemental" | "indirect";
+      is_primary_source?: boolean;
+      supporting_quote?: string;
+      contradiction_note?: string;
+    }[];
     counterpoints?: { summary: string }[];
     alerts?: { level: "info" | "warning" | "error"; message: string }[];
   }[];
@@ -323,6 +330,9 @@ function buildGraphAndPayload(
     const c = structured.claims[ci];
     const claimId = `node_claim_${ci}`;
     const seen = new Set<string>();
+    const relationsBySourceId = new Map(
+      (c.support_relations ?? []).map((rel) => [rel.source_id, rel] as const),
+    );
     for (const sid of c.supported_by_source_ids) {
       const idx = sourceIdToIndex.get(sid);
       if (idx === undefined) {
@@ -334,11 +344,13 @@ function buildGraphAndPayload(
         continue;
       }
       seen.add(dedupeKey);
+      const relation = relationsBySourceId.get(sid);
       edges.push({
         id: `edge_s${idx}_c${ci}`,
         from: sourceId,
         to: claimId,
         label: "supports",
+        ...(relation ? { supportType: relation.support_kind } : {}),
       });
     }
     edges.push({
@@ -373,9 +385,36 @@ function buildGraphAndPayload(
           : undefined;
 
       const claims = structured.claims.map((c, ci) => {
+        const relationBySourceId = new Map(
+          (c.support_relations ?? []).map((rel) => [rel.source_id, rel] as const),
+        );
+
         const supportedSourcePlaceholderIds = c.supported_by_source_ids.flatMap((sid) => {
           const idx = sourceIdToIndex.get(sid);
           return idx !== undefined ? [`__src_${idx}__`] : [];
+        });
+
+        const supportRelations = c.supported_by_source_ids.flatMap((sid) => {
+          const idx = sourceIdToIndex.get(sid);
+          if (idx === undefined) {
+            return [];
+          }
+          const relation = relationBySourceId.get(sid);
+          return [
+            {
+              sourcePlaceholderId: `__src_${idx}__`,
+              supportKind: relation?.support_kind ?? "direct",
+              isPrimarySource: relation?.is_primary_source ?? false,
+              supportingQuote:
+                relation?.supporting_quote?.trim() !== ""
+                  ? relation?.supporting_quote
+                  : undefined,
+              contradictionNote:
+                relation?.contradiction_note?.trim() !== ""
+                  ? relation?.contradiction_note
+                  : undefined,
+            },
+          ];
         });
 
         const counterpointsFromModel =
@@ -393,6 +432,7 @@ function buildGraphAndPayload(
           summary: c.summary,
           graphNodeId: `node_claim_${ci}`,
           supportedSourcePlaceholderIds,
+          supportRelations,
           ...(counterpoints ? { counterpoints } : {}),
           ...(alerts && alerts.length > 0 ? { alerts } : {}),
         };

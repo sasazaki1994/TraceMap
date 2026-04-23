@@ -8,6 +8,8 @@ import { describeGraphNodeTie } from "@/features/run/lib/graph-node-tie-label";
 import { cn } from "@/lib/cn";
 import type { AnswerGraphJson } from "@/types/answer-graph";
 import type {
+  RunClaimSupport,
+  RunClaimSupportKind,
   RunEvidenceAlert,
   RunEvidenceClaim,
 } from "@/types/run-evidence";
@@ -18,6 +20,7 @@ export type RunSourceView = {
   url: string | null;
   excerpt: string | null;
   sourceType: "web" | "document" | "note";
+  publishedAt?: string | null;
 };
 
 type RunResultViewProps = {
@@ -36,6 +39,49 @@ const GRAPH_W = 420;
 /** Taller when claim nodes exist (v2) so source → claim → answer fits. */
 const GRAPH_H = 260;
 const NODE_R = 22;
+
+function supportKindLabel(kind: RunClaimSupportKind): string {
+  switch (kind) {
+    case "direct":
+      return "Direct support";
+    case "supplemental":
+      return "Supplemental support";
+    case "indirect":
+      return "Inferred support";
+  }
+}
+
+function confidenceAxisLabel(value: boolean, positive = "Yes", negative = "No"): string {
+  return value ? positive : negative;
+}
+
+function recencyStatusLabel(
+  value: NonNullable<RunEvidenceClaim["confidence"]>["recencyStatus"],
+): string {
+  switch (value) {
+    case "current":
+      return "Current";
+    case "stale":
+      return "Stale";
+    case "unknown":
+      return "Unknown";
+  }
+}
+
+function confidenceLevelLabel(
+  value: NonNullable<RunEvidenceClaim["confidence"]>["level"],
+): string {
+  switch (value) {
+    case "high":
+      return "High";
+    case "medium":
+      return "Medium";
+    case "low":
+      return "Low";
+    case "insufficient":
+      return "Insufficient";
+  }
+}
 
 function layoutGraph(graph: AnswerGraphJson): Map<string, { x: number; y: number }> {
   const map = new Map<string, { x: number; y: number }>();
@@ -125,6 +171,20 @@ export function RunResultView({
     }
     return new Set(claim.supportingSourceIds);
   }, [evidenceClaims, selectedGraphNodeId]);
+
+  const selectedSourceSupportingClaims = useMemo(() => {
+    if (!selectedSourceId) {
+      return [] as Array<{
+        claim: RunEvidenceClaim;
+        support: RunClaimSupport;
+      }>;
+    }
+    return evidenceClaims.flatMap((claim) =>
+      claim.supports
+        .filter((support) => support.sourceId === selectedSourceId)
+        .map((support) => ({ claim, support })),
+    );
+  }, [evidenceClaims, selectedSourceId]);
 
   const selectedSource = useMemo(
     () => sources.find((s) => s.id === selectedSourceId) ?? null,
@@ -348,6 +408,7 @@ export function RunResultView({
                       tie !== null &&
                       selectedGraphNodeId !== null &&
                       c.graphNodeId === selectedGraphNodeId;
+                    const confidence = c.confidence;
                     return (
                       <li
                         key={c.id}
@@ -360,6 +421,24 @@ export function RunResultView({
                         }
                         data-graph-node-id={c.graphNodeId ?? undefined}
                         data-testid="run-claim"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
+                          if (c.graphNodeId) {
+                            setSelectedGraphNodeId(c.graphNodeId);
+                            setSelectedSourceId(null);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (!c.graphNodeId) {
+                            return;
+                          }
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedGraphNodeId(c.graphNodeId);
+                            setSelectedSourceId(null);
+                          }
+                        }}
                       >
                         {tie ? (
                           <p
@@ -378,6 +457,92 @@ export function RunResultView({
                         >
                           {c.summary}
                         </p>
+                        {confidence ? (
+                          <>
+                            <div
+                              className="claim-confidence-row"
+                              data-testid="run-claim-confidence"
+                            >
+                              <span
+                                className={`claim-confidence-badge claim-confidence-badge--${confidence.level}`}
+                              >
+                                {confidenceLevelLabel(confidence.level)} {confidence.score}
+                              </span>
+                              <span className="muted">{confidence.summary}</span>
+                            </div>
+                            <dl
+                              className="claim-confidence-breakdown"
+                              data-testid="run-claim-confidence-breakdown"
+                            >
+                              <div>
+                                <dt>Primary</dt>
+                                <dd>
+                                  {confidenceAxisLabel(confidence.hasPrimarySource)}
+                                </dd>
+                              </div>
+                              <div>
+                                <dt>Independent</dt>
+                                <dd>{confidence.independentSourceCount}</dd>
+                              </div>
+                              <div>
+                                <dt>Quote</dt>
+                                <dd>
+                                  {confidenceAxisLabel(confidence.hasSupportingQuote)}
+                                </dd>
+                              </div>
+                              <div>
+                                <dt>Recency</dt>
+                                <dd>{recencyStatusLabel(confidence.recencyStatus)}</dd>
+                              </div>
+                              <div>
+                                <dt>Contradiction</dt>
+                                <dd>
+                                  {confidenceAxisLabel(
+                                    confidence.hasContradiction,
+                                    "Present",
+                                    "None",
+                                  )}
+                                </dd>
+                              </div>
+                            </dl>
+                          </>
+                        ) : null}
+                        {c.supports.length > 0 ? (
+                          <ul
+                            className="claim-support-list"
+                            data-testid="run-claim-support-list"
+                          >
+                            {c.supports.map((support) => (
+                              <li
+                                key={`${c.id}-${support.sourceId}`}
+                                className="claim-support-item"
+                                data-testid="run-claim-support-item"
+                              >
+                                <div className="claim-support-header">
+                                  <span className="claim-support-kind">
+                                    {supportKindLabel(support.supportKind)}
+                                  </span>
+                                  {support.isPrimarySource ? (
+                                    <span className="claim-primary-badge">Primary source</span>
+                                  ) : null}
+                                </div>
+                                <p className="source-list-item-title">
+                                  {support.sourceLabel}
+                                </p>
+                                {support.supportingQuote ? (
+                                  <p className="claim-support-quote">
+                                    &quot;{support.supportingQuote}&quot;
+                                  </p>
+                                ) : null}
+                                {support.contradictionNote ? (
+                                  <p className="claim-support-contradiction">
+                                    Contradiction: {support.contradictionNote}
+                                  </p>
+                                ) : null}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
                         {c.counterpoints.length > 0 ? (
                           <ul className="evidence-counterpoint-list">
                             {c.counterpoints.map((cp) => (
@@ -495,6 +660,9 @@ export function RunResultView({
                 <p className="source-list-item-meta" style={{ marginTop: "8px" }}>
                   Type: {selectedSource.sourceType}
                 </p>
+                <p className="source-list-item-meta" style={{ marginTop: "4px" }}>
+                  Published: {selectedSource.publishedAt ?? "Unknown"}
+                </p>
                 {selectedSource.url ? (
                   <p style={{ marginTop: "10px", wordBreak: "break-all" }}>
                     <a href={selectedSource.url} rel="noreferrer" target="_blank">
@@ -506,6 +674,37 @@ export function RunResultView({
                   <p className="run-answer-body" style={{ marginTop: "12px" }}>
                     {selectedSource.excerpt}
                   </p>
+                ) : null}
+                {selectedSourceSupportingClaims.length > 0 ? (
+                  <div
+                    style={{ marginTop: "16px" }}
+                    data-testid="source-detail-supporting-claims"
+                  >
+                    <h4 className="run-question-label">Supporting claims</h4>
+                    <ul className="claim-support-list">
+                      {selectedSourceSupportingClaims.map(({ claim, support }) => (
+                        <li
+                          key={`${selectedSource.id}-${claim.id}`}
+                          className="claim-support-item"
+                        >
+                          <div className="claim-support-header">
+                            <span className="claim-support-kind">
+                              {supportKindLabel(support.supportKind)}
+                            </span>
+                            {support.isPrimarySource ? (
+                              <span className="claim-primary-badge">Primary source</span>
+                            ) : null}
+                          </div>
+                          <p className="source-list-item-title">{claim.summary}</p>
+                          {support.supportingQuote ? (
+                            <p className="claim-support-quote">
+                              &quot;{support.supportingQuote}&quot;
+                            </p>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ) : null}
               </>
             ) : (

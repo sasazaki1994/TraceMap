@@ -1,4 +1,10 @@
-import type { AlertLevel, SourceSnapshotType } from "@prisma/client";
+import type {
+  AlertLevel,
+  ClaimConfidenceLevel,
+  ClaimRecencyStatus,
+  ClaimSupportKind,
+  SourceSnapshotType,
+} from "@prisma/client";
 
 import type { AnswerGraphJson } from "@/types/answer-graph";
 
@@ -13,13 +19,38 @@ export type GeneratedSourceSnapshot = {
   sourceType: SourceSnapshotType;
   url: string | null;
   excerpt: string | null;
+  publishedAt?: Date | null;
+};
+
+export type GeneratedClaimSupportInput = {
+  sourcePlaceholderId: string;
+  supportKind: ClaimSupportKind;
+  isPrimarySource?: boolean;
+  supportingQuote?: string | null;
+  contradictionNote?: string | null;
+};
+
+export type GeneratedClaimConfidenceInput = {
+  score: number;
+  level: ClaimConfidenceLevel;
+  summary: string;
+  hasPrimarySource: boolean;
+  independentSourceCount: number;
+  hasSupportingQuote: boolean;
+  recencyStatus: ClaimRecencyStatus;
+  hasContradiction: boolean;
 };
 
 /** One claim row + graph node id + source placeholders (`__src_0__`, …) before persist. */
 export type GeneratedEvidenceClaimInput = {
   summary: string;
   graphNodeId: string | null;
+  /** Legacy path; converted into direct supports when `supports` is omitted. */
   supportedSourcePlaceholderIds: string[];
+  /** Preferred normalized support relations for this claim. */
+  supports?: GeneratedClaimSupportInput[];
+  /** Explainable confidence for this claim. */
+  confidence?: GeneratedClaimConfidenceInput;
   /** When set, persisted as `counterpoints` rows for this claim. */
   counterpoints?: { summary: string }[];
   /** When set, persisted as `alerts` rows with this claim's id. */

@@ -5,6 +5,7 @@ export const graphEdgeSchema = z.object({
   from: z.string().min(1),
   to: z.string().min(1),
   label: z.string().optional(),
+  supportType: z.enum(["direct", "supplemental", "indirect"]).optional(),
 });
 
 const graphNodeV1Schema = z.object({

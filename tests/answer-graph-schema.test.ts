@@ -46,6 +46,34 @@ describe("answerGraphJsonSchema", () => {
     expect(answerGraphJsonSchema.safeParse(value).success).toBe(true);
   });
 
+  it("accepts v2 edges with support metadata", () => {
+    const value = {
+      version: 2 as const,
+      nodes: [
+        { id: "n1", kind: "question" as const, label: "Q?" },
+        { id: "n2", kind: "answer" as const, label: "A" },
+        {
+          id: "n3",
+          kind: "source" as const,
+          label: "S",
+          sourceSnapshotId: "clxyz",
+        },
+        { id: "n4", kind: "claim" as const, label: "C1" },
+      ],
+      edges: [
+        {
+          id: "e1",
+          from: "n3",
+          to: "n4",
+          label: "supports",
+          supportType: "direct" as const,
+        },
+        { id: "e2", from: "n4", to: "n2" },
+      ],
+    };
+    expect(answerGraphJsonSchema.safeParse(value).success).toBe(true);
+  });
+
   it("rejects wrong version", () => {
     const result = answerGraphJsonSchema.safeParse({
       version: 3,

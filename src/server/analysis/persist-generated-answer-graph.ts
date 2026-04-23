@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import type { GeneratedAnswerGraphPayload } from "@/types/answer-graph-generation";
 import type { AnswerGraphJson } from "@/types/answer-graph";
 
+import { computeClaimConfidence } from "@/server/analysis/claim-confidence";
 import { prisma } from "@/server/db/prisma";
 import { verifyPublicHttpUrl } from "@/server/analysis/verify-source-url";
 
@@ -87,6 +88,7 @@ export async function persistGeneratedAnswerGraph(params: {
           sourceType: src.sourceType,
           url: src.url,
           excerpt: src.excerpt,
+          publishedAt: src.publishedAt ?? null,
           verificationStatus: v.verificationStatus,
           checkedAt: v.checkedAt,
           httpStatus: v.httpStatus,
@@ -117,23 +119,83 @@ export async function persistGeneratedAnswerGraph(params: {
           },
         });
 
-        const sourceIds = [
-          ...new Set(
-            c.supportedSourcePlaceholderIds
-              .map((ph) => idMap.get(ph))
-              .filter((x): x is string => x !== undefined),
-          ),
-        ];
-
-        if (sourceIds.length > 0) {
-          await tx.claimSourceSnapshot.createMany({
-            data: sourceIds.map((sourceSnapshotId) => ({
-              claimId: claimRow.id,
+        const supportRelations = c.supports
+          ? c.supports.flatMap((support) => {
+              const sourceSnapshotId = idMap.get(support.sourcePlaceholderId);
+              if (!sourceSnapshotId) {
+                return [];
+              }
+              return [
+                {
+                  sourceSnapshotId,
+                  supportKind: support.supportKind,
+                  isPrimarySource: support.isPrimarySource ?? false,
+                  supportingQuote: support.supportingQuote ?? null,
+                  contradictionNote: support.contradictionNote ?? null,
+                },
+              ];
+            })
+          : [
+              ...new Set(
+                c.supportedSourcePlaceholderIds
+                  .map((ph) => idMap.get(ph))
+                  .filter((x): x is string => x !== undefined),
+              ),
+            ].map((sourceSnapshotId) => ({
               sourceSnapshotId,
+              supportKind: "direct" as const,
+              isPrimarySource: false,
+              supportingQuote: null,
+              contradictionNote: null,
+            }));
+
+        if (supportRelations.length > 0) {
+          await tx.claimSourceSnapshot.createMany({
+            data: supportRelations.map((support) => ({
+              claimId: claimRow.id,
+              sourceSnapshotId: support.sourceSnapshotId,
+              supportKind: support.supportKind,
+              isPrimarySource: support.isPrimarySource,
+              supportingQuote: support.supportingQuote,
+              contradictionNote: support.contradictionNote,
             })),
             skipDuplicates: true,
           });
         }
+
+        const linkedSources = supportRelations.flatMap((support) => {
+          const source = payload.sources.find(
+            (_, sourceIndex) => idMap.get(`__src_${sourceIndex}__`) === support.sourceSnapshotId,
+          );
+          if (!source) {
+            return [];
+          }
+          return [
+            {
+              url: source.url,
+              publishedAt: source.publishedAt ?? null,
+              supportKind: support.supportKind,
+              isPrimarySource: support.isPrimarySource,
+              supportingQuote: support.supportingQuote,
+              contradictionNote: support.contradictionNote,
+            },
+          ];
+        });
+
+        const confidence = computeClaimConfidence(linkedSources);
+        await tx.claimConfidence.create({
+          data: {
+            claimId: claimRow.id,
+            score: confidence.score,
+            level: confidence.level,
+            summary: confidence.summary,
+            hasPrimarySource: confidence.hasPrimarySource,
+            independentSourceCount: confidence.independentSourceCount,
+            hasSupportingQuote: confidence.hasSupportingQuote,
+            recencyStatus: confidence.recencyStatus,
+            hasContradiction: confidence.hasContradiction,
+          },
+        });
 
         const counterpointsToWrite =
           c.counterpoints !== undefined && c.counterpoints.length > 0
@@ -162,6 +224,70 @@ export async function persistGeneratedAnswerGraph(params: {
               },
             });
           }
+        }
+
+        if (supportRelations.length === 0) {
+          await tx.alert.create({
+            data: {
+              answerSnapshotId: answer.id,
+              claimId: claimRow.id,
+              level: "error",
+              message: "No supporting source is linked to this claim.",
+            },
+          });
+        }
+        if (!confidence.hasPrimarySource) {
+          await tx.alert.create({
+            data: {
+              answerSnapshotId: answer.id,
+              claimId: claimRow.id,
+              level: "warning",
+              message: "This claim has no primary source.",
+            },
+          });
+        }
+        if (supportRelations.length === 1) {
+          await tx.alert.create({
+            data: {
+              answerSnapshotId: answer.id,
+              claimId: claimRow.id,
+              level: "warning",
+              message: "This claim is supported by only one source.",
+            },
+          });
+        }
+        if (!confidence.hasSupportingQuote) {
+          await tx.alert.create({
+            data: {
+              answerSnapshotId: answer.id,
+              claimId: claimRow.id,
+              level: "warning",
+              message: "This claim does not include a supporting quote or cited passage.",
+            },
+          });
+        }
+        if (confidence.recencyStatus !== "current") {
+          await tx.alert.create({
+            data: {
+              answerSnapshotId: answer.id,
+              claimId: claimRow.id,
+              level: "warning",
+              message:
+                confidence.recencyStatus === "stale"
+                  ? "Supporting sources for this claim appear stale."
+                  : "Supporting sources for this claim do not include a clear publication time.",
+            },
+          });
+        }
+        if (confidence.hasContradiction) {
+          await tx.alert.create({
+            data: {
+              answerSnapshotId: answer.id,
+              claimId: claimRow.id,
+              level: "warning",
+              message: "Supporting sources for this claim contain contradiction or counter-evidence.",
+            },
+          });
         }
       }
 

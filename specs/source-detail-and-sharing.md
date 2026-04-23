@@ -25,12 +25,14 @@ This slice uses the existing `share_links` table and adds **server actions plus 
 | Run page toolbar | Primary action **Share** opens share UI: create link, display URL to copy. |
 | Share created | Shows full URL `/share/{token}`; stable hook `data-testid="share-url"` for tests. |
 | Public share page | Mirrors run result layout (read-only); same test hooks as run page where applicable: `run-answer`, `run-graph`, `source-row`, `source-detail-panel`. |
+| Source detail panel | Shows the selected source's supporting claims, support-kind labels, primary-source badge, and supporting quote when available. |
 | Invalid token | Next.js `notFound()` or dedicated “expired” copy. |
 
 ## Data model
 
 - **`share_links`**: `analysis_run_id`, `token` (unique), optional `expires_at`, `created_at`.
 - Creating a link does **not** duplicate `answer_snapshots` or `source_snapshots`; the public page loads the run by token and resolves latest answer + sources like `/runs/[id]`.
+- Claim-support relations and claim confidence rows are read through the same latest `answer_snapshot`; share pages must not compute a different graph/evidence view from the authenticated run page.
 
 ## Security (MVP)
 

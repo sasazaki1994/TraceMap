@@ -29,7 +29,19 @@ export default async function RunPage({ params }: RunPageProps) {
             orderBy: { createdAt: "asc" },
             include: {
               counterpoints: { orderBy: { createdAt: "asc" } },
-              claimSourceSnapshots: true,
+              claimSourceSnapshots: {
+                orderBy: { createdAt: "asc" },
+                include: {
+                  sourceSnapshot: {
+                    select: {
+                      id: true,
+                      label: true,
+                      publishedAt: true,
+                    },
+                  },
+                },
+              },
+              confidence: true,
             },
           },
           alerts: { orderBy: { createdAt: "asc" } },
