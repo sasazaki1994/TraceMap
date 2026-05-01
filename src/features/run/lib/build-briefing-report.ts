@@ -44,19 +44,31 @@ export function buildBriefingReport({
   );
   const sourceLines = linesOrFallback(
     sources,
-    (source) => `- ${nonEmpty(source.label, "Untitled source")}${source.url ? ` (${source.url})` : ""}`,
+    (source) =>
+      `- ${nonEmpty(source.label, "Untitled source")}${
+        source.url ? ` (${source.url})` : ""
+      }`,
     "No supporting sources are available yet.",
   );
   const unknownLines = linesOrFallback(
     unknowns,
     (unknown) =>
-      `- [${unknown.severity.toUpperCase()}] ${nonEmpty(unknown.text, "Unspecified investigation gap")} — ${nonEmpty(unknown.suggestedNextAction, "Review this gap before reusing the finding.")}`,
+      `- [${unknown.severity.toUpperCase()}] ${nonEmpty(
+        unknown.text,
+        "Unspecified investigation gap",
+      )} — ${nonEmpty(
+        unknown.suggestedNextAction,
+        "Review this gap before reusing the finding.",
+      )}`,
     "No unresolved unknowns are currently highlighted.",
   );
   const lineageLines = linesOrFallback(
     sourceLineage,
     (lineage) =>
-      `- ${nonEmpty(lineage.label, "Untitled source")}: ${nonEmpty(lineage.lineageLabel, "Lineage not available")}; type=${lineage.sourceType}; published=${lineage.publishedAt ?? "Unknown"}`,
+      `- ${nonEmpty(lineage.label, "Untitled source")}: ${nonEmpty(
+        lineage.lineageLabel,
+        "Lineage not available",
+      )}; type=${lineage.sourceType}; published=${lineage.publishedAt ?? "Unknown"}`,
     "No source lineage summary is available yet.",
   );
 
