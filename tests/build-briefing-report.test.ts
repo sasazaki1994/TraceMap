@@ -76,6 +76,8 @@ describe("buildBriefingReport", () => {
     expect(markdown).toContain("[MEDIUM] Primary source is missing.");
     expect(markdown).toContain("## Source Lineage Summary");
     expect(markdown).toContain("Primary evidence");
+    expect(markdown).not.toContain("undefined");
+    expect(markdown).not.toContain("null");
   });
 
   it("uses deterministic fallback text for empty sections", () => {
@@ -93,5 +95,52 @@ describe("buildBriefingReport", () => {
     expect(markdown).toContain("- No supporting sources are available yet.");
     expect(markdown).toContain("- No unresolved unknowns are currently highlighted.");
     expect(markdown).toContain("- No source lineage summary is available yet.");
+    expect(markdown).not.toContain("undefined");
+    expect(markdown).not.toContain("null");
+  });
+
+  it("uses readable fallback text for blank entries", () => {
+    const markdown = buildBriefingReport({
+      researchTopic: "   ",
+      answerContent: "Summary.",
+      evidenceClaims: [
+        {
+          ...claims[0]!,
+          summary: "   ",
+        },
+      ],
+      sources: [
+        {
+          ...sources[0]!,
+          label: "",
+          url: null,
+        },
+      ],
+      unknowns: [
+        {
+          ...unknowns[0]!,
+          text: " ",
+          suggestedNextAction: "",
+        },
+      ],
+      sourceLineage: [
+        {
+          ...lineage[0]!,
+          label: "",
+          lineageLabel: "",
+          publishedAt: null,
+        },
+      ],
+    });
+
+    expect(markdown).toContain("Research topic: No research topic is available.");
+    expect(markdown).toContain("- Untitled claim");
+    expect(markdown).toContain("- Untitled source");
+    expect(markdown).toContain(
+      "- [MEDIUM] Unspecified investigation gap — Review this gap before reusing the finding.",
+    );
+    expect(markdown).toContain("- Untitled source: Lineage not available");
+    expect(markdown).not.toContain("undefined");
+    expect(markdown).not.toContain("null");
   });
 });

@@ -22,6 +22,11 @@ function linesOrFallback<T>(
   return items.map(format);
 }
 
+function nonEmpty(value: string, fallback: string): string {
+  const trimmed = value.trim();
+  return trimmed || fallback;
+}
+
 export function buildBriefingReport({
   researchTopic,
   answerContent,
@@ -30,27 +35,28 @@ export function buildBriefingReport({
   unknowns,
   sourceLineage,
 }: BuildBriefingReportInput): string {
+  const topic = nonEmpty(researchTopic, "No research topic is available.");
   const executiveSummary = answerContent.trim() || "No executive summary is available yet.";
   const claimLines = linesOrFallback(
     evidenceClaims,
-    (claim) => `- ${claim.summary}`,
+    (claim) => `- ${nonEmpty(claim.summary, "Untitled claim")}`,
     "No key claims are available yet.",
   );
   const sourceLines = linesOrFallback(
     sources,
-    (source) => `- ${source.label}${source.url ? ` (${source.url})` : ""}`,
+    (source) => `- ${nonEmpty(source.label, "Untitled source")}${source.url ? ` (${source.url})` : ""}`,
     "No supporting sources are available yet.",
   );
   const unknownLines = linesOrFallback(
     unknowns,
     (unknown) =>
-      `- [${unknown.severity.toUpperCase()}] ${unknown.text} — ${unknown.suggestedNextAction}`,
+      `- [${unknown.severity.toUpperCase()}] ${nonEmpty(unknown.text, "Unspecified investigation gap")} — ${nonEmpty(unknown.suggestedNextAction, "Review this gap before reusing the finding.")}`,
     "No unresolved unknowns are currently highlighted.",
   );
   const lineageLines = linesOrFallback(
     sourceLineage,
     (lineage) =>
-      `- ${lineage.label}: ${lineage.lineageLabel}; type=${lineage.sourceType}; published=${lineage.publishedAt ?? "Unknown"}`,
+      `- ${nonEmpty(lineage.label, "Untitled source")}: ${nonEmpty(lineage.lineageLabel, "Lineage not available")}; type=${lineage.sourceType}; published=${lineage.publishedAt ?? "Unknown"}`,
     "No source lineage summary is available yet.",
   );
 
@@ -58,7 +64,7 @@ export function buildBriefingReport({
     "# Briefing Report",
     "",
     "## Executive Summary",
-    `Research topic: ${researchTopic}`,
+    `Research topic: ${topic}`,
     "",
     executiveSummary,
     "",

@@ -21,3 +21,10 @@ Feature: Unknown Map and Source Lineage Lite
     Then each source should show a lineage label
     And primary or official-looking sources should be visually distinguishable
     And unverified or unknown sources should not be shown as verified
+
+  Scenario: Shared view preserves unknown map and source lineage
+    Given an analysis run has completed
+    And a share link exists for the run
+    When the shared read-only page is opened
+    Then the shared page should display the unknown map
+    And the shared page should display source lineage information

@@ -48,6 +48,9 @@ test.describe("source-detail-and-sharing", () => {
     await expect(page.getByTestId("unknown-map-panel")).toBeVisible();
     await expect(page.getByTestId("source-lineage-panel")).toBeVisible();
     await expect(page.getByTestId("briefing-report-panel")).toBeVisible();
+    await expect(page.getByTestId("briefing-report-markdown")).toContainText(
+      "## Source Lineage Summary",
+    );
 
     await page.getByTestId("source-row").first().click();
     await expect(page.getByTestId("source-detail-panel")).toBeVisible();

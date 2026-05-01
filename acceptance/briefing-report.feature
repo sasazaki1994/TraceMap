@@ -14,4 +14,13 @@ Feature: Briefing Report
     And the report should include key claims
     And the report should include supporting sources
     And the report should include unresolved unknowns
+    And the report should include a source lineage summary
+    And the report should be displayed as Markdown text
+
+  Scenario: Shared investigation shows the same briefing preview
+    Given an analysis run has completed
+    And a share link exists for the run
+    When the shared run page renders the briefing report section
+    Then the report should include an executive summary
+    And the report should include a source lineage summary
     And the report should be displayed as Markdown text

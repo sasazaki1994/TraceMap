@@ -182,6 +182,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs against a **PostgreSQL 16** ser
 - Top page at `/`, run detail at `/runs/[id]`, read-only share view at `/share/[token]`
 - Health route at `/api/health`
 - Prisma schema for runs, snapshots, share links, and MVP evidence tables (`claims`, `claim_source_snapshots`, `counterpoints`, `alerts`, plus optional URL verification columns on `source_snapshots`) — mock runs seed multiple claims and one counterpoint for UI verification
+- Investigation Mode MVP v2 frames user input as a research topic and keeps Mission Header, Investigation Timeline, Evidence Map, Unknown Map, Source Lineage Lite, and Briefing Report preview visible on run/share views without adding Unknown or Report tables
 - Vitest and Playwright coverage; see `specs/` and `acceptance/` for behavior
 
 ## Optional: OpenAI answer graph (env-only)

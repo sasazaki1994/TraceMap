@@ -77,6 +77,49 @@ describe("buildUnknowns", () => {
     );
   });
 
+  it("maps each alert level to stable unknown severity", () => {
+    const unknowns = buildUnknowns({
+      evidenceAlerts: [
+        {
+          id: "alert-error",
+          level: "error",
+          message: "Missing primary source.",
+        },
+        {
+          id: "alert-warning",
+          level: "warning",
+          message: "This claim is supported by only one source.",
+        },
+        {
+          id: "alert-info",
+          level: "info",
+          message: "Publication date is unclear.",
+        },
+      ],
+      evidenceClaims: [],
+    });
+
+    expect(unknowns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "alert-error",
+          severity: "high",
+          suggestedNextAction: "Check official or primary source.",
+        }),
+        expect.objectContaining({
+          id: "alert-warning",
+          severity: "medium",
+          suggestedNextAction: "Add independent supporting source.",
+        }),
+        expect.objectContaining({
+          id: "alert-info",
+          severity: "low",
+          suggestedNextAction: "Verify publication date and recency.",
+        }),
+      ]),
+    );
+  });
+
   it("derives unknowns from weak confidence and support state", () => {
     const unknowns = buildUnknowns({
       evidenceAlerts: [],
@@ -114,5 +157,38 @@ describe("buildUnknowns", () => {
     });
 
     expect(unknowns).toEqual([]);
+  });
+
+  it("uses a non-empty fallback reason for weak confidence without a summary", () => {
+    const unknowns = buildUnknowns({
+      evidenceAlerts: [],
+      evidenceClaims: [
+        baseClaim({
+          confidence: {
+            score: 20,
+            level: "low",
+            summary: "   ",
+            hasPrimarySource: true,
+            independentSourceCount: 2,
+            hasSupportingQuote: true,
+            recencyStatus: "current",
+            hasContradiction: false,
+          },
+        }),
+      ],
+    });
+
+    expect(unknowns).toEqual([
+      expect.objectContaining({
+        id: "claim-1-confidence",
+        severity: "high",
+        reason: "Claim confidence is limited by incomplete supporting evidence.",
+        suggestedNextAction: "Strengthen evidence before reusing this finding.",
+      }),
+    ]);
+  });
+
+  it("returns an empty array for empty inputs", () => {
+    expect(buildUnknowns({ evidenceAlerts: [], evidenceClaims: [] })).toEqual([]);
   });
 });
