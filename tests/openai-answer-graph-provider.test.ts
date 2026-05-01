@@ -192,7 +192,7 @@ describe("realOpenAiAnswerGraphProvider", () => {
     if (result.kind !== "success") {
       return;
     }
-    expect(result.payload.answer.graphJson.version).toBe(2);
+    expect(result.payload.answer.graphJson.version).toBe(3);
     expect(result.payload.answer.graphJson.nodes.some((n) => n.kind === "answer")).toBe(
       true,
     );

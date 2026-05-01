@@ -52,8 +52,42 @@ const OPENAI_STRUCTURED_SCHEMA = {
               additionalProperties: false,
               properties: {
                 summary: { type: "string" },
+                relationship_kind: {
+                  type: "string",
+                  enum: [
+                    "contradiction",
+                    "alternative_interpretation",
+                    "different_premise",
+                    "different_definition",
+                    "temporal_mismatch",
+                  ],
+                },
               },
-              required: ["summary"],
+              required: ["summary", "relationship_kind"],
+            },
+          },
+          propagation_chain: {
+            type: "array",
+            description: "Ordered evidence propagation chain for the claim.",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                step_kind: {
+                  type: "string",
+                  enum: [
+                    "source",
+                    "evidence_snippet",
+                    "source_interpretation",
+                    "claim",
+                    "answer_segment",
+                  ],
+                },
+                source_id: { type: "string" },
+                label: { type: "string" },
+                content: { type: "string" },
+              },
+              required: ["step_kind", "label"],
             },
           },
           alerts: {
@@ -128,7 +162,33 @@ type StructuredAnswerPayload = {
     id: string;
     summary: string;
     supported_by_source_ids: string[];
-    counterpoints?: { summary: string }[];
+    support_relations?: {
+      source_id: string;
+      support_kind: "direct" | "supplemental" | "indirect";
+      is_primary_source?: boolean;
+      supporting_quote?: string;
+      contradiction_note?: string;
+    }[];
+    counterpoints?: {
+      summary: string;
+      relationship_kind:
+        | "contradiction"
+        | "alternative_interpretation"
+        | "different_premise"
+        | "different_definition"
+        | "temporal_mismatch";
+    }[];
+    propagation_chain?: {
+      step_kind:
+        | "source"
+        | "evidence_snippet"
+        | "source_interpretation"
+        | "claim"
+        | "answer_segment";
+      source_id?: string;
+      label: string;
+      content?: string;
+    }[];
     alerts?: { level: "info" | "warning" | "error"; message: string }[];
   }[];
   sources: {
@@ -307,12 +367,40 @@ function buildGraphAndPayload(
     kind: "claim" as const,
     label: claimNodeLabel(c.summary),
   }));
+  const interpretationNodes = structured.claims.flatMap((c, ci) =>
+    (c.propagation_chain ?? [])
+      .filter((step) => step.step_kind === "source_interpretation")
+      .map((step, stepIndex) => ({
+        id: `node_interpretation_${ci}_${stepIndex}`,
+        kind: "interpretation" as const,
+        label: step.label,
+      })),
+  );
+  const counterclaimNodes = structured.claims.flatMap((c, ci) =>
+    (c.counterpoints ?? []).map((cp, cpIndex) => ({
+      id: `node_counterclaim_${ci}_${cpIndex}`,
+      kind: "counterclaim" as const,
+      label: claimNodeLabel(cp.summary),
+    })),
+  );
+  const answerSegmentNodes = structured.claims.flatMap((c, ci) =>
+    (c.propagation_chain ?? [])
+      .filter((step) => step.step_kind === "answer_segment")
+      .map((step, stepIndex) => ({
+        id: `node_answer_segment_${ci}_${stepIndex}`,
+        kind: "answer_segment" as const,
+        label: step.label,
+      })),
+  );
 
   const nodes: AnswerGraphJson["nodes"] = [
     { id: "node_question", kind: "question", label: preview },
     { id: "node_answer", kind: "answer", label: "Synthesis" },
     ...sourceNodes,
+    ...interpretationNodes,
     ...claimNodes,
+    ...counterclaimNodes,
+    ...answerSegmentNodes,
   ];
 
   const edges: AnswerGraphJson["edges"] = [
@@ -323,6 +411,9 @@ function buildGraphAndPayload(
     const c = structured.claims[ci];
     const claimId = `node_claim_${ci}`;
     const seen = new Set<string>();
+    const relationsBySourceId = new Map(
+      (c.support_relations ?? []).map((rel) => [rel.source_id, rel] as const),
+    );
     for (const sid of c.supported_by_source_ids) {
       const idx = sourceIdToIndex.get(sid);
       if (idx === undefined) {
@@ -334,11 +425,13 @@ function buildGraphAndPayload(
         continue;
       }
       seen.add(dedupeKey);
+      const relation = relationsBySourceId.get(sid);
       edges.push({
         id: `edge_s${idx}_c${ci}`,
         from: sourceId,
         to: claimId,
         label: "supports",
+        ...(relation ? { supportType: relation.support_kind } : {}),
       });
     }
     edges.push({
@@ -347,9 +440,66 @@ function buildGraphAndPayload(
       to: "node_answer",
       label: "supports",
     });
+
+    (c.counterpoints ?? []).forEach((cp, cpIndex) => {
+      edges.push({
+        id: `edge_counter_${ci}_${cpIndex}`,
+        from: `node_counterclaim_${ci}_${cpIndex}`,
+        to: claimId,
+        label: "counterpoint",
+        relationType: cp.relationship_kind,
+      });
+    });
+
+    (c.propagation_chain ?? []).forEach((step, stepIndex) => {
+      if (step.step_kind === "source_interpretation") {
+        const interpretationNodeId = `node_interpretation_${ci}_${stepIndex}`;
+        const sourceNodeId =
+          step.source_id !== undefined
+            ? (() => {
+                const idx = sourceIdToIndex.get(step.source_id);
+                return idx !== undefined ? `node_source_${idx}` : null;
+              })()
+            : null;
+        if (sourceNodeId) {
+          edges.push({
+            id: `edge_chain_source_interp_${ci}_${stepIndex}`,
+            from: sourceNodeId,
+            to: interpretationNodeId,
+            label: "interprets",
+            relationType: "interprets",
+          });
+        }
+        edges.push({
+          id: `edge_chain_interp_claim_${ci}_${stepIndex}`,
+          from: interpretationNodeId,
+          to: claimId,
+          label: "supports",
+          relationType: "interprets",
+        });
+      }
+
+      if (step.step_kind === "answer_segment") {
+        const answerSegmentNodeId = `node_answer_segment_${ci}_${stepIndex}`;
+        edges.push({
+          id: `edge_chain_claim_segment_${ci}_${stepIndex}`,
+          from: claimId,
+          to: answerSegmentNodeId,
+          label: "contributes",
+          relationType: "contributes_to",
+        });
+        edges.push({
+          id: `edge_chain_segment_answer_${ci}_${stepIndex}`,
+          from: answerSegmentNodeId,
+          to: "node_answer",
+          label: "part_of",
+          relationType: "contributes_to",
+        });
+      }
+    });
   }
 
-  const graph: AnswerGraphJson = { version: 2, nodes, edges };
+  const graph: AnswerGraphJson = { version: 3, nodes, edges };
   answerGraphJsonSchema.parse(graph);
 
   const payload: GeneratedAnswerGraphPayload = {
@@ -373,26 +523,76 @@ function buildGraphAndPayload(
           : undefined;
 
       const claims = structured.claims.map((c, ci) => {
+        const relationBySourceId = new Map(
+          (c.support_relations ?? []).map((rel) => [rel.source_id, rel] as const),
+        );
+
         const supportedSourcePlaceholderIds = c.supported_by_source_ids.flatMap((sid) => {
           const idx = sourceIdToIndex.get(sid);
           return idx !== undefined ? [`__src_${idx}__`] : [];
+        });
+
+        const supportRelations = c.supported_by_source_ids.flatMap((sid) => {
+          const idx = sourceIdToIndex.get(sid);
+          if (idx === undefined) {
+            return [];
+          }
+          const relation = relationBySourceId.get(sid);
+          return [
+            {
+              sourcePlaceholderId: `__src_${idx}__`,
+              supportKind: relation?.support_kind ?? "direct",
+              isPrimarySource: relation?.is_primary_source ?? false,
+              supportingQuote:
+                relation?.supporting_quote?.trim() !== ""
+                  ? relation?.supporting_quote
+                  : undefined,
+              contradictionNote:
+                relation?.contradiction_note?.trim() !== ""
+                  ? relation?.contradiction_note
+                  : undefined,
+            },
+          ];
         });
 
         const counterpointsFromModel =
           c.counterpoints?.filter((x) => x.summary.trim() !== "") ?? [];
         const counterpoints =
           counterpointsFromModel.length > 0
-            ? counterpointsFromModel
+            ? counterpointsFromModel.map((cp) => ({
+                summary: cp.summary,
+                relationKind: cp.relationship_kind,
+              }))
             : ci === 0 && legacyCp
-              ? [legacyCp]
+              ? [{ ...legacyCp, relationshipKind: "contradiction" as const }]
               : undefined;
 
         const alerts = c.alerts?.filter((a) => a.message.trim() !== "");
+        const propagationChain = (c.propagation_chain ?? []).flatMap((step, stepIndex) => {
+          const sourcePlaceholderId =
+            step.source_id !== undefined
+              ? (() => {
+                  const idx = sourceIdToIndex.get(step.source_id);
+                  return idx !== undefined ? (`__src_${idx}__` as const) : undefined;
+                })()
+              : undefined;
+          return [
+            {
+              stepKind: step.step_kind,
+              sourcePlaceholderId,
+              label: step.label,
+              content: step.content?.trim() ? step.content : undefined,
+              order: stepIndex,
+            },
+          ];
+        });
 
         return {
           summary: c.summary,
           graphNodeId: `node_claim_${ci}`,
           supportedSourcePlaceholderIds,
+          supports: supportRelations,
+          propagationChain,
           ...(counterpoints ? { counterpoints } : {}),
           ...(alerts && alerts.length > 0 ? { alerts } : {}),
         };
