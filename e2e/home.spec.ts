@@ -13,5 +13,5 @@ test("home page and health endpoint are reachable", async ({ page, request }) =>
   await page.goto("/");
 
   await expect(page.getByRole("heading", { level: 1, name: "TraceMap" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Analyze Sources" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start Investigation" })).toBeVisible();
 });

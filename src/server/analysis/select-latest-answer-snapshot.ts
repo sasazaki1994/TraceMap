@@ -1,4 +1,4 @@
-type SourceSnapshotForRunView = {
+type SourceSnapshotForRunViewInput = {
   id: string;
   label: string;
   url: string | null;
@@ -8,7 +8,11 @@ type SourceSnapshotForRunView = {
 };
 
 type AnswerSnapshotWithSources = {
-  sourceSnapshots: SourceSnapshotForRunView[];
+  sourceSnapshots: SourceSnapshotForRunViewInput[];
+};
+
+type SourceSnapshotForRunView = Omit<SourceSnapshotForRunViewInput, "publishedAt"> & {
+  publishedAt: string | null;
 };
 
 /**

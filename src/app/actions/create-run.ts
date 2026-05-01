@@ -15,7 +15,7 @@ export async function createMockRunAction(
 ): Promise<CreateRunFormState> {
   const raw = formData.get("question");
   if (typeof raw !== "string" || !raw.trim()) {
-    return { error: "Question is required." };
+    return { error: "Research topic is required." };
   }
 
   const runId = await createAnalysisRunFromProvider(raw.trim());
