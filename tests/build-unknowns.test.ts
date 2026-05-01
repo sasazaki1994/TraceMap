@@ -93,4 +93,26 @@ describe("buildUnknowns", () => {
       ]),
     );
   });
+
+  it("does not create synthetic gaps for high-confidence claims with complete support", () => {
+    const unknowns = buildUnknowns({
+      evidenceAlerts: [],
+      evidenceClaims: [
+        baseClaim({
+          confidence: {
+            score: 92,
+            level: "high",
+            summary: "Confidence is strong.",
+            hasPrimarySource: true,
+            independentSourceCount: 3,
+            hasSupportingQuote: true,
+            recencyStatus: "current",
+            hasContradiction: false,
+          },
+        }),
+      ],
+    });
+
+    expect(unknowns).toEqual([]);
+  });
 });

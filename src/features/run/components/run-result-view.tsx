@@ -135,12 +135,9 @@ function layoutGraph(graph: AnswerGraphJson): Map<string, { x: number; y: number
   const questionNode = graph.nodes.find((n) => n.kind === "question");
   const answerNode = graph.nodes.find((n) => n.kind === "answer");
   const sourceNodes = graph.nodes.filter((n) => n.kind === "source");
-  const claimNodes =
-    graph.version === 2
-      ? [...graph.nodes.filter((n) => n.kind === "claim")].sort((a, b) =>
-          a.id.localeCompare(b.id),
-        )
-      : [];
+  const claimNodes = [...graph.nodes.filter((n) => n.kind === "claim")].sort((a, b) =>
+    a.id.localeCompare(b.id),
+  );
 
   if (questionNode) {
     map.set(questionNode.id, { x: cx, y: 36 });

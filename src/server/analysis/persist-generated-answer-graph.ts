@@ -211,7 +211,6 @@ export async function persistGeneratedAnswerGraph(params: {
               summary: cp.summary,
               relationKind: cp.relationKind ?? "contradiction",
               graphNodeId: cp.graphNodeId ?? null,
-              basedOnClaimId: null,
             },
           });
         }

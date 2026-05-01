@@ -40,28 +40,26 @@ describe("mapAnswerEvidenceForView", () => {
               graphNodeId: "node_counter_1",
             },
           ],
-          propagationChain: [
+          propagationChains: [
             {
               id: "chain-1",
               summary: "Source to answer chain",
               steps: [
                 {
                   id: "chain-step-1",
-                  orderIndex: 0,
+                  ordinal: 0,
                   stepKind: "source",
                   label: "Source",
-                  content: "Original source",
-                  sourceId: "src-a",
-                  boundary: "primary",
+                  detail: "Original source",
+                  sourceSnapshotId: "src-a",
                 },
                 {
                   id: "chain-step-2",
-                  orderIndex: 1,
+                  ordinal: 1,
                   stepKind: "answer_segment",
                   label: "Answer segment",
-                  content: "Answer phrasing",
-                  sourceId: null,
-                  boundary: "interpretation",
+                  detail: "Answer phrasing",
+                  sourceSnapshotId: null,
                 },
               ],
             },

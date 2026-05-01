@@ -77,4 +77,21 @@ describe("buildBriefingReport", () => {
     expect(markdown).toContain("## Source Lineage Summary");
     expect(markdown).toContain("Primary evidence");
   });
+
+  it("uses deterministic fallback text for empty sections", () => {
+    const markdown = buildBriefingReport({
+      researchTopic: "Map unresolved supplier risk.",
+      answerContent: "   ",
+      evidenceClaims: [],
+      sources: [],
+      unknowns: [],
+      sourceLineage: [],
+    });
+
+    expect(markdown).toContain("No executive summary is available yet.");
+    expect(markdown).toContain("- No key claims are available yet.");
+    expect(markdown).toContain("- No supporting sources are available yet.");
+    expect(markdown).toContain("- No unresolved unknowns are currently highlighted.");
+    expect(markdown).toContain("- No source lineage summary is available yet.");
+  });
 });
