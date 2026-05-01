@@ -41,8 +41,13 @@ test.describe("source-detail-and-sharing", () => {
     await expect(
       page.locator(".run-question").getByText("Share link E2E question?", { exact: true }),
     ).toBeVisible();
+    await expect(page.getByTestId("mission-header")).toBeVisible();
+    await expect(page.getByTestId("investigation-timeline")).toBeVisible();
     await expect(page.getByTestId("run-answer")).toBeVisible();
     await expect(page.getByTestId("run-graph")).toBeVisible();
+    await expect(page.getByTestId("unknown-map-panel")).toBeVisible();
+    await expect(page.getByTestId("source-lineage-panel")).toBeVisible();
+    await expect(page.getByTestId("briefing-report-panel")).toBeVisible();
 
     await page.getByTestId("source-row").first().click();
     await expect(page.getByTestId("source-detail-panel")).toBeVisible();

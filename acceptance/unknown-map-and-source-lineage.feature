@@ -5,6 +5,7 @@ Feature: Unknown Map and Source Lineage Lite
 
   Background:
     Given the TraceMap application is running
+    And the database is migrated and reachable via DATABASE_URL
 
   Scenario: Run page shows unresolved investigation gaps
     Given an analysis run has completed

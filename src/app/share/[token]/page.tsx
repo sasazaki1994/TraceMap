@@ -31,7 +31,7 @@ export default async function SharePage({ params }: SharePageProps) {
                 include: {
                   counterpoints: { orderBy: { createdAt: "asc" } },
                   confidence: true,
-                  claimPropagationChains: {
+                  propagationChains: {
                     orderBy: { createdAt: "asc" },
                     include: {
                       steps: {

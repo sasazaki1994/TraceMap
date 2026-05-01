@@ -73,4 +73,20 @@ describe("buildSourceLineage", () => {
     expect(lineage[0]?.lineageLabel).toContain("Primary evidence");
     expect(lineage[1]?.lineageLabel).toContain("publication date unknown");
   });
+
+  it("does not mark sources as primary when no claim support proves it", () => {
+    const lineage = buildSourceLineage({
+      sources: [sources[0]!],
+      evidenceClaims: [],
+    });
+
+    expect(lineage[0]).toEqual(
+      expect.objectContaining({
+        sourceId: "src-primary",
+        isPrimarySource: false,
+        linkedClaimCount: 0,
+      }),
+    );
+    expect(lineage[0]?.lineageLabel).toContain("Supporting context");
+  });
 });

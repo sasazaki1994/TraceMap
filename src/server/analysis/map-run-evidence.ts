@@ -24,15 +24,17 @@ type AnswerWithEvidence = {
       relationKind: RunCounterpointRelationKind;
       graphNodeId: string | null;
     }>;
-    claimPropagationChains?: Array<{
+    propagationChains?: Array<{
       id: string;
       summary: string | null;
-      steps: Array<RunEvidencePropagationStep>;
-    }>;
-    propagationChain?: Array<{
-      id: string;
-      summary: string | null;
-      steps: Array<RunEvidencePropagationStep>;
+      steps: Array<{
+        id: string;
+        ordinal: number;
+        stepKind: RunEvidencePropagationStep["stepKind"];
+        label: string;
+        detail: string | null;
+        sourceSnapshotId: string | null;
+      }>;
     }>;
     claimSourceSnapshots: Array<{
       sourceSnapshotId: string;
@@ -105,9 +107,19 @@ export function mapAnswerEvidenceForView(
       return support;
     });
 
-    const claimChains = c.claimPropagationChains ?? c.propagationChain ?? [];
-    const propagationSteps = claimChains.flatMap((chain) =>
-      [...chain.steps].sort((a, b) => a.orderIndex - b.orderIndex),
+    const claimChains = c.propagationChains ?? [];
+    const propagationSteps: RunEvidencePropagationStep[] = claimChains.flatMap((chain) =>
+      [...chain.steps]
+        .sort((a, b) => a.ordinal - b.ordinal)
+        .map((step) => ({
+          id: step.id,
+          orderIndex: step.ordinal,
+          stepKind: step.stepKind,
+          boundary: step.stepKind === "source" ? "primary" : "interpretation",
+          label: step.label,
+          content: step.detail,
+          sourceId: step.sourceSnapshotId,
+        })),
     );
 
     return {

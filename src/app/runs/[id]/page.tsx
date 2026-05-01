@@ -45,7 +45,7 @@ export default async function RunPage({ params }: RunPageProps) {
                   },
                 },
               },
-              claimPropagationChains: {
+              propagationChains: {
                 orderBy: { createdAt: "asc" },
                 include: {
                   steps: {

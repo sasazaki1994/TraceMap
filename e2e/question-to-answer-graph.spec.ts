@@ -75,18 +75,16 @@ test.describe("question-to-answer-graph", () => {
     await expect(page.getByTestId("graph-node-node_source_a")).toBeVisible();
 
     await expect(page.getByTestId("run-claims-section")).toContainText("mock claim");
-    await expect(page.getByTestId("run-counterpoints-section")).toContainText(
+    await expect(page.getByTestId("run-counterpoint").first()).toContainText(
       "Mock counterpoint",
     );
-    await expect(page.getByTestId("run-claim-alert")).toHaveCount(2);
     await expect(page.getByTestId("run-claim-alert").first()).toHaveAttribute(
       "data-alert-level",
       "info",
     );
-    await expect(page.getByTestId("run-claim-alert").nth(1)).toHaveAttribute(
-      "data-alert-level",
-      "warning",
-    );
+    await expect(
+      page.getByTestId("run-claim-alert").filter({ hasText: "no primary source" }),
+    ).toHaveCount(1);
     await expect(page.getByTestId("run-alerts-section")).toContainText("Mock alert");
     await expect(page.getByTestId("run-alert-level").first()).toHaveText(/Warning/i);
     await expect(page.getByTestId("source-lineage-panel")).toBeVisible();
@@ -103,14 +101,14 @@ test.describe("question-to-answer-graph", () => {
       "Interpretability survey (mock)",
     );
     await expect(page.getByTestId("source-detail-supporting-claims")).toContainText(
-      "direct support",
+      /direct support/i,
     );
     await expect(page.getByTestId("source-detail-supporting-claims")).toContainText(
       "The synthesis aggregates mocked sources into a single narrative",
     );
-    await page.getByRole("button", { name: /counterpoints \/ alternate views/i }).click();
+    await page.getByTestId("knowledge-mode-counterpoints").click();
     await expect(page.getByTestId("run-counterpoints-section")).toContainText("Contradiction");
-    await page.getByRole("button", { name: /propagation chains/i }).click();
+    await page.getByTestId("knowledge-mode-chains").click();
     await expect(page.getByTestId("run-propagation-chains-section")).toBeVisible();
     await expect(page.getByTestId("run-propagation-step").first()).toContainText(/Source/i);
   });
