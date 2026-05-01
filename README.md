@@ -1,6 +1,8 @@
 # TraceMap
 
-TraceMap is a Next.js-based web app for exploring AI answers as traceable source networks instead of opaque text blobs.
+TraceMap is a Next.js-based cyber intelligence console for running AI-assisted investigation missions from research topics. It visualizes and stores findings as an Evidence Map, Unknown Map, Source Lineage, and Briefing Report while preserving traceable claims and sources.
+
+The detailed product and AI-agent operating definition lives in `docs/ai/PROJECT_AGENT_GUIDE.md`.
 
 ## Stack
 

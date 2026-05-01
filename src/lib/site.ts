@@ -2,5 +2,5 @@ export const siteConfig = {
   name: "TraceMap",
   title: "TraceMap MVP Console",
   description:
-    "TraceMap visualizes AI answers as a navigable source network so teams can inspect transparency, provenance, and knowledge flow.",
+    "TraceMap runs AI-assisted investigation missions from research topics and maps findings, evidence, unknowns, source lineage, and briefing reports.",
 };

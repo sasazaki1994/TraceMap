@@ -5,8 +5,9 @@ Codex / Cursor / Claude Code など、利用するツールが変わっても本
 
 ## 1. プロダクト概要
 
-TraceMap は、生成 AI の回答を「文章」ではなく「情報源ネットワーク」として可視化・探索する Web アプリです。  
-ユーザーは回答と根拠のつながりを辿り、検証しやすい形で理解できます。
+TraceMap は、ユーザーの調査テーマを AI が **Investigation Mission** として実行し、回答・主張・情報源・不明点・出どころを **Evidence Map / Unknown Map / Source Lineage / Briefing Report** として可視化・保存・共有する、Cyber Intelligence Console 型の調査支援 Web アプリです。
+
+MVP v2 では、既存の Evidence Graph / Claim / Source / Alert / Counterpoint / Propagation Chain を維持しつつ、ユーザー向け概念を「質問への回答」から「調査テーマに対するミッション結果」へ寄せます。既存 DB の `AnalysisRun.question` や provider 名は直ちに rename せず、spec・acceptance・UI 表示を先に新方針へ同期します。
 
 ## 2. 技術スタック
 

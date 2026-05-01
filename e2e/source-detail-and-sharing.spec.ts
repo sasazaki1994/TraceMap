@@ -22,8 +22,8 @@ test.describe("source-detail-and-sharing", () => {
 
     await page.goto("/");
 
-    await page.getByLabel("Question").fill("Share link E2E question?");
-    await page.getByRole("button", { name: "Analyze Sources" }).click();
+    await page.getByLabel("Research topic").fill("Share link E2E question?");
+    await page.getByRole("button", { name: "Start Investigation" }).click();
 
     await expect(page).toHaveURL(/\/runs\//);
 

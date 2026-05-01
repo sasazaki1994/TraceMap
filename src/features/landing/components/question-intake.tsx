@@ -18,21 +18,21 @@ export function QuestionIntake() {
 
   return (
     <Panel className="question-panel">
-      <div className="eyebrow">MVP Prompt Intake</div>
-      <h2>Ask a question and trace the evidence behind the answer.</h2>
+      <div className="eyebrow">Investigation Intake</div>
+      <h2>Start an investigation and trace the evidence behind the findings.</h2>
       <p className="muted">
-        This slice stores a mock analysis run in Postgres and opens the run page
-        with a simple evidence graph (no LLM yet).
+        This slice stores a mock investigation run in Postgres and opens the run
+        page with an evidence map, unknown map, source lineage, and report preview.
       </p>
 
       <form className="question-form" action={formAction}>
         <label className="question-label" htmlFor="question">
-          Question
+          Research topic
         </label>
         <textarea
           id="question"
           name="question"
-          placeholder="What sources explain the trade-offs between interpretability and retrieval quality in answer graphs?"
+          placeholder="例: 国内生成AI市場の主要プレイヤーを比較し、根拠と不明点を整理する"
           rows={6}
           disabled={isPending}
           required
@@ -40,9 +40,9 @@ export function QuestionIntake() {
         {state.error ? <p className="form-error">{state.error}</p> : null}
         <div className="question-actions">
           <button type="submit" disabled={isPending}>
-            {isPending ? "Running..." : "Analyze Sources"}
+            {isPending ? "Running investigation..." : "Start Investigation"}
           </button>
-          <span className="muted">Mock pipeline - instant completed run.</span>
+          <span className="muted">Mock mission - instant completed run.</span>
         </div>
       </form>
     </Panel>

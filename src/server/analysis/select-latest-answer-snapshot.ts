@@ -1,13 +1,18 @@
-type SourceSnapshotForRunView = {
+type SourceSnapshotForRunViewInput = {
   id: string;
   label: string;
   url: string | null;
   excerpt: string | null;
   sourceType: "web" | "document" | "note";
+  publishedAt?: Date | string | null;
 };
 
 type AnswerSnapshotWithSources = {
-  sourceSnapshots: SourceSnapshotForRunView[];
+  sourceSnapshots: SourceSnapshotForRunViewInput[];
+};
+
+type SourceSnapshotForRunView = Omit<SourceSnapshotForRunViewInput, "publishedAt"> & {
+  publishedAt: string | null;
 };
 
 /**
@@ -31,6 +36,10 @@ export function selectLatestAnswerSnapshotForView<
         url: source.url,
         excerpt: source.excerpt,
         sourceType: source.sourceType,
+        publishedAt:
+          source.publishedAt instanceof Date
+            ? source.publishedAt.toISOString()
+            : (source.publishedAt ?? null),
       })) ?? [],
   };
 }

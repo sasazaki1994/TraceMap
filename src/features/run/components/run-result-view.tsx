@@ -3,7 +3,15 @@
 import { useMemo, useState } from "react";
 
 import { Panel } from "@/components/ui/panel";
+import { BriefingReportPanel } from "@/features/run/components/briefing-report-panel";
+import { InvestigationTimeline } from "@/features/run/components/investigation-timeline";
+import { MissionHeader } from "@/features/run/components/mission-header";
+import { SourceLineagePanel } from "@/features/run/components/source-lineage-panel";
+import { UnknownMapPanel } from "@/features/run/components/unknown-map-panel";
 import { alertLevelLabel } from "@/features/run/lib/alert-level-label";
+import { buildBriefingReport } from "@/features/run/lib/build-briefing-report";
+import { buildSourceLineage } from "@/features/run/lib/build-source-lineage";
+import { buildUnknowns } from "@/features/run/lib/build-unknowns";
 import { describeGraphNodeTie } from "@/features/run/lib/graph-node-tie-label";
 import { lensLabel, orderClaimsForLens } from "@/features/run/lib/run-lens";
 import { cn } from "@/lib/cn";
@@ -206,6 +214,26 @@ export function RunResultView({
     () => orderClaimsForLens(evidenceClaims, selectedLens),
     [evidenceClaims, selectedLens],
   );
+  const unknowns = useMemo(
+    () => buildUnknowns({ evidenceAlerts, evidenceClaims }),
+    [evidenceAlerts, evidenceClaims],
+  );
+  const sourceLineage = useMemo(
+    () => buildSourceLineage({ sources, evidenceClaims }),
+    [sources, evidenceClaims],
+  );
+  const briefingReport = useMemo(
+    () =>
+      buildBriefingReport({
+        researchTopic: question,
+        answerContent,
+        evidenceClaims,
+        sources,
+        unknowns,
+        sourceLineage,
+      }),
+    [answerContent, evidenceClaims, question, sourceLineage, sources, unknowns],
+  );
 
   const selectedClaimSupportingSourceIds = useMemo(() => {
     if (!selectedGraphNodeId) {
@@ -262,20 +290,13 @@ export function RunResultView({
     <div className="run-grid">
       <div className="run-main">
         <Panel>
-          <div className="run-question">
-            <div className="run-question-label">Question</div>
-            <p>{question}</p>
-          </div>
-          {runStatusBanner ? (
-            <p
-              className="muted"
-              data-testid="run-status-banner"
-              style={{ marginTop: "0.75rem" }}
-            >
-              {runStatusBanner}
-            </p>
-          ) : null}
-          {answerTitle ? <h2>{answerTitle}</h2> : <h2>Answer</h2>}
+          <MissionHeader
+            answerTitle={answerTitle}
+            researchTopic={question}
+            runStatusBanner={runStatusBanner}
+          />
+          <InvestigationTimeline />
+          <h2>Executive summary</h2>
           <div className="run-answer-body" data-testid="run-answer">
             {answerContent}
           </div>
@@ -314,6 +335,8 @@ export function RunResultView({
               </div>
             </div>
           ) : null}
+
+          <UnknownMapPanel unknowns={unknowns} />
 
           <div className="knowledge-toolbar" data-testid="knowledge-toolbar">
             <div className="knowledge-lens-group" role="tablist" aria-label="Knowledge lens">
@@ -796,6 +819,9 @@ export function RunResultView({
               </li>
             ))}
           </ul>
+
+          <SourceLineagePanel sourceLineage={sourceLineage} />
+          <BriefingReportPanel markdown={briefingReport} />
         </Panel>
       </div>
 
