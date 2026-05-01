@@ -8,7 +8,7 @@ export default function HomePage() {
     <main>
       <PageContainer className="home-grid">
         <Panel>
-          <div className="eyebrow">Traceable AI Answers</div>
+          <div className="eyebrow">Investigation Console</div>
           <h1>{siteConfig.name}</h1>
           <p className="lead">{siteConfig.description}</p>
           <div className="status-strip">

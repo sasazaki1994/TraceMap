@@ -13,6 +13,7 @@ describe("selectLatestAnswerSnapshotForView", () => {
           url: "https://example.com/new-a",
           excerpt: "latest excerpt",
           sourceType: "web" as const,
+          publishedAt: new Date("2026-01-02T00:00:00.000Z"),
         },
         {
           id: "src-new-b",
@@ -20,6 +21,7 @@ describe("selectLatestAnswerSnapshotForView", () => {
           url: null,
           excerpt: null,
           sourceType: "note" as const,
+          publishedAt: null,
         },
       ],
     };
@@ -32,6 +34,7 @@ describe("selectLatestAnswerSnapshotForView", () => {
           url: "https://example.com/old-a",
           excerpt: "old excerpt",
           sourceType: "document" as const,
+          publishedAt: "2025-01-01T00:00:00.000Z",
         },
       ],
     };
@@ -46,6 +49,7 @@ describe("selectLatestAnswerSnapshotForView", () => {
         url: "https://example.com/new-a",
         excerpt: "latest excerpt",
         sourceType: "web",
+        publishedAt: "2026-01-02T00:00:00.000Z",
       },
       {
         id: "src-new-b",
@@ -53,6 +57,7 @@ describe("selectLatestAnswerSnapshotForView", () => {
         url: null,
         excerpt: null,
         sourceType: "note",
+        publishedAt: null,
       },
     ]);
     expect(result.sources.some((source) => source.id === "src-old-a")).toBe(false);

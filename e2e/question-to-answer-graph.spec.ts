@@ -22,8 +22,8 @@ test.describe("question-to-answer-graph", () => {
 
     await page.goto("/");
 
-    await page.getByLabel("Question").fill("Why is interpretability important?");
-    await page.getByRole("button", { name: "Analyze Sources" }).click();
+    await page.getByLabel("Research topic").fill("Why is interpretability important?");
+    await page.getByRole("button", { name: "Start Investigation" }).click();
 
     await expect(page).toHaveURL(/\/runs\//);
     // Scope to the question panel: the same text is repeated inside the mock answer body.
@@ -32,7 +32,15 @@ test.describe("question-to-answer-graph", () => {
         exact: true,
       }),
     ).toBeVisible();
+    await expect(page.getByTestId("mission-header")).toBeVisible();
+    await expect(page.getByTestId("mission-topic")).toContainText(
+      "Why is interpretability important?",
+    );
+    await expect(page.getByTestId("investigation-timeline")).toBeVisible();
+    await expect(page.getByTestId("investigation-step")).toHaveCount(5);
     await expect(page.getByTestId("run-answer")).toContainText("Mock trace snapshot");
+    await expect(page.getByTestId("unknown-map-panel")).toBeVisible();
+    await expect(page.getByTestId("unknown-map-item").first()).toBeVisible();
 
     await expect(page.getByTestId("run-alerts")).toBeVisible();
     const alertRow = page.getByTestId("run-alert").first();
@@ -55,9 +63,9 @@ test.describe("question-to-answer-graph", () => {
     await expect(page.getByTestId("run-claim-support-item").first()).toContainText(
       /direct support/i,
     );
-    await expect(page.getByTestId("run-lens-toolbar")).toBeVisible();
+    await expect(page.getByTestId("knowledge-toolbar")).toBeVisible();
     await page.getByRole("button", { name: /timeliness first/i }).click();
-    await expect(page.getByTestId("run-lens-toolbar")).toContainText("Timeliness first");
+    await expect(page.getByTestId("knowledge-toolbar")).toContainText("Timeliness first");
 
     await expect(page.getByTestId("run-claims")).toBeVisible();
     await expect(page.getByTestId("run-claim").first()).toBeVisible();
@@ -81,6 +89,14 @@ test.describe("question-to-answer-graph", () => {
     );
     await expect(page.getByTestId("run-alerts-section")).toContainText("Mock alert");
     await expect(page.getByTestId("run-alert-level").first()).toHaveText(/Warning/i);
+    await expect(page.getByTestId("source-lineage-panel")).toBeVisible();
+    await expect(page.getByTestId("source-lineage-item").first()).toContainText(
+      "Interpretability survey (mock)",
+    );
+    await expect(page.getByTestId("briefing-report-panel")).toBeVisible();
+    await expect(page.getByTestId("briefing-report-markdown")).toContainText(
+      "# Briefing Report",
+    );
 
     await page.getByTestId("source-row").first().click();
     await expect(page.getByTestId("source-detail-panel")).toContainText(
@@ -95,7 +111,7 @@ test.describe("question-to-answer-graph", () => {
     await page.getByRole("button", { name: /counterpoints \/ alternate views/i }).click();
     await expect(page.getByTestId("run-counterpoints-section")).toContainText("Contradiction");
     await page.getByRole("button", { name: /propagation chains/i }).click();
-    await expect(page.getByTestId("run-chain-section")).toBeVisible();
-    await expect(page.getByTestId("run-chain-step").first()).toContainText(/Primary evidence/i);
+    await expect(page.getByTestId("run-propagation-chains-section")).toBeVisible();
+    await expect(page.getByTestId("run-propagation-step").first()).toContainText(/Source/i);
   });
 });

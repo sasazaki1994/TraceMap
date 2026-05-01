@@ -21,3 +21,6 @@
 | Question to answer graph | `question-to-answer-graph.feature` |
 | Source detail & sharing | `source-detail-and-sharing.feature` |
 | Visual design (cyber) | `visual-design-system-cyber.feature` |
+| Investigation Mode | `investigation-mode.feature` |
+| Unknown Map and Source Lineage Lite | `unknown-map-and-source-lineage.feature` |
+| Briefing Report | `briefing-report.feature` |

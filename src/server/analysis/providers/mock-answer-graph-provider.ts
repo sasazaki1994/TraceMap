@@ -153,9 +153,9 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
     kind: "success",
     payload: {
       answer: {
-        title: "Mock synthesis",
+        title: "Mock investigation briefing",
         model: "mock",
-        content: `${MOCK_ANSWER_LEAD} — this run is generated locally without an LLM.\n\nQuestion:\n${question}\n\nSummary:\n- Evidence is mocked.\n- Source rows below mirror what a future pipeline would attach.\n- The graph_json field ties UI nodes to these snapshots.`,
+        content: `${MOCK_ANSWER_LEAD} — this investigation mission is generated locally without an LLM.\n\nResearch topic:\n${question}\n\nExecutive Summary:\n- Evidence is mocked for the MVP v2 investigation skeleton.\n- Source rows below mirror what a future mission pipeline would attach.\n- The evidence map ties findings, claims, and sources to this snapshot.\n- Unknowns remain visible so reviewers can decide what to verify next.`,
         graphJson: graph,
       },
       sources: [
@@ -312,7 +312,7 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
         alert: {
           level: "warning",
           message:
-            "Mock alert: evidence is synthetic; do not rely on this output for decisions.",
+            "Mock alert: evidence is synthetic; verify unresolved unknowns before reusing this briefing.",
         },
       },
     },
