@@ -71,7 +71,15 @@ describe("buildSourceLineage", () => {
       }),
     );
     expect(lineage[0]?.lineageLabel).toContain("Primary evidence");
+    expect(lineage[0]?.lineageLabel).toContain("Web source");
     expect(lineage[1]?.lineageLabel).toContain("publication date unknown");
+    expect(lineage[1]).toEqual(
+      expect.objectContaining({
+        sourceId: "src-note",
+        label: "Internal note",
+        publishedAt: null,
+      }),
+    );
   });
 
   it("does not mark sources as primary when no claim support proves it", () => {
@@ -88,5 +96,32 @@ describe("buildSourceLineage", () => {
       }),
     );
     expect(lineage[0]?.lineageLabel).toContain("Supporting context");
+  });
+
+  it("falls back safely for unknown source types", () => {
+    const lineage = buildSourceLineage({
+      sources: [
+        {
+          id: "src-unknown",
+          label: "Unclassified source",
+          sourceType: "rss" as "web",
+          publishedAt: undefined,
+        },
+      ],
+      evidenceClaims: [],
+    });
+
+    expect(lineage[0]).toEqual(
+      expect.objectContaining({
+        sourceId: "src-unknown",
+        label: "Unclassified source",
+        sourceType: "web",
+        publishedAt: null,
+        isPrimarySource: false,
+        linkedClaimCount: 0,
+      }),
+    );
+    expect(lineage[0]?.lineageLabel).toContain("Unknown source type");
+    expect(lineage[0]?.lineageLabel).toContain("publication date unknown");
   });
 });

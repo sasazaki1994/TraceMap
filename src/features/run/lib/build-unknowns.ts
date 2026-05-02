@@ -86,6 +86,10 @@ function reasonForGap(message: string): string {
   return "Existing evidence raised an investigation caveat.";
 }
 
+function confidenceReason(summary: string): string {
+  return summary.trim() || "Claim confidence is limited by incomplete supporting evidence.";
+}
+
 function fromAlert(params: {
   id: string;
   message: string;
@@ -135,7 +139,7 @@ export function buildUnknowns(params: {
       unknowns.push({
         id: `${claim.id}-confidence`,
         text: claim.summary,
-        reason: confidence.summary,
+        reason: confidenceReason(confidence.summary),
         severity: severityFromConfidence(confidence.level),
         suggestedNextAction: "Strengthen evidence before reusing this finding.",
       });

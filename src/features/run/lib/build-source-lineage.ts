@@ -4,11 +4,22 @@ import type { RunEvidenceClaim } from "@/types/run-evidence";
 type SourceForLineage = {
   id: string;
   label: string;
-  sourceType: SourceLineageLite["sourceType"];
+  sourceType: SourceLineageLite["sourceType"] | string;
   publishedAt?: string | null;
 };
 
-function sourceTypeLabel(sourceType: SourceLineageLite["sourceType"]): string {
+function normalizeSourceType(sourceType: string): SourceLineageLite["sourceType"] {
+  switch (sourceType) {
+    case "web":
+    case "document":
+    case "note":
+      return sourceType;
+    default:
+      return "web";
+  }
+}
+
+function sourceTypeLabel(sourceType: SourceLineageLite["sourceType"] | string): string {
   switch (sourceType) {
     case "web":
       return "Web source";
@@ -16,11 +27,13 @@ function sourceTypeLabel(sourceType: SourceLineageLite["sourceType"]): string {
       return "Document source";
     case "note":
       return "Research note";
+    default:
+      return "Unknown source type";
   }
 }
 
 function buildLineageLabel(params: {
-  sourceType: SourceLineageLite["sourceType"];
+  sourceType: SourceLineageLite["sourceType"] | string;
   isPrimarySource: boolean;
   claimCount: number;
   publishedAt?: string | null;
@@ -47,6 +60,7 @@ export function buildSourceLineage(params: {
   evidenceClaims: RunEvidenceClaim[];
 }): SourceLineageLite[] {
   return params.sources.map((source) => {
+    const sourceType = normalizeSourceType(source.sourceType);
     const supports = params.evidenceClaims.flatMap((claim) =>
       claim.supports
         .filter((support) => support.sourceId === source.id)
@@ -58,7 +72,7 @@ export function buildSourceLineage(params: {
     return {
       sourceId: source.id,
       label: source.label,
-      sourceType: source.sourceType,
+      sourceType,
       lineageLabel: buildLineageLabel({
         sourceType: source.sourceType,
         isPrimarySource,

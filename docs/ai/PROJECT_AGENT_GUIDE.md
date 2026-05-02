@@ -9,6 +9,8 @@ TraceMap は、ユーザーの調査テーマを AI が **Investigation Mission*
 
 MVP v2 では、既存の Evidence Graph / Claim / Source / Alert / Counterpoint / Propagation Chain を維持しつつ、ユーザー向け概念を「質問への回答」から「調査テーマに対するミッション結果」へ寄せます。既存 DB の `AnalysisRun.question` や provider 名は直ちに rename せず、spec・acceptance・UI 表示を先に新方針へ同期します。
 
+MVP v2 の安定化では、Unknown / Report 用の新規テーブルや Prisma migration は追加しません。Unknown Map / Source Lineage / Briefing Report は既存の run snapshot・claim・source・alert・confidence から派生する view model とし、OpenAI provider の大規模な Investigation Result schema 変更は次フェーズで扱います。
+
 ## 2. 技術スタック
 
 - Next.js (App Router)
