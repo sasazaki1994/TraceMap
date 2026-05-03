@@ -37,3 +37,4 @@ Each feature spec should describe:
 | Briefing Report preview | [briefing-report.md](./briefing-report.md) |
 | Real Investigation Pipeline | [real-investigation-pipeline.md](./real-investigation-pipeline.md) |
 | Cost and Output Limits | [cost-and-output-limits.md](./cost-and-output-limits.md) |
+| Source Cache and Fetch Snapshot | [source-cache-and-fetch-snapshot.md](./source-cache-and-fetch-snapshot.md) |

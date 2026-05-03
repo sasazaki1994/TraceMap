@@ -33,6 +33,13 @@ export type RunSourceView = {
   excerpt: string | null;
   sourceType: "web" | "document" | "note";
   publishedAt?: string | null;
+  verificationStatus?: "verified" | "unverified" | "unreachable" | "invalid";
+  checkedAt?: string | null;
+  httpStatus?: number | null;
+  finalUrl?: string | null;
+  contentType?: string | null;
+  sourceCacheEntryId?: string | null;
+  sourceFetchSnapshotId?: string | null;
 };
 
 type RunResultViewProps = {
@@ -127,6 +134,22 @@ function chainStepKindLabel(kind: RunEvidencePropagationStep["stepKind"]): strin
 
 function chainBoundaryLabel(boundary: RunEvidencePropagationStep["boundary"]): string {
   return boundary === "primary" ? "Primary information" : "Interpretation";
+}
+
+function verificationStatusLabel(
+  status: NonNullable<RunSourceView["verificationStatus"]> | undefined,
+): string {
+  switch (status) {
+    case "verified":
+      return "Verified";
+    case "unreachable":
+      return "Unreachable";
+    case "invalid":
+      return "Invalid";
+    case "unverified":
+    case undefined:
+      return "Unverified";
+  }
 }
 
 function layoutGraph(graph: AnswerGraphJson): Map<string, { x: number; y: number }> {
@@ -841,6 +864,41 @@ export function RunResultView({
                     <a href={selectedSource.url} rel="noreferrer" target="_blank">
                       {selectedSource.url}
                     </a>
+                  </p>
+                ) : null}
+                <dl
+                  className="claim-confidence-breakdown"
+                  style={{ marginTop: "12px" }}
+                >
+                  <div data-testid="source-verification-status">
+                    <dt>Verification</dt>
+                    <dd>{verificationStatusLabel(selectedSource.verificationStatus)}</dd>
+                  </div>
+                  <div data-testid="source-http-status">
+                    <dt>HTTP</dt>
+                    <dd>{selectedSource.httpStatus ?? "Unknown"}</dd>
+                  </div>
+                  <div>
+                    <dt>Checked</dt>
+                    <dd>{selectedSource.checkedAt ?? "Unknown"}</dd>
+                  </div>
+                </dl>
+                {selectedSource.contentType ? (
+                  <p
+                    className="source-list-item-meta"
+                    data-testid="source-content-type"
+                    style={{ marginTop: "8px" }}
+                  >
+                    Content type: {selectedSource.contentType}
+                  </p>
+                ) : null}
+                {selectedSource.finalUrl ? (
+                  <p
+                    className="source-list-item-meta"
+                    data-testid="source-final-url"
+                    style={{ marginTop: "8px", wordBreak: "break-all" }}
+                  >
+                    Final URL: {selectedSource.finalUrl}
                   </p>
                 ) : null}
                 {selectedSource.excerpt ? (

@@ -103,6 +103,8 @@ model SourceSnapshot {
   id                   String                   @id @default(cuid())
   analysisRunId        String                   @map("analysis_run_id")
   answerSnapshotId     String?                  @map("answer_snapshot_id")
+  sourceCacheEntryId   String?                  @map("source_cache_entry_id")
+  sourceFetchSnapshotId String?                 @map("source_fetch_snapshot_id")
   label                String
   sourceType           SourceSnapshotType       @default(web) @map("source_type")
   url                  String?
@@ -116,12 +118,53 @@ model SourceSnapshot {
   createdAt            DateTime                 @default(now()) @map("created_at")
   analysisRun          AnalysisRun              @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
   answerSnapshot       AnswerSnapshot?          @relation(fields: [answerSnapshotId], references: [id], onDelete: SetNull)
+  sourceCacheEntry     SourceCacheEntry?        @relation(fields: [sourceCacheEntryId], references: [id], onDelete: SetNull)
+  sourceFetchSnapshot  SourceFetchSnapshot?     @relation(fields: [sourceFetchSnapshotId], references: [id], onDelete: SetNull)
   claimSourceSnapshots ClaimSourceSnapshot[]
   propagationSteps     ClaimPropagationStep[]
 
   @@index([analysisRunId])
   @@index([answerSnapshotId])
+  @@index([sourceCacheEntryId])
+  @@index([sourceFetchSnapshotId])
   @@map("source_snapshots")
+}
+
+model SourceCacheEntry {
+  id                String                @id @default(cuid())
+  normalizedUrl     String                @unique @map("normalized_url")
+  originalUrl        String?               @map("original_url")
+  latestFinalUrl     String?               @map("latest_final_url")
+  latestHttpStatus   Int?                  @map("latest_http_status")
+  latestContentType  String?               @map("latest_content_type")
+  latestContentHash  String?               @map("latest_content_hash")
+  latestFetchedAt    DateTime?             @map("latest_fetched_at")
+  latestErrorMessage String?               @map("latest_error_message")
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+  fetchSnapshots     SourceFetchSnapshot[]
+  sourceSnapshots    SourceSnapshot[]
+
+  @@map("source_cache_entries")
+}
+
+model SourceFetchSnapshot {
+  id                 String            @id @default(cuid())
+  sourceCacheEntryId String            @map("source_cache_entry_id")
+  requestedUrl        String           @map("requested_url")
+  finalUrl            String?          @map("final_url")
+  httpStatus          Int?             @map("http_status")
+  contentType         String?          @map("content_type")
+  contentHash         String?          @map("content_hash")
+  excerpt             String?
+  errorMessage        String?          @map("error_message")
+  fetchedAt           DateTime         @default(now()) @map("fetched_at")
+  sourceCacheEntry    SourceCacheEntry @relation(fields: [sourceCacheEntryId], references: [id], onDelete: Cascade)
+  sourceSnapshots     SourceSnapshot[]
+
+  @@index([sourceCacheEntryId])
+  @@index([fetchedAt])
+  @@map("source_fetch_snapshots")
 }
 
 model ShareLink {

@@ -5,6 +5,13 @@ type SourceSnapshotForRunViewInput = {
   excerpt: string | null;
   sourceType: "web" | "document" | "note";
   publishedAt?: Date | string | null;
+  verificationStatus?: "verified" | "unverified" | "unreachable" | "invalid";
+  checkedAt?: Date | string | null;
+  httpStatus?: number | null;
+  finalUrl?: string | null;
+  contentType?: string | null;
+  sourceCacheEntryId?: string | null;
+  sourceFetchSnapshotId?: string | null;
 };
 
 type AnswerSnapshotWithSources = {
@@ -13,7 +20,15 @@ type AnswerSnapshotWithSources = {
 
 type SourceSnapshotForRunView = Omit<SourceSnapshotForRunViewInput, "publishedAt"> & {
   publishedAt: string | null;
+  checkedAt: string | null;
 };
+
+function toIsoString(value: Date | string | null | undefined): string | null {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  return value ?? null;
+}
 
 /**
  * Run/share pages render one answer snapshot at a time.
@@ -36,10 +51,14 @@ export function selectLatestAnswerSnapshotForView<
         url: source.url,
         excerpt: source.excerpt,
         sourceType: source.sourceType,
-        publishedAt:
-          source.publishedAt instanceof Date
-            ? source.publishedAt.toISOString()
-            : (source.publishedAt ?? null),
+        publishedAt: toIsoString(source.publishedAt),
+        verificationStatus: source.verificationStatus ?? "unverified",
+        checkedAt: toIsoString(source.checkedAt),
+        httpStatus: source.httpStatus ?? null,
+        finalUrl: source.finalUrl ?? null,
+        contentType: source.contentType ?? null,
+        sourceCacheEntryId: source.sourceCacheEntryId ?? null,
+        sourceFetchSnapshotId: source.sourceFetchSnapshotId ?? null,
       })) ?? [],
   };
 }

@@ -30,6 +30,30 @@ export function SourceLineagePanel({ sourceLineage }: SourceLineagePanelProps) {
               <p className="source-list-item-meta" style={{ marginTop: "6px" }}>
                 Type: {source.sourceType} · Published: {source.publishedAt ?? "Unknown"}
               </p>
+              <p
+                className="source-list-item-meta"
+                data-testid="source-verification-status"
+                style={{ marginTop: "6px" }}
+              >
+                Verification: {source.verificationStatus ?? "unverified"}
+                {source.httpStatus !== null && source.httpStatus !== undefined
+                  ? ` · HTTP ${source.httpStatus}`
+                  : ""}
+                {source.contentType ? ` · ${source.contentType}` : ""}
+              </p>
+              {source.finalUrl ? (
+                <p
+                  className="source-list-item-meta"
+                  style={{ marginTop: "6px", wordBreak: "break-all" }}
+                >
+                  Final URL: {source.finalUrl}
+                </p>
+              ) : null}
+              {source.checkedAt ? (
+                <p className="source-list-item-meta" style={{ marginTop: "6px" }}>
+                  Checked: {source.checkedAt}
+                </p>
+              ) : null}
               <p className="muted" style={{ marginTop: "6px" }}>
                 {source.lineageLabel}
               </p>

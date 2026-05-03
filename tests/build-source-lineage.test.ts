@@ -12,6 +12,11 @@ const sources: RunSourceView[] = [
     excerpt: "Official excerpt.",
     sourceType: "web",
     publishedAt: "2025-01-01T00:00:00.000Z",
+    verificationStatus: "verified",
+    checkedAt: "2026-01-01T00:00:00.000Z",
+    httpStatus: 200,
+    finalUrl: "https://example.com/report",
+    contentType: "text/html",
   },
   {
     id: "src-note",
@@ -68,9 +73,14 @@ describe("buildSourceLineage", () => {
         publishedAt: "2025-01-01T00:00:00.000Z",
         isPrimarySource: true,
         linkedClaimCount: 1,
+        verificationStatus: "verified",
+        checkedAt: "2026-01-01T00:00:00.000Z",
+        httpStatus: 200,
+        finalUrl: "https://example.com/report",
+        contentType: "text/html",
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Primary / official evidence");
+    expect(lineage[0]?.lineageLabel).toContain("Primary evidence or official source");
     expect(lineage[0]?.lineageLabel).toContain("Web source");
     expect(lineage[1]?.lineageLabel).toContain("publication date unknown");
     expect(lineage[1]).toEqual(

@@ -1,5 +1,7 @@
 import type { SourceVerificationStatus } from "@prisma/client";
 
+import { fetchSourceSnapshot } from "@/server/analysis/fetch-source-snapshot";
+
 export type SourceUrlVerificationResult = {
   verificationStatus: SourceVerificationStatus;
   checkedAt: Date;
@@ -8,20 +10,15 @@ export type SourceUrlVerificationResult = {
   contentType: string | null;
 };
 
-const DEFAULT_TIMEOUT_MS = 8_000;
-
 /**
- * Best-effort HTTP reachability check for a public http(s) URL.
- * Does not throw; unreachable/invalid outcomes are reflected in status fields only.
+ * Compatibility wrapper around Source Fetch v0.1.
+ * Prefer `resolveSourceCacheForUrl` for persistence so cache/fetch snapshots are recorded.
  */
 export async function verifyPublicHttpUrl(
   rawUrl: string,
   options?: { timeoutMs?: number; fetchImpl?: typeof fetch },
 ): Promise<SourceUrlVerificationResult> {
   const checkedAt = new Date();
-  const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const fetchFn = options?.fetchImpl ?? globalThis.fetch;
-
   const trimmed = rawUrl.trim();
   if (!trimmed) {
     return {
@@ -56,58 +53,36 @@ export async function verifyPublicHttpUrl(
     };
   }
 
-  const signal = AbortSignal.timeout(timeoutMs);
+  const result = await fetchSourceSnapshot(url.toString(), {
+    fetchImpl: options?.fetchImpl,
+    timeoutMs: options?.timeoutMs,
+    maxBytes: 1,
+  });
 
-  async function probe(method: "HEAD" | "GET"): Promise<Response | null> {
-    try {
-      return await fetchFn(url.toString(), {
-        method,
-        redirect: "follow",
-        signal,
-        ...(method === "GET"
-          ? {
-              headers: {
-                Range: "bytes=0-0",
-                Accept: "*/*",
-              },
-            }
-          : {}),
-      });
-    } catch {
-      return null;
-    }
+  switch (result.kind) {
+    case "fetched":
+      return {
+        verificationStatus: "verified",
+        checkedAt,
+        httpStatus: result.httpStatus,
+        finalUrl: result.finalUrl,
+        contentType: result.contentType,
+      };
+    case "blocked":
+      return {
+        verificationStatus: "invalid",
+        checkedAt,
+        httpStatus: null,
+        finalUrl: null,
+        contentType: null,
+      };
+    case "failed":
+      return {
+        verificationStatus: "unreachable",
+        checkedAt,
+        httpStatus: result.httpStatus ?? null,
+        finalUrl: result.finalUrl ?? null,
+        contentType: result.contentType ?? null,
+      };
   }
-
-  let response = await probe("HEAD");
-
-  if (
-    response === null ||
-    response.status === 405 ||
-    response.status === 501 ||
-    response.status === 403
-  ) {
-    response = await probe("GET");
-  }
-
-  if (response === null) {
-    return {
-      verificationStatus: "unreachable",
-      checkedAt,
-      httpStatus: null,
-      finalUrl: null,
-      contentType: null,
-    };
-  }
-
-  const httpStatus = response.status;
-  const finalUrl = response.url || url.toString();
-  const contentType = response.headers.get("content-type");
-
-  return {
-    verificationStatus: "verified",
-    checkedAt,
-    httpStatus,
-    finalUrl,
-    contentType: contentType?.trim() ? contentType.trim() : null,
-  };
 }
