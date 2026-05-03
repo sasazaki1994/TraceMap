@@ -100,10 +100,15 @@ export type NormalizeGeneratedAnswerGraphResult =
       errorMessage: string;
     };
 
+type NormalizeGeneratedAnswerGraphFailure = Extract<
+  NormalizeGeneratedAnswerGraphResult,
+  { kind: "failure" }
+>;
+
 function failure(
   reason: InvestigationPipelineFailureReason,
   errorMessage: string,
-): NormalizeGeneratedAnswerGraphResult {
+): NormalizeGeneratedAnswerGraphFailure {
   return { kind: "failure", reason, errorMessage };
 }
 
@@ -140,7 +145,7 @@ export function isValidPublicHttpUrl(raw: string): boolean {
 
 function validateSources(
   sources: StructuredAnswerSource[],
-): NormalizeGeneratedAnswerGraphResult | { kind: "ok"; ids: Set<string> } {
+): NormalizeGeneratedAnswerGraphFailure | { kind: "sources_ok"; ids: Set<string> } {
   if (sources.length < 2) {
     return failure(
       "too_few_sources",
@@ -168,13 +173,13 @@ function validateSources(
     }
   }
 
-  return { kind: "ok", ids };
+  return { kind: "sources_ok", ids };
 }
 
 function validateClaims(
   claims: StructuredAnswerClaim[],
   sourceIds: Set<string>,
-): NormalizeGeneratedAnswerGraphResult | { kind: "ok" } {
+): NormalizeGeneratedAnswerGraphFailure | { kind: "claims_ok" } {
   if (claims.length === 0) {
     return failure(
       "no_claims",
@@ -201,7 +206,7 @@ function validateClaims(
     }
   }
 
-  return { kind: "ok" };
+  return { kind: "claims_ok" };
 }
 
 function normalizeSources(

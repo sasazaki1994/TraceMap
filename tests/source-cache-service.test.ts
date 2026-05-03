@@ -109,8 +109,37 @@ describe("resolveSourceCacheForUrl", () => {
 
     expect(fetchSnapshot).toHaveBeenCalledWith("https://example.com/a", {
       fetchImpl: undefined,
+      maxBytes: undefined,
+      timeoutMs: undefined,
     });
     expect(result.kind === "resolved" ? result.sourceFetchSnapshotId : null).toBe("fetch-2");
+  });
+
+  it("does not reuse a fresh entry that has a latest error", async () => {
+    const db = createDbMock();
+    db.sourceCacheEntry.findUnique.mockResolvedValue({
+      id: "cache-1",
+      latestFetchedAt: new Date("2026-05-03T09:30:00.000Z"),
+      latestErrorMessage: "previous fetch failed",
+      latestHttpStatus: 200,
+      latestFinalUrl: "https://example.com/a",
+      latestContentType: "text/plain",
+      latestContentHash: "old",
+    });
+    db.sourceFetchSnapshot.create.mockResolvedValue({ id: "fetch-3" });
+    db.sourceCacheEntry.update.mockResolvedValue({});
+    const fetchSnapshot = vi.fn().mockResolvedValue(fetchedResult);
+
+    const result = await resolveSourceCacheForUrl("https://example.com/a", {
+      db,
+      now,
+      ttlHours: 24,
+      fetchSnapshot,
+    });
+
+    expect(fetchSnapshot).toHaveBeenCalled();
+    expect(result.kind === "resolved" ? result.reusedCache : true).toBe(false);
+    expect(result.kind === "resolved" ? result.sourceFetchSnapshotId : null).toBe("fetch-3");
   });
 
   it("returns unreachable metadata when fetch fails", async () => {
@@ -159,5 +188,40 @@ describe("resolveSourceCacheForUrl", () => {
     expect(db.sourceCacheEntry.findUnique).toHaveBeenCalledWith({
       where: { normalizedUrl: "https://example.com/a?a=1&b=2" },
     });
+  });
+
+  it("reads ttl from environment when ttlHours is not passed", async () => {
+    const previousTtl = process.env.TRACEMAP_SOURCE_CACHE_TTL_HOURS;
+    process.env.TRACEMAP_SOURCE_CACHE_TTL_HOURS = "1";
+    try {
+      const db = createDbMock();
+      db.sourceCacheEntry.findUnique.mockResolvedValue({
+        id: "cache-1",
+        latestFetchedAt: new Date("2026-05-03T08:30:00.000Z"),
+        latestErrorMessage: null,
+        latestHttpStatus: 200,
+        latestFinalUrl: "https://example.com/a",
+        latestContentType: "text/html",
+        latestContentHash: "old",
+      });
+      db.sourceFetchSnapshot.create.mockResolvedValue({ id: "fetch-env" });
+      db.sourceCacheEntry.update.mockResolvedValue({});
+      const fetchSnapshot = vi.fn().mockResolvedValue(fetchedResult);
+
+      const result = await resolveSourceCacheForUrl("https://example.com/a", {
+        db,
+        now,
+        fetchSnapshot,
+      });
+
+      expect(fetchSnapshot).toHaveBeenCalled();
+      expect(result.kind === "resolved" ? result.sourceFetchSnapshotId : null).toBe("fetch-env");
+    } finally {
+      if (previousTtl === undefined) {
+        delete process.env.TRACEMAP_SOURCE_CACHE_TTL_HOURS;
+      } else {
+        process.env.TRACEMAP_SOURCE_CACHE_TTL_HOURS = previousTtl;
+      }
+    }
   });
 });

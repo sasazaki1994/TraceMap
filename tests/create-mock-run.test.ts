@@ -28,6 +28,24 @@ vi.mock("@/server/analysis/resolve-answer-graph-provider", () => ({
   resolveAnswerGraphProvider: vi.fn(),
 }));
 
+vi.mock("@/server/analysis/source-cache-service", () => ({
+  resolveSourceCacheForUrl: vi.fn(async (url: string) => ({
+    kind: "resolved",
+    normalizedUrl: url,
+    originalUrl: url,
+    sourceCacheEntryId: "cache-mock",
+    sourceFetchSnapshotId: "fetch-mock",
+    verificationStatus: "verified",
+    checkedAt: new Date("2026-01-01T00:00:00.000Z"),
+    httpStatus: 200,
+    finalUrl: url,
+    contentType: "text/html",
+    contentHash: "hash-mock",
+    excerpt: null,
+    reusedCache: false,
+  })),
+}));
+
 describe("createAnalysisRunFromProvider", () => {
   beforeEach(async () => {
     vi.clearAllMocks();

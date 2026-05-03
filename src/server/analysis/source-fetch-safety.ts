@@ -3,6 +3,8 @@ export type SourceFetchSafetyResult =
   | {
       kind: "blocked";
       reason:
+        | "invalid_url"
+        | "unsupported_protocol"
         | "localhost"
         | "private_ipv4"
         | "loopback_ipv4"
@@ -13,15 +15,21 @@ export type SourceFetchSafetyResult =
       message: string;
     };
 
-function parseHostnameFromUrl(rawUrl: string): string | null {
+function parseUrlForSafety(rawUrl: string):
+  | { kind: "ok"; hostname: string }
+  | { kind: "invalid_url" }
+  | { kind: "unsupported_protocol" } {
   try {
     const url = new URL(rawUrl);
     if (url.protocol !== "http:" && url.protocol !== "https:") {
-      return null;
+      return { kind: "unsupported_protocol" };
     }
-    return url.hostname;
+    if (!url.hostname) {
+      return { kind: "invalid_url" };
+    }
+    return { kind: "ok", hostname: url.hostname };
   } catch {
-    return null;
+    return { kind: "invalid_url" };
   }
 }
 
@@ -98,9 +106,12 @@ export function assertSourceFetchSafe(hostname: string): SourceFetchSafetyResult
 }
 
 export function isSourceFetchSafe(rawUrl: string): SourceFetchSafetyResult {
-  const hostname = parseHostnameFromUrl(rawUrl);
-  if (hostname === null) {
-    return block("localhost", "Source URL is not a safe http(s) URL.");
+  const parsed = parseUrlForSafety(rawUrl);
+  if (parsed.kind === "invalid_url") {
+    return block("invalid_url", "Source URL is not a valid absolute URL.");
   }
-  return assertSourceFetchSafe(hostname);
+  if (parsed.kind === "unsupported_protocol") {
+    return block("unsupported_protocol", "Only http and https source URLs are safe to fetch.");
+  }
+  return assertSourceFetchSafe(parsed.hostname);
 }
