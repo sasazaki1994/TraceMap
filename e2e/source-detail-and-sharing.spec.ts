@@ -54,5 +54,6 @@ test.describe("source-detail-and-sharing", () => {
 
     await page.getByTestId("source-row").first().click();
     await expect(page.getByTestId("source-detail-panel")).toBeVisible();
+    await expect(page.getByTestId("source-verification-status").first()).toBeVisible();
   });
 });

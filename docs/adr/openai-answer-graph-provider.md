@@ -28,6 +28,6 @@ Structured output includes **`sufficient_grounding`**. When `false`, the provide
 
 **Counterpoint / alert**: still **one** counterpoint and **one** alert per answer snapshot in the structured payload; the counterpoint is stored against the **first** claim.
 
-**URL verification**: `persistGeneratedAnswerGraph` performs a **best-effort** HTTP probe (HEAD with GET fallback) per http(s) source URL and stores metadata on **`source_snapshots`**. Failures to reach a host do **not** fail the run; they set **`unreachable`** (or similar) instead of changing the structural success criteria.
+**URL verification**: `persistGeneratedAnswerGraph` resolves **Source Cache / Fetch Snapshot** metadata per http(s) source URL and stores verification metadata on **`source_snapshots`**. Failures to reach a host do **not** fail the run; they set **`unreachable`** (or similar) instead of changing the structural success criteria.
 
 There is no retrieval layer; structural validation remains the gate for **`completed`** runs.

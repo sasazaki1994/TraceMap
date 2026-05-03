@@ -5,9 +5,64 @@ import type { AnswerGraphJson } from "@/types/answer-graph";
 
 import { computeClaimConfidence } from "@/server/analysis/claim-confidence";
 import { prisma } from "@/server/db/prisma";
-import { verifyPublicHttpUrl } from "@/server/analysis/verify-source-url";
+import {
+  resolveSourceCacheForUrl,
+  type ResolveSourceCacheResult,
+} from "@/server/analysis/source-cache-service";
 
-function isPublicHttpUrlForVerification(raw: string | null): raw is string {
+type SourceVerificationMetadata = {
+  verificationStatus: "verified" | "unverified" | "unreachable" | "invalid";
+  checkedAt: Date | null;
+  httpStatus: number | null;
+  finalUrl: string | null;
+  contentType: string | null;
+  sourceCacheEntryId: string | null;
+  sourceFetchSnapshotId: string | null;
+  excerpt: string | null;
+};
+
+function sourceVerificationFromCacheResult(
+  result: ResolveSourceCacheResult,
+): SourceVerificationMetadata {
+  if (result.kind === "invalid") {
+    return {
+      verificationStatus: "invalid",
+      checkedAt: result.checkedAt,
+      httpStatus: null,
+      finalUrl: null,
+      contentType: null,
+      sourceCacheEntryId: null,
+      sourceFetchSnapshotId: null,
+      excerpt: null,
+    };
+  }
+
+  return {
+    verificationStatus: result.verificationStatus,
+    checkedAt: result.checkedAt,
+    httpStatus: result.httpStatus,
+    finalUrl: result.finalUrl,
+    contentType: result.contentType,
+    sourceCacheEntryId: result.sourceCacheEntryId,
+    sourceFetchSnapshotId: result.sourceFetchSnapshotId,
+    excerpt: result.excerpt,
+  };
+}
+
+function unverifiedSource(): SourceVerificationMetadata {
+  return {
+    verificationStatus: "unverified",
+    checkedAt: null,
+    httpStatus: null,
+    finalUrl: null,
+    contentType: null,
+    sourceCacheEntryId: null,
+    sourceFetchSnapshotId: null,
+    excerpt: null,
+  };
+}
+
+function shouldResolveSourceCache(raw: string | null): raw is string {
   if (raw === null) {
     return false;
   }
@@ -52,15 +107,9 @@ export async function persistGeneratedAnswerGraph(params: {
 
   const verificationByIndex = await Promise.all(
     payload.sources.map((src) =>
-      isPublicHttpUrlForVerification(src.url)
-        ? verifyPublicHttpUrl(src.url)
-        : Promise.resolve({
-            verificationStatus: "unverified" as const,
-            checkedAt: null as Date | null,
-            httpStatus: null as number | null,
-            finalUrl: null as string | null,
-            contentType: null as string | null,
-          }),
+      shouldResolveSourceCache(src.url)
+        ? resolveSourceCacheForUrl(src.url).then(sourceVerificationFromCacheResult)
+        : Promise.resolve(unverifiedSource()),
     ),
   );
 
@@ -79,7 +128,7 @@ export async function persistGeneratedAnswerGraph(params: {
     for (let i = 0; i < payload.sources.length; i++) {
       const src = payload.sources[i];
       const placeholderId = `__src_${i}__`;
-      const v = verificationByIndex[i];
+      const v = verificationByIndex[i] ?? unverifiedSource();
       const row = await tx.sourceSnapshot.create({
         data: {
           analysisRunId: runId,
@@ -87,13 +136,15 @@ export async function persistGeneratedAnswerGraph(params: {
           label: src.label,
           sourceType: src.sourceType,
           url: src.url,
-          excerpt: src.excerpt,
+          excerpt: src.excerpt ?? v.excerpt,
           publishedAt: src.publishedAt ?? null,
           verificationStatus: v.verificationStatus,
           checkedAt: v.checkedAt,
           httpStatus: v.httpStatus,
           finalUrl: v.finalUrl,
           contentType: v.contentType,
+          sourceCacheEntryId: v.sourceCacheEntryId,
+          sourceFetchSnapshotId: v.sourceFetchSnapshotId,
         },
       });
       idMap.set(placeholderId, row.id);

@@ -18,13 +18,21 @@ vi.mock("@/server/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/server/analysis/verify-source-url", () => ({
-  verifyPublicHttpUrl: vi.fn(async () => ({
+vi.mock("@/server/analysis/source-cache-service", () => ({
+  resolveSourceCacheForUrl: vi.fn(async (url: string) => ({
+    kind: "resolved",
+    normalizedUrl: url,
+    originalUrl: url,
+    sourceCacheEntryId: "cache-1",
+    sourceFetchSnapshotId: "fetch-1",
     verificationStatus: "verified",
-    checkedAt: null,
+    checkedAt: new Date("2026-01-01T00:00:00.000Z"),
     httpStatus: 200,
     finalUrl: "https://example.com/final",
     contentType: "text/html",
+    contentHash: "hash-1",
+    excerpt: "Fetched excerpt",
+    reusedCache: false,
   })),
 }));
 
@@ -268,6 +276,25 @@ describe("persistGeneratedAnswerGraph", () => {
             }),
           ]),
         }),
+      },
+    });
+
+    expect(tx.sourceSnapshot.create).toHaveBeenNthCalledWith(1, {
+      data: {
+        analysisRunId: "run-1",
+        answerSnapshotId: "answer-1",
+        label: "Source A",
+        sourceType: "web",
+        url: "https://example.com/a",
+        excerpt: "Excerpt A",
+        publishedAt: new Date("2025-01-10T00:00:00.000Z"),
+        verificationStatus: "verified",
+        checkedAt: new Date("2026-01-01T00:00:00.000Z"),
+        httpStatus: 200,
+        finalUrl: "https://example.com/final",
+        contentType: "text/html",
+        sourceCacheEntryId: "cache-1",
+        sourceFetchSnapshotId: "fetch-1",
       },
     });
   });

@@ -18,7 +18,7 @@
 The codebase separates **generation** from **persistence** so a real LLM can be added later without rewriting the Prisma write path:
 
 - **Contract**: `AnswerGraphProvider` (`src/server/analysis/answer-graph-provider.ts`) — `generateAnswerGraph({ question })` returns `GenerateAnswerGraphResult` (`src/types/answer-graph-generation.ts`).
-- **Write path**: `persistGeneratedAnswerGraph` (`src/server/analysis/persist-generated-answer-graph.ts`) takes a `GeneratedAnswerGraphPayload` and creates `answer_snapshots` / `source_snapshots` / optional evidence rows in one transaction. Before insert, it runs **optional URL verification** (`verifyPublicHttpUrl`) for http(s) URLs; results are stored on `source_snapshots` and **do not** flip runs to `failed` on network errors.
+- **Write path**: `persistGeneratedAnswerGraph` (`src/server/analysis/persist-generated-answer-graph.ts`) takes a `GeneratedAnswerGraphPayload` and creates `answer_snapshots` / `source_snapshots` / optional evidence rows in one transaction. Before insert, it resolves **Source Cache / Fetch Snapshot** metadata for http(s) URLs; results are stored on `source_snapshots` and **do not** flip runs to `failed` on network errors.
 - **Orchestration**: `createAnalysisRunFromProvider` (`src/server/analysis/create-analysis-run-from-provider.ts`) updates `analysis_runs.status` (`queued` → `processing` → `completed` | `failed`), persists `last_error_message` on failure, and logs unexpected errors to the server console.
 - **Providers today** (under `src/server/analysis/providers/`):
   - `mock` (default) — full mock parity (graph + sources + evidence).

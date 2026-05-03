@@ -6,6 +6,11 @@ type SourceForLineage = {
   label: string;
   sourceType: SourceLineageLite["sourceType"] | string;
   publishedAt?: string | null;
+  verificationStatus?: SourceLineageLite["verificationStatus"];
+  checkedAt?: string | null;
+  httpStatus?: number | null;
+  finalUrl?: string | null;
+  contentType?: string | null;
 };
 
 function normalizeSourceType(sourceType: string): SourceLineageLite["sourceType"] {
@@ -82,6 +87,11 @@ export function buildSourceLineage(params: {
       publishedAt: source.publishedAt ?? null,
       isPrimarySource,
       linkedClaimCount: claimIds.size,
+      verificationStatus: source.verificationStatus,
+      checkedAt: source.checkedAt ?? null,
+      httpStatus: source.httpStatus ?? null,
+      finalUrl: source.finalUrl ?? null,
+      contentType: source.contentType ?? null,
     };
   });
 }

@@ -16,4 +16,9 @@ export type SourceLineageLite = {
   publishedAt?: string | null;
   isPrimarySource: boolean;
   linkedClaimCount: number;
+  verificationStatus?: "verified" | "unverified" | "unreachable" | "invalid";
+  checkedAt?: string | null;
+  httpStatus?: number | null;
+  finalUrl?: string | null;
+  contentType?: string | null;
 };
