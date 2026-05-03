@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("question-to-answer-graph", () => {
+test.describe("investigation-mode", () => {
   let databaseConnected = false;
 
   test.beforeAll(async ({ request }) => {

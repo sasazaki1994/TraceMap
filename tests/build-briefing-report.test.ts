@@ -143,4 +143,19 @@ describe("buildBriefingReport", () => {
     expect(markdown).not.toContain("undefined");
     expect(markdown).not.toContain("null");
   });
+
+  it("does not add investment advice or buy/sell recommendation language", () => {
+    const markdown = buildBriefingReport({
+      researchTopic: "Compare public company market positioning.",
+      answerContent: "This briefing summarizes evidence and unresolved verification gaps.",
+      evidenceClaims: claims,
+      sources,
+      unknowns,
+      sourceLineage: lineage,
+    });
+
+    expect(markdown.toLowerCase()).not.toContain("investment advice");
+    expect(markdown.toLowerCase()).not.toContain("buy recommendation");
+    expect(markdown.toLowerCase()).not.toContain("sell recommendation");
+  });
 });

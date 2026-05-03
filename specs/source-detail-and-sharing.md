@@ -2,13 +2,13 @@
 
 ## Summary
 
-Extends the run experience so viewers can **inspect source provenance** (already partly covered by [question-to-answer-graph](./question-to-answer-graph.md)) and **create read-only share links** for an analysis run so others can open the same snapshot without signing in.
+Extends the run experience so viewers can **inspect source provenance** (aligned with [Investigation Mode](./investigation-mode.md) and [Unknown Map & Source Lineage Lite](./unknown-map-and-source-lineage.md)) and **create read-only share links** for an analysis run so others can open the same snapshot without signing in.
 
 This slice uses the existing `share_links` table and adds **server actions plus a public route**; it does not add LLM calls.
 
 ## Relationship to other specs
 
-- Builds on: [question-to-answer-graph](./question-to-answer-graph.md) (run page UI, `source_snapshots`, `graph_json`).
+- Builds on: [Investigation Mode](./investigation-mode.md) (run page UI, `source_snapshots`, `graph_json`).
 - Visual styling follows: [visual-design-system-cyber](./visual-design-system-cyber.md).
 
 ## User stories
