@@ -6,7 +6,7 @@ TraceMap uses a **dark, cyber-inflected** UI: deep blue background, cyan/violet 
 
 ## Relationship to other specs
 
-- Applied across [question-to-answer-graph](./question-to-answer-graph.md) and [source-detail-and-sharing](./source-detail-and-sharing.md) screens.
+- Applied across [Investigation Mode](./investigation-mode.md) and [source-detail-and-sharing](./source-detail-and-sharing.md) screens.
 
 ## Design tokens (reference)
 

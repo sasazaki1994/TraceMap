@@ -39,7 +39,7 @@ function buildLineageLabel(params: {
   publishedAt?: string | null;
 }): string {
   const parts = [
-    params.isPrimarySource ? "Primary evidence" : "Supporting context",
+    params.isPrimarySource ? "Primary evidence or official source" : "Supporting context",
     sourceTypeLabel(params.sourceType),
     params.claimCount === 1
       ? "linked to 1 claim"

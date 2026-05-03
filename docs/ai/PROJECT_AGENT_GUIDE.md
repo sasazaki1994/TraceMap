@@ -7,6 +7,10 @@ Codex / Cursor / Claude Code など、利用するツールが変わっても本
 
 TraceMap は、ユーザーの調査テーマを AI が **Investigation Mission** として実行し、回答・主張・情報源・不明点・出どころを **Evidence Map / Unknown Map / Source Lineage / Briefing Report** として可視化・保存・共有する、Cyber Intelligence Console 型の調査支援 Web アプリです。
 
+TraceMap は汎用 AI チャットではありません。調査テーマを入力し、根拠・不明点・情報源の来歴を追跡できる調査成果物として提示することを優先します。初期の重点領域は、企業分析、競合調査、市場調査です。
+
+TraceMap は投資助言、買い推奨、売り推奨を行いません。企業・市場に関する調査結果を扱う場合も、Evidence Map / Unknown Map / Source Lineage / Briefing Report を通じて根拠と未確認点を示すことに留めます。
+
 MVP v2 では、既存の Evidence Graph / Claim / Source / Alert / Counterpoint / Propagation Chain を維持しつつ、ユーザー向け概念を「質問への回答」から「調査テーマに対するミッション結果」へ寄せます。既存 DB の `AnalysisRun.question` や provider 名は直ちに rename せず、spec・acceptance・UI 表示を先に新方針へ同期します。
 
 MVP v2 の安定化では、Unknown / Report 用の新規テーブルや Prisma migration は追加しません。Unknown Map / Source Lineage / Briefing Report は既存の run snapshot・claim・source・alert・confidence から派生する view model とし、OpenAI provider の大規模な Investigation Result schema 変更は次フェーズで扱います。

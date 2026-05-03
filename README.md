@@ -2,7 +2,15 @@
 
 TraceMap is a Next.js-based cyber intelligence console for running AI-assisted investigation missions from research topics. It visualizes and stores findings as an Evidence Map, Unknown Map, Source Lineage, and Briefing Report while preserving traceable claims and sources.
 
-The detailed product and AI-agent operating definition lives in `docs/ai/PROJECT_AGENT_GUIDE.md`.
+MVP v2 focuses on:
+
+- starting an Investigation Mission from a research topic
+- tracing findings through the Evidence Map
+- surfacing unresolved gaps in the Unknown Map
+- labeling provenance in Source Lineage Lite
+- previewing a reusable Briefing Report
+
+TraceMap is developed spec-first. Product intent lives in `specs/`, observable acceptance criteria live in `acceptance/`, and the detailed product / AI-agent operating definition lives in `docs/ai/PROJECT_AGENT_GUIDE.md`.
 
 ## Stack
 

@@ -154,6 +154,9 @@ const OPENAI_STRUCTURED_SCHEMA = {
   required: ["sufficient_grounding", "answer_title", "answer_content", "claims", "sources"],
 } as const;
 
+// TODO(investigation-result-schema): keep this MVP v2 schema stable and add richer
+// Unknown Map / Source Lineage / Briefing Report fields in a later provider phase.
+
 type StructuredAnswerPayload = {
   sufficient_grounding: boolean;
   answer_title: string;
@@ -646,17 +649,18 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
           {
             role: "system",
             content: [
-              "You produce TraceMap answer graphs as JSON matching the given schema.",
+              "You produce TraceMap investigation mission results as JSON matching the existing answer-graph schema.",
               "When sufficient_grounding is true: include at least two distinct sources, each with a real public http or https URL you could verify (well-known references, standards, documentation, or authoritative pages).",
               "Do not invent URLs. If you cannot meet that bar, set sufficient_grounding to false (the run will fail — do not add fake links).",
               "Every claim must list supported_by_source_ids referencing sources[].id values.",
               "Prefer per-claim counterpoints and alerts when caveats differ by claim; use top-level counterpoint_summary and alert only for a single shared caveat or answer-wide note.",
               "Separate 'cannot answer from sources' (sufficient_grounding false) from 'answer with caveats' (sufficient_grounding true, use alert.warning for limitations).",
+              "Do not provide investment advice, buy recommendations, or sell recommendations.",
             ].join(" "),
           },
           {
             role: "user",
-            content: `Question:\n${input.question}\n\nReturn JSON per schema.`,
+            content: `Research topic:\n${input.question}\n\nReturn JSON per schema for an Investigation Mission briefing.`,
           },
         ],
         response_format: {

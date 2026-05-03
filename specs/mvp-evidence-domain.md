@@ -2,7 +2,7 @@
 
 ## Summary
 
-TraceMap MVP reasons about **sources** and how they connect to an **answer** using a **`graph_json`** DAG ([question-to-answer-graph](./question-to-answer-graph.md)). For **structured review** — audit trails, list UIs, and future AI extraction — the product also needs **first-class rows** for **claims**, **counterpoints**, and **alerts** attached to an `answer_snapshots` row.
+TraceMap MVP reasons about **sources** and how they connect to an **investigation briefing** using a **`graph_json`** DAG ([investigation-mode](./investigation-mode.md)). For **structured review** — audit trails, list UIs, and future AI extraction — the product also needs **first-class rows** for **claims**, **counterpoints**, and **alerts** attached to an `answer_snapshots` row.
 
 ## Decision: hybrid storage
 
@@ -45,4 +45,4 @@ Optional string **`graph_node_id`** on `claims` ties a claim row to a node `id` 
 
 ## Related specs
 
-- [question-to-answer-graph](./question-to-answer-graph.md) — graph_json schema and run UI.
+- [investigation-mode](./investigation-mode.md) — graph_json schema and run UI.

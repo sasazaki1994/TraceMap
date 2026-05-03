@@ -213,6 +213,41 @@ describe("realOpenAiAnswerGraphProvider", () => {
     });
   });
 
+  it("prompts OpenAI with research topic and investigation mission wording", async () => {
+    process.env.TRACEMAP_OPENAI_API_KEY = "sk-test";
+    createCompletion.mockResolvedValue({
+      choices: [
+        {
+          message: { content: JSON.stringify(baseStructured) },
+        },
+      ],
+    });
+
+    const { realOpenAiAnswerGraphProvider } = await import(
+      "@/server/analysis/providers/openai-answer-graph-provider"
+    );
+
+    const result = await realOpenAiAnswerGraphProvider.generateAnswerGraph({
+      question: "Map enterprise AI platform competitors.",
+    });
+
+    expect(result.kind).toBe("success");
+    expect(createCompletion).toHaveBeenCalledTimes(1);
+    const request = createCompletion.mock.calls[0]?.[0] as
+      | {
+          messages?: Array<{ role: string; content: string }>;
+        }
+      | undefined;
+    const systemMessage = request?.messages?.find((message) => message.role === "system");
+    const userMessage = request?.messages?.find((message) => message.role === "user");
+
+    expect(systemMessage?.content).toContain("investigation mission results");
+    expect(systemMessage?.content).toContain("Do not provide investment advice");
+    expect(userMessage?.content).toContain("Research topic:");
+    expect(userMessage?.content).toContain("Investigation Mission briefing");
+    expect(userMessage?.content).not.toContain("Question:");
+  });
+
   it("maps per-claim counterpoints and alerts and omits legacy fields when absent", async () => {
     process.env.TRACEMAP_OPENAI_API_KEY = "sk-test";
     const extended = {

@@ -70,7 +70,7 @@ describe("buildSourceLineage", () => {
         linkedClaimCount: 1,
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Primary evidence");
+    expect(lineage[0]?.lineageLabel).toContain("Primary / official evidence");
     expect(lineage[0]?.lineageLabel).toContain("Web source");
     expect(lineage[1]?.lineageLabel).toContain("publication date unknown");
     expect(lineage[1]).toEqual(
@@ -96,6 +96,16 @@ describe("buildSourceLineage", () => {
       }),
     );
     expect(lineage[0]?.lineageLabel).toContain("Supporting context");
+  });
+
+  it("does not label unknown verification state as verified", () => {
+    const lineage = buildSourceLineage({
+      sources: [sources[1]!],
+      evidenceClaims: [],
+    });
+
+    expect(lineage[0]?.lineageLabel.toLowerCase()).not.toContain("verified");
+    expect(lineage[0]?.lineageLabel).toContain("publication date unknown");
   });
 
   it("falls back safely for unknown source types", () => {
