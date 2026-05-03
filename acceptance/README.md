@@ -24,3 +24,5 @@
 | Visual design (cyber) | `visual-design-system-cyber.feature` |
 | Unknown Map and Source Lineage Lite | `unknown-map-and-source-lineage.feature` |
 | Briefing Report | `briefing-report.feature` |
+| Real Investigation Pipeline | `real-investigation-pipeline.feature` |
+| Cost and Output Limits | `cost-and-output-limits.feature` |

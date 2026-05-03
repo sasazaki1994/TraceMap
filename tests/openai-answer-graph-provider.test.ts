@@ -139,7 +139,8 @@ describe("validateStructuredAnswerPayload", () => {
     expect(result.kind).toBe("ok");
     if (result.kind === "ok") {
       expect(result.normalizedSources).toHaveLength(2);
-      expect(result.normalizedSources[0].url).toBe("https://example.com/a");
+      expect(result.normalizedSources[0]?.url).toBe("https://example.com/a");
+      expect(result.normalizedPayload.sources[0]?.url).toBe("https://example.com/a");
     }
   });
 });
@@ -293,13 +294,13 @@ describe("realOpenAiAnswerGraphProvider", () => {
     }
     expect(result.payload.evidence?.claims).toHaveLength(2);
     expect(result.payload.evidence?.claims[0]?.counterpoints).toEqual([
-      { summary: "Cp for claim 1." },
+      { summary: "Cp for claim 1.", relationKind: "contradiction" },
     ]);
     expect(result.payload.evidence?.claims[0]?.alerts).toEqual([
       { level: "warning", message: "Alert for claim 1." },
     ]);
     expect(result.payload.evidence?.claims[1]?.counterpoints).toEqual([
-      { summary: "Cp for claim 2." },
+      { summary: "Cp for claim 2.", relationKind: "contradiction" },
     ]);
     expect(result.payload.evidence?.claims[1]?.alerts).toBeUndefined();
     expect(result.payload.evidence?.alert).toBeUndefined();
