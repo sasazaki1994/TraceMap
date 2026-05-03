@@ -34,10 +34,13 @@ export type ResolveSourceCacheResult =
       errorMessage: string;
     };
 
-type SourceCachePrismaClient = Pick<
-  typeof prisma,
-  "sourceCacheEntry" | "sourceFetchSnapshot"
->;
+type SourceCachePrismaClient = {
+  sourceCacheEntry: Pick<
+    typeof prisma.sourceCacheEntry,
+    "findUnique" | "create" | "update"
+  >;
+  sourceFetchSnapshot: Pick<typeof prisma.sourceFetchSnapshot, "create">;
+};
 
 type ResolveSourceCacheOptions = {
   db?: SourceCachePrismaClient;

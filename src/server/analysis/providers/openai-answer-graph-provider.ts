@@ -611,10 +611,11 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
         normalizedUrls,
         model,
       );
-    } catch {
+    } catch (cause) {
+      const detail = cause instanceof Error ? ` ${cause.message}` : "";
       return providerFailure(
         "provider_exception",
-        "OpenAI answer graph generation failed before a valid investigation payload could be produced.",
+        `OpenAI answer graph generation failed before a valid investigation payload could be produced.${detail}`,
       );
     }
   },
