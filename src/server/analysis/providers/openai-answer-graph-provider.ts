@@ -1,6 +1,14 @@
 import OpenAI from "openai";
 
 import type { AnswerGraphProvider } from "@/server/analysis/answer-graph-provider";
+import { INVESTIGATION_LIMITS } from "@/server/analysis/investigation-limits";
+import {
+  INSUFFICIENT_GROUNDING_MESSAGE,
+  isValidPublicHttpUrl as isValidPublicHttpUrlValue,
+  normalizeGeneratedAnswerGraph,
+  type InvestigationPipelineFailureReason,
+  type StructuredAnswerPayload,
+} from "@/server/analysis/normalize-generated-answer-graph";
 import { answerGraphJsonSchema, type AnswerGraphJson } from "@/types/answer-graph";
 import type {
   GeneratedAnswerGraphPayload,
@@ -10,7 +18,9 @@ import type {
 
 /** User-visible when `sufficient_grounding` is false in structured output. */
 export const OPENAI_INSUFFICIENT_GROUNDING_MESSAGE =
-  "The model could not ground this answer with sufficient evidence from real sources.";
+  INSUFFICIENT_GROUNDING_MESSAGE;
+
+export const isValidPublicHttpUrl = isValidPublicHttpUrlValue;
 
 const OPENAI_STRUCTURED_SCHEMA = {
   type: "object",
@@ -28,16 +38,21 @@ const OPENAI_STRUCTURED_SCHEMA = {
     answer_content: {
       type: "string",
       description: "Main answer text in markdown-friendly plain text.",
+      maxLength: INVESTIGATION_LIMITS.maxAnswerContentChars,
     },
     claims: {
       type: "array",
       description: "Atomic claims; each must cite source ids from the sources array.",
+      maxItems: INVESTIGATION_LIMITS.maxClaims,
       items: {
         type: "object",
         additionalProperties: false,
         properties: {
           id: { type: "string" },
-          summary: { type: "string" },
+          summary: {
+            type: "string",
+            maxLength: INVESTIGATION_LIMITS.maxClaimSummaryChars,
+          },
           supported_by_source_ids: {
             type: "array",
             items: { type: "string" },
@@ -47,6 +62,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
           counterpoints: {
             type: "array",
             description: "Counterarguments or caveats specific to this claim.",
+            maxItems: INVESTIGATION_LIMITS.maxCounterpointsPerClaim,
             items: {
               type: "object",
               additionalProperties: false,
@@ -69,6 +85,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
           propagation_chain: {
             type: "array",
             description: "Ordered evidence propagation chain for the claim.",
+            maxItems: INVESTIGATION_LIMITS.maxPropagationStepsPerClaim,
             items: {
               type: "object",
               additionalProperties: false,
@@ -93,6 +110,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
           alerts: {
             type: "array",
             description: "Alerts scoped to this claim (quality, policy).",
+            maxItems: INVESTIGATION_LIMITS.maxAlertsPerClaim,
             items: {
               type: "object",
               additionalProperties: false,
@@ -113,6 +131,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
     sources: {
       type: "array",
       description: "At least two distinct real web pages (http or https URLs with a host).",
+      maxItems: INVESTIGATION_LIMITS.maxSources,
       items: {
         type: "object",
         additionalProperties: false,
@@ -127,7 +146,10 @@ const OPENAI_STRUCTURED_SCHEMA = {
             type: "string",
             description: "Real public http(s) URL; must not be empty when sufficient_grounding is true.",
           },
-          excerpt: { type: "string" },
+          excerpt: {
+            type: "string",
+            maxLength: INVESTIGATION_LIMITS.maxSourceExcerptChars,
+          },
         },
         required: ["id", "label", "source_type", "url", "excerpt"],
       },
@@ -157,54 +179,6 @@ const OPENAI_STRUCTURED_SCHEMA = {
 // TODO(investigation-result-schema): keep this MVP v2 schema stable and add richer
 // Unknown Map / Source Lineage / Briefing Report fields in a later provider phase.
 
-type StructuredAnswerPayload = {
-  sufficient_grounding: boolean;
-  answer_title: string;
-  answer_content: string;
-  claims: {
-    id: string;
-    summary: string;
-    supported_by_source_ids: string[];
-    support_relations?: {
-      source_id: string;
-      support_kind: "direct" | "supplemental" | "indirect";
-      is_primary_source?: boolean;
-      supporting_quote?: string;
-      contradiction_note?: string;
-    }[];
-    counterpoints?: {
-      summary: string;
-      relationship_kind:
-        | "contradiction"
-        | "alternative_interpretation"
-        | "different_premise"
-        | "different_definition"
-        | "temporal_mismatch";
-    }[];
-    propagation_chain?: {
-      step_kind:
-        | "source"
-        | "evidence_snippet"
-        | "source_interpretation"
-        | "claim"
-        | "answer_segment";
-      source_id?: string;
-      label: string;
-      content?: string;
-    }[];
-    alerts?: { level: "info" | "warning" | "error"; message: string }[];
-  }[];
-  sources: {
-    id: string;
-    label: string;
-    source_type: "web" | "document" | "note";
-    url: string;
-    excerpt: string;
-  }[];
-  counterpoint_summary?: string;
-  alert?: { level: "info" | "warning" | "error"; message: string };
-};
-
 function getOpenAiConfig(): { apiKey: string | undefined; model: string; timeoutMs: number } {
   const apiKey =
     process.env.TRACEMAP_OPENAI_API_KEY?.trim() || process.env.OPENAI_API_KEY?.trim() || undefined;
@@ -219,27 +193,25 @@ function getOpenAiConfig(): { apiKey: string | undefined; model: string; timeout
   };
 }
 
-/** http(s) only, parseable URL, non-empty host. */
-export function isValidPublicHttpUrl(raw: string): boolean {
-  const trimmed = raw.trim();
-  if (!trimmed) {
-    return false;
-  }
-  let url: URL;
-  try {
-    url = new URL(trimmed);
-  } catch {
-    return false;
-  }
-  if (url.protocol !== "http:" && url.protocol !== "https:") {
-    return false;
-  }
-  return url.hostname.length > 0;
-}
-
 export type ValidateStructuredPayloadResult =
-  | { kind: "ok"; normalizedSources: { url: string }[] }
+  | {
+      kind: "ok";
+      normalizedPayload: StructuredAnswerPayload;
+      normalizedSources: { id: string; url: string }[];
+      droppedClaimIds: string[];
+    }
   | Extract<GenerateAnswerGraphResult, { kind: "failure" }>;
+
+function providerFailure(
+  diagnosticReason: InvestigationPipelineFailureReason,
+  errorMessage: string,
+): Extract<GenerateAnswerGraphResult, { kind: "failure" }> {
+  return {
+    kind: "failure",
+    errorMessage,
+    cause: { diagnosticReason },
+  };
+}
 
 /**
  * Validates structured output after JSON parse. Returns failure result or normalized sources (trimmed URLs).
@@ -247,89 +219,17 @@ export type ValidateStructuredPayloadResult =
 export function validateStructuredAnswerPayload(
   parsed: StructuredAnswerPayload,
 ): ValidateStructuredPayloadResult {
-  if (parsed.sufficient_grounding !== true) {
-    return {
-      kind: "failure",
-      errorMessage: OPENAI_INSUFFICIENT_GROUNDING_MESSAGE,
-      cause: parsed,
-    };
+  const normalized = normalizeGeneratedAnswerGraph(parsed);
+  if (normalized.kind === "failure") {
+    return providerFailure(normalized.reason, normalized.errorMessage);
   }
 
-  if (!Array.isArray(parsed.sources) || parsed.sources.length < 2) {
-    return {
-      kind: "failure",
-      errorMessage:
-        "OpenAI structured output must include at least two sources with valid http(s) URLs.",
-      cause: parsed,
-    };
-  }
-
-  const seenSourceIds = new Set<string>();
-  const sourceIdToIndex = new Map<string, number>();
-
-  const normalizedSources: { url: string }[] = [];
-
-  for (let i = 0; i < parsed.sources.length; i++) {
-    const s = parsed.sources[i];
-    const id = s.id?.trim() ?? "";
-    if (!id) {
-      return {
-        kind: "failure",
-        errorMessage: "Each source must have a non-empty id.",
-        cause: parsed,
-      };
-    }
-    if (seenSourceIds.has(id)) {
-      return {
-        kind: "failure",
-        errorMessage: "Duplicate source id in structured output.",
-        cause: parsed,
-      };
-    }
-    seenSourceIds.add(id);
-    sourceIdToIndex.set(id, i);
-
-    const urlTrimmed = s.url.trim();
-    if (!isValidPublicHttpUrl(urlTrimmed)) {
-      return {
-        kind: "failure",
-        errorMessage:
-          "Invalid source URL: only http or https URLs with a host are allowed.",
-        cause: parsed,
-      };
-    }
-    normalizedSources.push({ url: urlTrimmed });
-  }
-
-  if (!Array.isArray(parsed.claims) || parsed.claims.length === 0) {
-    return {
-      kind: "failure",
-      errorMessage: "OpenAI structured output must include at least one claim linked to sources.",
-      cause: parsed,
-    };
-  }
-
-  for (const claim of parsed.claims) {
-    const ids = claim.supported_by_source_ids;
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return {
-        kind: "failure",
-        errorMessage: "Each claim must list at least one supported_by_source_ids entry.",
-        cause: parsed,
-      };
-    }
-    for (const sid of ids) {
-      if (!sourceIdToIndex.has(sid)) {
-        return {
-          kind: "failure",
-          errorMessage: `Claim references unknown source id: ${sid}.`,
-          cause: parsed,
-        };
-      }
-    }
-  }
-
-  return { kind: "ok", normalizedSources };
+  return {
+    kind: "ok",
+    normalizedPayload: normalized.payload,
+    normalizedSources: normalized.normalizedSources,
+    droppedClaimIds: normalized.droppedClaimIds,
+  };
 }
 
 function claimNodeLabel(summary: string): string {
@@ -564,10 +464,10 @@ function buildGraphAndPayload(
           counterpointsFromModel.length > 0
             ? counterpointsFromModel.map((cp) => ({
                 summary: cp.summary,
-                relationKind: cp.relationship_kind,
+                relationKind: cp.relationship_kind ?? "contradiction",
               }))
             : ci === 0 && legacyCp
-              ? [{ ...legacyCp, relationshipKind: "contradiction" as const }]
+              ? [{ ...legacyCp, relationKind: "contradiction" as const }]
               : undefined;
 
         const alerts = c.alerts?.filter((a) => a.message.trim() !== "");
@@ -615,6 +515,10 @@ function buildGraphAndPayload(
   return { kind: "success", payload };
 }
 
+export const openAiAnswerGraphProviderTestUtils = {
+  buildGraphAndPayload,
+} as const;
+
 /**
  * Real provider: OpenAI Chat Completions with Structured Outputs (json_schema).
  * Requires `TRACEMAP_OPENAI_API_KEY` or `OPENAI_API_KEY` when selected via
@@ -653,6 +557,8 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
               "When sufficient_grounding is true: include at least two distinct sources, each with a real public http or https URL you could verify (well-known references, standards, documentation, or authoritative pages).",
               "Do not invent URLs. If you cannot meet that bar, set sufficient_grounding to false (the run will fail — do not add fake links).",
               "Every claim must list supported_by_source_ids referencing sources[].id values.",
+              `Keep output concise: at most ${INVESTIGATION_LIMITS.maxSources} sources, ${INVESTIGATION_LIMITS.maxClaims} claims, ${INVESTIGATION_LIMITS.maxCounterpointsPerClaim} counterpoints per claim, ${INVESTIGATION_LIMITS.maxAlertsPerClaim} alerts per claim, and ${INVESTIGATION_LIMITS.maxPropagationStepsPerClaim} propagation steps per claim.`,
+              "Do not include UI-only layout instructions, coordinates, colors, or style fields; TraceMap derives presentation separately.",
               "Prefer per-claim counterpoints and alerts when caveats differ by claim; use top-level counterpoint_summary and alert only for a single shared caveat or answer-wide note.",
               "Separate 'cannot answer from sources' (sufficient_grounding false) from 'answer with caveats' (sufficient_grounding true, use alert.warning for limitations).",
               "Do not provide investment advice, buy recommendations, or sell recommendations.",
@@ -685,12 +591,11 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
       let parsed: StructuredAnswerPayload;
       try {
         parsed = JSON.parse(raw) as StructuredAnswerPayload;
-      } catch (cause) {
-        return {
-          kind: "failure",
-          errorMessage: "OpenAI returned invalid JSON in the completion.",
-          cause,
-        };
+      } catch {
+        return providerFailure(
+          "invalid_json",
+          "OpenAI returned invalid JSON in the completion.",
+        );
       }
 
       const validated = validateStructuredAnswerPayload(parsed);
@@ -700,15 +605,17 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
 
       const normalizedUrls = validated.normalizedSources.map((s) => s.url);
 
-      return buildGraphAndPayload(input.question, parsed, normalizedUrls, model);
-    } catch (cause) {
-      const message =
-        cause instanceof Error ? cause.message : "OpenAI answer graph generation failed.";
-      return {
-        kind: "failure",
-        errorMessage: message,
-        cause,
-      };
+      return buildGraphAndPayload(
+        input.question,
+        validated.normalizedPayload,
+        normalizedUrls,
+        model,
+      );
+    } catch {
+      return providerFailure(
+        "provider_exception",
+        "OpenAI answer graph generation failed before a valid investigation payload could be produced.",
+      );
     }
   },
 };
