@@ -422,13 +422,6 @@ export function parseRunCachePayload(value: unknown): ParseRunCachePayloadResult
   if (!isRecord(value) || !isRecord(value.answer)) {
     return { kind: "failure", errorMessage: "payload.answer is required." };
   }
-  const dbIdField = findDbSourceSnapshotIdField(value);
-  if (dbIdField !== null) {
-    return {
-      kind: "failure",
-      errorMessage: `${dbIdField} must use __src_i__ placeholders, not run-local DB ids.`,
-    };
-  }
   if (typeof value.answer.content !== "string" || value.answer.content.trim() === "") {
     return { kind: "failure", errorMessage: "answer.content must be a non-empty string." };
   }

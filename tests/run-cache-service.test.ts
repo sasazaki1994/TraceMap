@@ -193,18 +193,7 @@ describe("run-cache-service", () => {
         },
         { db, now },
       ),
-    await expect(
-      storeRunCacheEntry(
-        {
-          cacheKeyInfo,
-          payload: {
-            ...payload,
-            sources: [],
-          },
-        },
-        { db, now },
-      ),
-    ).resolves.toBeUndefined();
+    ).rejects.toThrow("Run cache payload is invalid");
     expect(db.runCacheEntry.upsert).not.toHaveBeenCalled();
   });
 
