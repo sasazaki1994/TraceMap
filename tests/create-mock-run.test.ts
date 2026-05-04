@@ -46,6 +46,35 @@ vi.mock("@/server/analysis/source-cache-service", () => ({
   })),
 }));
 
+vi.mock("@/server/analysis/run-cache-service", () => ({
+  lookupRunCacheEntry: vi.fn(async (cacheKeyInfo) => ({
+    kind: "miss",
+    cacheKey: cacheKeyInfo.cacheKey,
+    reason: "not_found",
+  })),
+  storeRunCacheEntry: vi.fn(async () => undefined),
+}));
+
+function resetPersistMocks() {
+  tx.answerSnapshot.create.mockResolvedValue({ id: "answer_mock" });
+  tx.sourceSnapshot.create.mockReset();
+  tx.sourceSnapshot.create
+    .mockResolvedValueOnce({ id: "src_a" })
+    .mockResolvedValueOnce({ id: "src_b" })
+    .mockResolvedValueOnce({ id: "src_c" });
+  tx.answerSnapshot.update.mockResolvedValue({});
+  tx.claim.create.mockReset();
+  tx.claim.create
+    .mockResolvedValueOnce({ id: "claim_mock_1" })
+    .mockResolvedValueOnce({ id: "claim_mock_2" });
+  tx.claimSourceSnapshot.createMany.mockResolvedValue({ count: 2 });
+  tx.claimConfidence.create.mockResolvedValue({});
+  tx.counterpoint.create.mockResolvedValue({});
+  tx.claimPropagationChain.create.mockResolvedValue({ id: "chain_mock_1" });
+  tx.claimPropagationStep.create.mockResolvedValue({});
+  tx.alert.create.mockResolvedValue({});
+}
+
 describe("createAnalysisRunFromProvider", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -59,19 +88,7 @@ describe("createAnalysisRunFromProvider", () => {
     p.analysisRun.create.mockResolvedValue({ id: "run_mock" });
     p.analysisRun.update.mockResolvedValue({});
 
-    tx.answerSnapshot.create.mockResolvedValue({ id: "answer_mock" });
-    tx.sourceSnapshot.create
-      .mockResolvedValueOnce({ id: "src_a" })
-      .mockResolvedValueOnce({ id: "src_b" })
-      .mockResolvedValueOnce({ id: "src_c" });
-    tx.answerSnapshot.update.mockResolvedValue({});
-    tx.claim.create
-      .mockResolvedValueOnce({ id: "claim_mock_1" })
-      .mockResolvedValueOnce({ id: "claim_mock_2" });
-    tx.claimSourceSnapshot.createMany.mockResolvedValue({ count: 2 });
-    tx.claimConfidence.create.mockResolvedValue({});
-    tx.claimPropagationChain.create.mockResolvedValue({ id: "chain_mock_1" });
-    tx.claimPropagationStep.create.mockResolvedValue({});
+    resetPersistMocks();
   });
 
   it("persists claims, claim-support metadata, confidence, counterpoint, and alert when using the mock provider", async () => {
@@ -252,6 +269,183 @@ describe("createAnalysisRunFromProvider", () => {
       }),
     });
 
+    expect(p.analysisRun.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "run_mock" },
+        data: expect.objectContaining({ status: "completed" }),
+      }),
+    );
+  });
+
+  it("skips provider generation on run cache hit while creating run-local snapshots", async () => {
+    const { resolveAnswerGraphProvider } = await import(
+      "@/server/analysis/resolve-answer-graph-provider"
+    );
+    const { buildMockAnswerGraphPayload } = await import(
+      "@/server/analysis/providers/mock-answer-graph-provider"
+    );
+    const { lookupRunCacheEntry, storeRunCacheEntry } = await import(
+      "@/server/analysis/run-cache-service"
+    );
+    const payloadResult = buildMockAnswerGraphPayload("Cached topic");
+    if (payloadResult.kind !== "success") {
+      throw new Error("Expected mock payload success");
+    }
+    const provider = {
+      id: "mock" as const,
+      modelLabel: "mock",
+      generateAnswerGraph: vi.fn(),
+    };
+    vi.mocked(resolveAnswerGraphProvider).mockReturnValue(provider);
+    vi.mocked(lookupRunCacheEntry).mockResolvedValueOnce({
+      kind: "hit",
+      entryId: "cache-entry-1",
+      cacheKey: "cache-key-1",
+      payload: payloadResult.payload,
+    });
+
+    const { createAnalysisRunFromProvider } = await import(
+      "@/server/analysis/create-analysis-run-from-provider"
+    );
+
+    const id = await createAnalysisRunFromProvider("Cached topic");
+
+    expect(id).toBe("run_mock");
+    expect(provider.generateAnswerGraph).not.toHaveBeenCalled();
+    expect(tx.answerSnapshot.create).toHaveBeenCalledTimes(1);
+    expect(tx.sourceSnapshot.create).toHaveBeenCalledTimes(3);
+    expect(tx.claim.create).toHaveBeenCalledTimes(2);
+    expect(storeRunCacheEntry).not.toHaveBeenCalled();
+  });
+
+  it("calls provider on cache miss and stores successful payload", async () => {
+    const { resolveAnswerGraphProvider } = await import(
+      "@/server/analysis/resolve-answer-graph-provider"
+    );
+    const { buildMockAnswerGraphPayload } = await import(
+      "@/server/analysis/providers/mock-answer-graph-provider"
+    );
+    const { lookupRunCacheEntry, storeRunCacheEntry } = await import(
+      "@/server/analysis/run-cache-service"
+    );
+    const payloadResult = buildMockAnswerGraphPayload("Fresh topic");
+    const provider = {
+      id: "mock" as const,
+      modelLabel: "mock",
+      generateAnswerGraph: vi.fn().mockResolvedValue(payloadResult),
+    };
+    vi.mocked(resolveAnswerGraphProvider).mockReturnValue(provider);
+    vi.mocked(lookupRunCacheEntry).mockResolvedValueOnce({
+      kind: "miss",
+      cacheKey: "cache-key-1",
+      reason: "not_found",
+    });
+
+    const { createAnalysisRunFromProvider } = await import(
+      "@/server/analysis/create-analysis-run-from-provider"
+    );
+
+    await createAnalysisRunFromProvider("Fresh topic");
+
+    expect(provider.generateAnswerGraph).toHaveBeenCalledWith({ question: "Fresh topic" });
+    expect(storeRunCacheEntry).toHaveBeenCalledTimes(1);
+    expect(storeRunCacheEntry).toHaveBeenCalledWith({
+      cacheKeyInfo: expect.objectContaining({
+        providerId: "mock",
+        providerModel: "mock",
+      }),
+      payload: payloadResult.kind === "success" ? payloadResult.payload : undefined,
+    });
+  });
+
+  it("does not store cache entries for provider failures", async () => {
+    const { resolveAnswerGraphProvider } = await import(
+      "@/server/analysis/resolve-answer-graph-provider"
+    );
+    const { storeRunCacheEntry } = await import("@/server/analysis/run-cache-service");
+    const provider = {
+      id: "mock" as const,
+      modelLabel: "mock",
+      generateAnswerGraph: vi.fn().mockResolvedValue({
+        kind: "failure" as const,
+        errorMessage: "Provider failed.",
+      }),
+    };
+    vi.mocked(resolveAnswerGraphProvider).mockReturnValue(provider);
+
+    const { createAnalysisRunFromProvider } = await import(
+      "@/server/analysis/create-analysis-run-from-provider"
+    );
+
+    await createAnalysisRunFromProvider("Failure topic");
+
+    expect(storeRunCacheEntry).not.toHaveBeenCalled();
+    const { prisma } = await import("@/server/db/prisma");
+    const p = prisma as unknown as {
+      analysisRun: { update: ReturnType<typeof vi.fn> };
+    };
+    expect(p.analysisRun.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "run_mock" },
+        data: expect.objectContaining({
+          status: "failed",
+          lastErrorMessage: "Provider failed.",
+        }),
+      }),
+    );
+  });
+
+  it("falls back to provider path when cache lookup fails", async () => {
+    const { resolveAnswerGraphProvider } = await import(
+      "@/server/analysis/resolve-answer-graph-provider"
+    );
+    const { buildMockAnswerGraphPayload } = await import(
+      "@/server/analysis/providers/mock-answer-graph-provider"
+    );
+    const { lookupRunCacheEntry } = await import("@/server/analysis/run-cache-service");
+    const provider = {
+      id: "mock" as const,
+      modelLabel: "mock",
+      generateAnswerGraph: vi.fn().mockResolvedValue(buildMockAnswerGraphPayload("Fallback")),
+    };
+    vi.mocked(resolveAnswerGraphProvider).mockReturnValue(provider);
+    vi.mocked(lookupRunCacheEntry).mockRejectedValueOnce(new Error("cache down"));
+
+    const { createAnalysisRunFromProvider } = await import(
+      "@/server/analysis/create-analysis-run-from-provider"
+    );
+
+    await createAnalysisRunFromProvider("Fallback");
+
+    expect(provider.generateAnswerGraph).toHaveBeenCalled();
+  });
+
+  it("keeps completed runs completed when cache store fails", async () => {
+    const { resolveAnswerGraphProvider } = await import(
+      "@/server/analysis/resolve-answer-graph-provider"
+    );
+    const { buildMockAnswerGraphPayload } = await import(
+      "@/server/analysis/providers/mock-answer-graph-provider"
+    );
+    const { storeRunCacheEntry } = await import("@/server/analysis/run-cache-service");
+    const provider = {
+      id: "mock" as const,
+      modelLabel: "mock",
+      generateAnswerGraph: vi.fn().mockResolvedValue(buildMockAnswerGraphPayload("Store error")),
+    };
+    vi.mocked(resolveAnswerGraphProvider).mockReturnValue(provider);
+    vi.mocked(storeRunCacheEntry).mockRejectedValueOnce(new Error("store failed"));
+
+    const { createAnalysisRunFromProvider } = await import(
+      "@/server/analysis/create-analysis-run-from-provider"
+    );
+
+    await createAnalysisRunFromProvider("Store error");
+
+    const { prisma } = await import("@/server/db/prisma");
+    const p = prisma as unknown as {
+      analysisRun: { update: ReturnType<typeof vi.fn> };
+    };
     expect(p.analysisRun.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: "run_mock" },

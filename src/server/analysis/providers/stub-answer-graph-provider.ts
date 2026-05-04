@@ -27,6 +27,7 @@ answerGraphJsonSchema.parse(STUB_GRAPH);
  */
 export const stubAnswerGraphProvider: AnswerGraphProvider = {
   id: "stub",
+  modelLabel: "stub",
   async generateAnswerGraph(input: GenerateAnswerGraphInput) {
     return {
       kind: "success",

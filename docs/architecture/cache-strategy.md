@@ -2,10 +2,10 @@
 
 ## Purpose
 
-This document describes the Source Cache / Fetch Snapshot v0.1 baseline and
-sketches the remaining Run Cache strategy for TraceMap. Source URL cache tables,
-cache reads/writes, and fetch snapshots are implemented for provider-returned
-URLs. Run Cache remains design-only.
+This document describes the Source Cache / Fetch Snapshot v0.1 baseline and Run
+Cache v0.1 for TraceMap. Source URL cache tables, cache reads/writes, and fetch
+snapshots are implemented for provider-returned URLs. Run Cache stores reusable
+normalized investigation payloads for fresh repeated topics.
 
 ## Source cache
 
@@ -22,18 +22,34 @@ claim-source relations. `SourceCacheEntry` is reusable URL-level metadata, and
 
 ## Run cache
 
-The run cache should avoid repeating equivalent investigation work for the same normalized mission topic, provider, mode, and source set when freshness requirements are still satisfied. It should cache a completed normalized investigation result, not UI layout state.
+Run Cache v0.1 avoids repeating equivalent investigation work for the same
+normalized mission topic, provider, provider model, prompt version, schema
+version, and output limit profile when freshness requirements are still
+satisfied. It caches a completed normalized investigation result compatible with
+`GeneratedAnswerGraphPayload`, not UI layout state.
 
-Run Cache is not implemented in Source Cache / Fetch Snapshot v0.1.
+On a fresh cache hit, TraceMap still creates a new `AnalysisRun` and passes the
+cached payload through the normal persistence path. This creates new run-local
+`AnswerSnapshot`, `SourceSnapshot`, `Claim`, `Alert`, and relation rows and
+rewrites source placeholders to the new `SourceSnapshot.id` values. Evidence Map
+and claim-source relations therefore remain scoped to the current run.
+
+Run Cache v0.1 uses:
+
+- `TRACEMAP_RUN_CACHE_TTL_HOURS`, default `24`.
+- Invalid or non-positive TTL values fall back to `24`.
+- Failed provider results, insufficient grounding results, and invalid payloads
+  are not cached.
+- Invalid cached payloads are treated as misses.
 
 ## Cache key candidates
 
 - Normalized mission topic.
 - Provider id and provider model.
-- Investigation mode (`fast`, `standard`, `deep`) when modes exist.
-- Normalized URL set and source content hashes.
 - Prompt/schema version.
 - Output limit profile.
+- Optional investigation mode when modes exist.
+- Future source URL/content hashes when source-set freshness is introduced.
 - Locale or domain-specific policy flags if introduced later.
 
 ## URL normalization policy
@@ -91,11 +107,14 @@ The current product still has fixed MVP output limits; it does not add mode sele
 - `source_fetch_snapshots`: requested URL, final URL, HTTP status, content type,
   content hash, bounded excerpt, error message, and fetch timestamp.
 
-## Candidate Run Cache table for a later phase
+## Implemented Run Cache table
 
-- `run_cache_entries`: normalized topic, provider/model/mode, prompt version, output limit profile, result snapshot pointer, expiry metadata.
+- `run_cache_entries`: cache key, normalized topic, provider/model metadata,
+  prompt/schema version, output limit profile, optional future mode, normalized
+  payload JSON, optional future source URL hash, expiry metadata, last-used time,
+  and hit count.
 
-Run Cache is not implemented in this slice.
+Run Cache entries are not source cache entries and are not run snapshots.
 
 ## SSRF guard limitations
 
@@ -118,5 +137,6 @@ future hardening item.
 ## Current status
 
 Source Cache / Fetch Snapshot v0.1 is implemented for provider-returned URLs.
-Run Cache, Web Search, full RAG, background jobs, and streaming remain
-unimplemented.
+Run Cache v0.1 is implemented for reusable normalized investigation payloads.
+Web Search, full RAG, background jobs, streaming, and Fast / Standard / Deep
+mode selection remain unimplemented.
