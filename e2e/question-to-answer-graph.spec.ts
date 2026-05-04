@@ -112,4 +112,33 @@ test.describe("investigation-mode", () => {
     await expect(page.getByTestId("run-propagation-chains-section")).toBeVisible();
     await expect(page.getByTestId("run-propagation-step").first()).toContainText(/Source/i);
   });
+
+  test("repeated topic creates a new run page with investigation panels", async ({
+    page,
+  }) => {
+    test.skip(
+      !databaseConnected,
+      "Requires Postgres at DATABASE_URL, migrations applied, and dev server health check passing.",
+    );
+
+    const topic = `Run cache smoke ${Date.now()}`;
+
+    await page.goto("/");
+    await page.getByLabel("Research topic").fill(topic);
+    await page.getByRole("button", { name: "Start Investigation" }).click();
+    await expect(page).toHaveURL(/\/runs\//);
+    const firstRunUrl = page.url();
+
+    await page.goto("/");
+    await page.getByLabel("Research topic").fill(topic);
+    await page.getByRole("button", { name: "Start Investigation" }).click();
+    await expect(page).toHaveURL(/\/runs\//);
+    expect(page.url()).not.toBe(firstRunUrl);
+
+    await expect(page.getByTestId("run-answer")).toContainText("Mock trace snapshot");
+    await expect(page.getByTestId("run-graph")).toBeVisible();
+    await expect(page.getByTestId("unknown-map-panel")).toBeVisible();
+    await expect(page.getByTestId("source-lineage-panel")).toBeVisible();
+    await expect(page.getByTestId("briefing-report-panel")).toBeVisible();
+  });
 });

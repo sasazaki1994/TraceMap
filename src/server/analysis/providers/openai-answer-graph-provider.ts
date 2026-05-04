@@ -193,6 +193,10 @@ function getOpenAiConfig(): { apiKey: string | undefined; model: string; timeout
   };
 }
 
+function getOpenAiModelLabel(): string {
+  return process.env.TRACEMAP_OPENAI_MODEL?.trim() || "gpt-4o-mini";
+}
+
 export type ValidateStructuredPayloadResult =
   | {
       kind: "ok";
@@ -526,6 +530,9 @@ export const openAiAnswerGraphProviderTestUtils = {
  */
 export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
   id: "openai",
+  get modelLabel() {
+    return getOpenAiModelLabel();
+  },
   async generateAnswerGraph(
     input: GenerateAnswerGraphInput,
   ): Promise<GenerateAnswerGraphResult> {

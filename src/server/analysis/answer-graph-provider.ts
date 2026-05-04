@@ -9,6 +9,7 @@ import type {
  */
 export type AnswerGraphProvider = {
   readonly id: "mock" | "stub" | "openai";
+  readonly modelLabel?: string;
   generateAnswerGraph(
     input: GenerateAnswerGraphInput,
   ): Promise<GenerateAnswerGraphResult>;

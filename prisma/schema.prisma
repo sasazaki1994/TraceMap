@@ -167,6 +167,30 @@ model SourceFetchSnapshot {
   @@map("source_fetch_snapshots")
 }
 
+model RunCacheEntry {
+  id              String    @id @default(cuid())
+  cacheKey        String    @unique @map("cache_key")
+  normalizedTopic String    @map("normalized_topic")
+  providerId      String    @map("provider_id")
+  providerModel   String?   @map("provider_model")
+  promptVersion   String    @map("prompt_version")
+  schemaVersion   String    @map("schema_version")
+  limitsProfile   String    @map("limits_profile")
+  mode            String?
+  payloadJson     Json      @map("payload_json")
+  sourceUrlHash   String?   @map("source_url_hash")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  expiresAt       DateTime  @map("expires_at")
+  lastUsedAt      DateTime? @map("last_used_at")
+  hitCount        Int       @default(0) @map("hit_count")
+
+  @@index([normalizedTopic])
+  @@index([providerId])
+  @@index([expiresAt])
+  @@map("run_cache_entries")
+}
+
 model ShareLink {
   id            String      @id @default(cuid())
   analysisRunId String      @map("analysis_run_id")

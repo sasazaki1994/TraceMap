@@ -321,6 +321,7 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
 
 export const mockAnswerGraphProvider: AnswerGraphProvider = {
   id: "mock",
+  modelLabel: "mock",
   async generateAnswerGraph(input: GenerateAnswerGraphInput) {
     return buildMockAnswerGraphPayload(input.question);
   },
