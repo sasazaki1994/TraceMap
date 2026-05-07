@@ -40,3 +40,4 @@ Each feature spec should describe:
 | Source Cache and Fetch Snapshot | [source-cache-and-fetch-snapshot.md](./source-cache-and-fetch-snapshot.md) |
 | Run Cache | [run-cache.md](./run-cache.md) |
 | Source Intake and Fetching v0.1 | [source-intake-and-fetching.md](./source-intake-and-fetching.md) |
+| Source Discovery v0.1 | [source-discovery.md](./source-discovery.md) |
