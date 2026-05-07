@@ -88,7 +88,7 @@ export default async function SharePage({ params }: SharePageProps) {
             answerContent=""
             runStatusBanner={
               run.lastErrorMessage ??
-              "調査結果を生成できませんでした。情報源が不足しているか、処理中にエラーが発生しました。別の調査テーマにするか、公式URLを追加して再実行してください。"
+              "調査結果を生成できませんでした。情報源が不足しているか、処理中にエラーが発生しました。所有者に再度実行してもらってください。"
             }
             evidenceAlerts={[]}
             evidenceClaims={[]}
@@ -115,7 +115,7 @@ export default async function SharePage({ params }: SharePageProps) {
             question={run.question}
             answerTitle={null}
             answerContent=""
-            runStatusBanner={`${phase} Refresh the page in a moment.`}
+            runStatusBanner={`${phase} しばらくしてからページを更新してください。`}
             evidenceAlerts={[]}
             evidenceClaims={[]}
             sources={[]}

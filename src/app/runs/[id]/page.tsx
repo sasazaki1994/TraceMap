@@ -105,7 +105,7 @@ export default async function RunPage({ params }: RunPageProps) {
             question={run.question}
             answerTitle={null}
             answerContent=""
-            runStatusBanner={`${phase} Refresh the page in a moment.`}
+            runStatusBanner={`${phase} しばらくしてからページを更新してください。`}
             evidenceAlerts={[]}
             evidenceClaims={[]}
             sources={[]}
