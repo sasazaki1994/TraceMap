@@ -30,7 +30,7 @@ Investigation Mode の入力テキストに含まれる URL を provider 呼び�
 - 本格 RAG / embedding / reranker
 - background job 化
 - Prisma schema 変更や migration 追加
-- 生 HTML 全文の LLM 入力
+- raw full HTML is not passed to provider / LLM（生 HTML 全文は渡さない）
 
 ## Existing implementation constraints
 - `AnalysisRun.question` と form field `question` は変更しない。
