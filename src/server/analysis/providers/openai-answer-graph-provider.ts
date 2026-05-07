@@ -209,7 +209,7 @@ function buildSourceCandidateContext(input: GenerateAnswerGraphInput): string {
    content_type: ${contentType}
    excerpt: ${excerpt}`;
   });
-return `\n\nAvailable source candidates:\n${lines.join("\n")}`;
+  return `\n\nAvailable source candidates:\n${lines.join("\n")}`;
 }
 
 function getOpenAiModelLabel(): string {

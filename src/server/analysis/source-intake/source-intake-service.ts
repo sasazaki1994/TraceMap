@@ -9,7 +9,16 @@ export async function buildSourceIntakeFromQuestion(question: string): Promise<S
   const seen = new Set<string>();
 
   for (const rawUrl of rawUrls) {
-    const result = await resolveSourceCacheForUrl(rawUrl);
+    let result;
+    try {
+      result = await resolveSourceCacheForUrl(rawUrl);
+    } catch (error) {
+      ignoredUrls.push({
+        url: rawUrl,
+        reason: error instanceof Error ? error.message : String(error),
+      });
+      continue;
+    }
     if (result.kind === "invalid") {
       ignoredUrls.push({ url: rawUrl, reason: result.errorMessage });
       continue;

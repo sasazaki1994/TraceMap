@@ -24,7 +24,7 @@ Feature: Source Intake and Fetching v0.1
     Given source intake produced candidates
     When provider generation starts
     Then GenerateAnswerGraphInput includes compact sourceCandidates
-    And raw HTML全文 is not passed to provider
+    And raw full HTML is not passed to provider
 
   Scenario: Continue run when fetch fails
     Given source fetch fails for one candidate URL
