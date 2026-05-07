@@ -80,7 +80,7 @@ export default async function RunPage({ params }: RunPageProps) {
             answerContent=""
             runStatusBanner={
               run.lastErrorMessage ??
-              "This analysis run did not complete successfully."
+              "調査結果を生成できませんでした。情報源が不足しているか、処理中にエラーが発生しました。別の調査テーマにするか、公式URLを追加して再実行してください。"
             }
             evidenceAlerts={[]}
             evidenceClaims={[]}
@@ -95,8 +95,8 @@ export default async function RunPage({ params }: RunPageProps) {
   if (run.status !== "completed" || !answer) {
     const phase =
       run.status === "queued"
-        ? "This run is queued."
-        : "This run is still processing.";
+        ? "COLLECTING SOURCES: この調査はキューで待機中です。"
+        : "EXTRACTING CLAIMS / LINKING EVIDENCE / DETECTING UNKNOWNS / BUILDING REPORT: 調査結果を生成中です。";
     return (
       <main>
         <PageContainer className="home-grid">
@@ -105,7 +105,7 @@ export default async function RunPage({ params }: RunPageProps) {
             question={run.question}
             answerTitle={null}
             answerContent=""
-            runStatusBanner={`${phase} Refresh the page in a moment.`}
+            runStatusBanner={`${phase} しばらくしてからページを更新してください。`}
             evidenceAlerts={[]}
             evidenceClaims={[]}
             sources={[]}

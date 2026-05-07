@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+test("landing page shows investigation-oriented intake copy", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.getByText("Turn a research topic into a traceable investigation mission.")).toBeVisible();
+  await expect(page.getByText("Closed Alpha: TraceMap is under active development.")).toBeVisible();
+  await expect(page.getByTestId("research-topic-examples")).toBeVisible();
+});
+
 test("investigation panels are visible on a completed run", async ({ page, request }) => {
   const health = await request.get("/api/health");
   const payload = (await health.json()) as { database?: { status?: string } };
@@ -12,6 +20,8 @@ test("investigation panels are visible on a completed run", async ({ page, reque
   await expect(page).toHaveURL(/\/runs\//);
   await expect(page.getByTestId("mission-header")).toBeVisible();
   await expect(page.getByTestId("mission-topic")).toBeVisible();
+  await expect(page.getByTestId("investigation-guide")).toBeVisible();
+  await expect(page.getByTestId("investigation-guide-step")).toHaveCount(5);
   await expect(page.getByTestId("investigation-timeline")).toBeVisible();
   await expect(page.getByTestId("investigation-step")).toHaveCount(5);
   await expect(page.getByTestId("unknown-map-panel")).toBeVisible();

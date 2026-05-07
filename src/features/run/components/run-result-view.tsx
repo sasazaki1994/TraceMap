@@ -212,6 +212,14 @@ function edgeEndpoints(
   };
 }
 
+const INVESTIGATION_GUIDE_STEPS = [
+  "Mission",
+  "Evidence Map",
+  "Unknown Map",
+  "Source Lineage",
+  "Briefing Report",
+] as const;
+
 export function RunResultView({
   question,
   answerTitle,
@@ -340,6 +348,17 @@ export function RunResultView({
             researchTopic={question}
             runStatusBanner={runStatusBanner}
           />
+          <section className="investigation-panel" data-testid="investigation-guide">
+            <h3 className="run-question-label">Investigation guide</h3>
+            <ol className="investigation-timeline-list">
+              {INVESTIGATION_GUIDE_STEPS.map((step, index) => (
+                <li key={step} data-testid="investigation-guide-step">
+                  <span className="investigation-step-dot" aria-hidden="true" />
+                  <span>{index + 1}. {step}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
           <InvestigationTimeline />
           <h2>Executive summary</h2>
           <div className="run-answer-body" data-testid="run-answer">
@@ -423,7 +442,10 @@ export function RunResultView({
           </h3>
           <div className="run-graph-wrap" data-testid="run-graph">
             {graph.nodes.length === 0 ? (
-              <p className="muted">No graph data for this answer.</p>
+              <p className="muted">
+                Evidence map is not available yet. Start an investigation from a research
+                topic to generate traceable claims and source links.
+              </p>
             ) : (
               <svg
                 className="run-graph-svg"

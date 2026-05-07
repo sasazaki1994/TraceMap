@@ -19,16 +19,25 @@ export function QuestionIntake() {
   return (
     <Panel className="question-panel">
       <div className="eyebrow">Investigation Intake</div>
-      <h2>Start an investigation and trace the evidence behind the findings.</h2>
+      <h2>Turn a research topic into a traceable investigation mission.</h2>
       <p className="muted">
-        This slice stores a mock investigation run in Postgres and opens the run
-        page with an evidence map, unknown map, source lineage, and report preview.
+        TraceMap is not a chat box. It decomposes your topic into claims, supporting
+        evidence, unresolved unknowns, and source lineage so you can review where each
+        finding comes from.
+      </p>
+      <p className="muted" style={{ marginTop: "0.5rem" }}>
+        Closed Alpha: TraceMap is under active development. Please review outputs with
+        the evidence map and source links before reuse.
       </p>
 
       <form className="question-form" action={formAction}>
         <label className="question-label" htmlFor="question">
           Research topic
         </label>
+        <p className="muted" style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
+          Describe what you want to investigate and what angles should be checked
+          (e.g., growth drivers, risks, competitors, unknowns).
+        </p>
         <textarea
           id="question"
           name="question"
@@ -37,12 +46,21 @@ export function QuestionIntake() {
           disabled={isPending}
           required
         />
+        <div className="muted" data-testid="research-topic-examples" style={{ marginTop: "0.6rem" }}>
+          <p>Examples:</p>
+          <ul style={{ marginTop: "0.35rem", paddingLeft: "1rem" }}>
+            <li>トヨタ自動車のEV戦略について、成長要因・リスク・競合状況・未確認事項を根拠付きで整理する</li>
+            <li>国内生成AI市場の主要プレイヤーを比較し、公開情報ベースで市場機会と不明点を整理する</li>
+            <li>RAGとAIエージェントの違いを、技術的主張・根拠・未確認点に分解する</li>
+            <li>中小企業向けSaaS市場で、Vertical SaaSが伸びる要因とリスクを調査する</li>
+          </ul>
+        </div>
         {state.error ? <p className="form-error">{state.error}</p> : null}
         <div className="question-actions">
           <button type="submit" disabled={isPending}>
             {isPending ? "Running investigation..." : "Start Investigation"}
           </button>
-          <span className="muted">Mock mission - instant completed run.</span>
+          <span className="muted">Closed Alpha demo path: mock mission creates an instant run.</span>
         </div>
       </form>
     </Panel>
