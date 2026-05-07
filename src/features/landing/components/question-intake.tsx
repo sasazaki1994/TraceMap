@@ -32,7 +32,7 @@ export function QuestionIntake() {
         <textarea
           id="question"
           name="question"
-          placeholder="例: 国内生成AI市場の主要プレイヤーを比較し、根拠と不明点を整理する"
+          placeholder="例: トヨタ自動車のEV戦略について、成長要因・リスク・競合状況・未確認事項を根拠付きで整理する"
           rows={6}
           disabled={isPending}
           required

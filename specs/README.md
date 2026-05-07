@@ -35,6 +35,7 @@ Each feature spec should describe:
 | MVP evidence domain (claims / alerts / counterpoints) | [mvp-evidence-domain.md](./mvp-evidence-domain.md) |
 | Unknown Map & Source Lineage Lite | [unknown-map-and-source-lineage.md](./unknown-map-and-source-lineage.md) |
 | Briefing Report preview | [briefing-report.md](./briefing-report.md) |
+| Company Research Report Mode | [company-research-report.md](./company-research-report.md) |
 | Real Investigation Pipeline | [real-investigation-pipeline.md](./real-investigation-pipeline.md) |
 | Cost and Output Limits | [cost-and-output-limits.md](./cost-and-output-limits.md) |
 | Source Cache and Fetch Snapshot | [source-cache-and-fetch-snapshot.md](./source-cache-and-fetch-snapshot.md) |

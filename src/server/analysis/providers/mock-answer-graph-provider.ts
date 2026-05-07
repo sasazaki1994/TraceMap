@@ -20,19 +20,19 @@ function buildMockGraph(params: {
       {
         id: "node_source_a",
         kind: "source",
-        label: "Interpretability survey (mock)",
+        label: "Official strategy update (mock)",
         sourceSnapshotId: params.sourceIds[0],
       },
       {
         id: "node_source_b",
         kind: "source",
-        label: "Retrieval quality notes (mock)",
+        label: "Industry market tracker (mock)",
         sourceSnapshotId: params.sourceIds[1],
       },
       {
         id: "node_source_c",
         kind: "source",
-        label: "Product memo (mock)",
+        label: "Business press coverage (mock)",
         sourceSnapshotId: params.sourceIds[2],
       },
       {
@@ -170,14 +170,14 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
     kind: "success",
     payload: {
       answer: {
-        title: "Mock investigation briefing",
+        title: "Mock company research mission briefing",
         model: "mock",
         content: `${MOCK_ANSWER_LEAD} — this investigation mission is generated locally without an LLM.\n\nResearch topic:\n${question}\n\nExecutive Summary:\n- Evidence is mocked for the MVP v2 investigation skeleton.\n- Source rows below mirror what a future mission pipeline would attach.\n- The evidence map ties findings, claims, and sources to this snapshot.\n- Unknowns remain visible so reviewers can decide what to verify next.`,
         graphJson: graph,
       },
       sources: mappedSourceCandidates.length > 0 ? mappedSourceCandidates : [
         {
-          label: "Interpretability survey (mock)",
+          label: "Official strategy update (mock)",
           sourceType: "web",
           url: "https://example.com/mock/interpretability",
           excerpt:
@@ -185,7 +185,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
           publishedAt: new Date("2025-10-01T00:00:00.000Z"),
         },
         {
-          label: "Retrieval quality notes (mock)",
+          label: "Industry market tracker (mock)",
           sourceType: "document",
           url: "https://example.com/mock/retrieval",
           excerpt:
@@ -193,7 +193,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
           publishedAt: new Date("2024-04-14T00:00:00.000Z"),
         },
         {
-          label: "Product memo (mock)",
+          label: "Business press coverage (mock)",
           sourceType: "note",
           url: null,
           excerpt: "Mock excerpt: internal note without a public URL.",
@@ -204,7 +204,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
         claims: [
           {
             summary:
-              "The synthesis aggregates mocked sources into a single narrative (mock claim).",
+              "Sustained EV demand and software services expansion can support medium-term growth (mock claim).",
             graphNodeId: "node_claim_0",
             supportedSourcePlaceholderIds: ["__src_0__", "__src_1__"],
             supports: [
@@ -235,7 +235,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
               {
                 stepKind: "source",
                 order: 0,
-                label: "Interpretability survey (mock)",
+                label: "Official strategy update (mock)",
                 sourcePlaceholderId: "__src_0__",
               },
               {
@@ -277,7 +277,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
           },
           {
             summary:
-              "The product memo supplements internal context without a public URL (mock).",
+              "Battery-material supply concentration and policy shifts remain material risk factors (mock).",
             graphNodeId: "node_claim_1",
             supportedSourcePlaceholderIds: ["__src_2__"],
             supports: [
@@ -300,7 +300,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
               {
                 stepKind: "source",
                 order: 0,
-                label: "Product memo (mock)",
+                label: "Business press coverage (mock)",
                 sourcePlaceholderId: "__src_2__",
               },
               {
