@@ -33,7 +33,7 @@ export type SourceFetchImpl = (
 
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_MAX_BYTES = 200_000;
-const MAX_EXCERPT_CHARS = 1_200;
+const MAX_EXCERPT_CHARS = 2_000;
 
 function readPositiveIntEnv(name: string, fallback: number): number {
   const raw = process.env[name]?.trim();
@@ -71,6 +71,7 @@ function stripHtml(value: string): string {
   return value
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
     .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+    .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, " ")
     .replace(/<[^>]+>/g, " ");
 }
 

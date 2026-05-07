@@ -131,11 +131,26 @@ function buildMockGraph(params: {
   return graph;
 }
 
+
+
+function mapSourceCandidates(input: GenerateAnswerGraphInput) {
+  const candidates = input.sourceCandidates?.slice(0, 3) ?? [];
+  return candidates.map((candidate) => ({
+    label: candidate.label ?? new URL(candidate.normalizedUrl).hostname,
+    sourceType: "web" as const,
+    url: candidate.finalUrl ?? candidate.normalizedUrl,
+    excerpt: candidate.excerpt ?? null,
+    publishedAt: candidate.fetchedAt ?? null,
+  }));
+}
+
 /**
  * Mock pipeline: deterministic graph + evidence matching the current product slice.
  * Source IDs are placeholders; the DB writer replaces graph_json after inserts.
  */
-export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGraphResult {
+export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | string): GenerateAnswerGraphResult {
+  const normalizedInput = typeof input === "string" ? { question: input } : input;
+  const question = normalizedInput.question;
   const preview =
     question.length > 120 ? `${question.slice(0, 117)}...` : question;
 
@@ -149,6 +164,8 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
     sourceIds: placeholderIds,
   });
 
+  const mappedSourceCandidates = mapSourceCandidates(normalizedInput);
+
   return {
     kind: "success",
     payload: {
@@ -158,7 +175,7 @@ export function buildMockAnswerGraphPayload(question: string): GenerateAnswerGra
         content: `${MOCK_ANSWER_LEAD} — this investigation mission is generated locally without an LLM.\n\nResearch topic:\n${question}\n\nExecutive Summary:\n- Evidence is mocked for the MVP v2 investigation skeleton.\n- Source rows below mirror what a future mission pipeline would attach.\n- The evidence map ties findings, claims, and sources to this snapshot.\n- Unknowns remain visible so reviewers can decide what to verify next.`,
         graphJson: graph,
       },
-      sources: [
+      sources: mappedSourceCandidates.length > 0 ? mappedSourceCandidates : [
         {
           label: "Interpretability survey (mock)",
           sourceType: "web",
@@ -323,6 +340,6 @@ export const mockAnswerGraphProvider: AnswerGraphProvider = {
   id: "mock",
   modelLabel: "mock",
   async generateAnswerGraph(input: GenerateAnswerGraphInput) {
-    return buildMockAnswerGraphPayload(input.question);
+    return buildMockAnswerGraphPayload(input);
   },
 };

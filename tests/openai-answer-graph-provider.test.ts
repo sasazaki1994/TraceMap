@@ -246,6 +246,7 @@ describe("realOpenAiAnswerGraphProvider", () => {
     expect(systemMessage?.content).toContain("Do not provide investment advice");
     expect(userMessage?.content).toContain("Research topic:");
     expect(userMessage?.content).toContain("Investigation Mission briefing");
+    expect(userMessage?.content).not.toContain("Available source candidates");
     expect(userMessage?.content).not.toContain("Question:");
   });
 
@@ -306,6 +307,23 @@ describe("realOpenAiAnswerGraphProvider", () => {
     expect(result.payload.evidence?.alert).toBeUndefined();
   });
 
+
+
+  it("adds compact source context when sourceCandidates are provided", async () => {
+    process.env.TRACEMAP_OPENAI_API_KEY = "sk-test";
+    createCompletion.mockResolvedValue({ choices: [{ message: { content: JSON.stringify(baseStructured) } }] });
+
+    const { realOpenAiAnswerGraphProvider } = await import("@/server/analysis/providers/openai-answer-graph-provider");
+    await realOpenAiAnswerGraphProvider.generateAnswerGraph({
+      question: "Q",
+      sourceCandidates: [{ normalizedUrl: "https://example.com/c", originalUrl: "https://example.com/c", label: "C", excerpt: "Excerpt C", contentType: "text/html" }],
+    });
+
+    const request = createCompletion.mock.calls.at(-1)?.[0] as { messages?: Array<{ role: string; content: string }> } | undefined;
+    const userMessage = request?.messages?.find((message) => message.role === "user");
+    expect(userMessage?.content).toContain("Available source candidates");
+    expect(userMessage?.content).toContain("label: C");
+  });
   it("returns failure when sufficient_grounding is false", async () => {
     process.env.TRACEMAP_OPENAI_API_KEY = "sk-test";
     createCompletion.mockResolvedValue({
