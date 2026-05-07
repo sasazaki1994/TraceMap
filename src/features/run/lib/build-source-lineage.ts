@@ -4,27 +4,16 @@ import type { RunEvidenceClaim } from "@/types/run-evidence";
 type SourceForLineage = {
   id: string;
   label: string;
-  sourceType: SourceLineageLite["sourceType"] | string;
+  sourceType: string;
   publishedAt?: string | null;
-  verificationStatus?: SourceLineageLite["verificationStatus"];
+  verificationStatus?: string | null;
   checkedAt?: string | null;
   httpStatus?: number | null;
   finalUrl?: string | null;
   contentType?: string | null;
 };
 
-function normalizeSourceType(sourceType: string): SourceLineageLite["sourceType"] {
-  switch (sourceType) {
-    case "web":
-    case "document":
-    case "note":
-      return sourceType;
-    default:
-      return "web";
-  }
-}
-
-function sourceTypeLabel(sourceType: SourceLineageLite["sourceType"] | string): string {
+function sourceTypeLabel(sourceType: string): string {
   switch (sourceType) {
     case "web":
       return "Web source";
@@ -38,7 +27,7 @@ function sourceTypeLabel(sourceType: SourceLineageLite["sourceType"] | string): 
 }
 
 function buildLineageLabel(params: {
-  sourceType: SourceLineageLite["sourceType"] | string;
+  sourceType: string;
   isPrimarySource: boolean;
   claimCount: number;
   publishedAt?: string | null;
@@ -46,18 +35,15 @@ function buildLineageLabel(params: {
   const parts = [
     params.isPrimarySource ? "Primary evidence or official source" : "Supporting context",
     sourceTypeLabel(params.sourceType),
-    params.claimCount === 1
-      ? "linked to 1 claim"
-      : `linked to ${params.claimCount} claims`,
+    params.claimCount === 1 ? "linked to 1 claim" : `linked to ${params.claimCount} claims`,
+    params.publishedAt ? `published ${params.publishedAt}` : "publication date unknown",
   ];
 
-  if (params.publishedAt) {
-    parts.push(`published ${params.publishedAt}`);
-  } else {
-    parts.push("publication date unknown");
-  }
-
   return parts.join(" / ");
+}
+
+function normalizeVerificationStatus(value: string | null | undefined): string | null {
+  return value === "verified" ? "verified" : value ?? null;
 }
 
 export function buildSourceLineage(params: {
@@ -65,7 +51,6 @@ export function buildSourceLineage(params: {
   evidenceClaims: RunEvidenceClaim[];
 }): SourceLineageLite[] {
   return params.sources.map((source) => {
-    const sourceType = normalizeSourceType(source.sourceType);
     const supports = params.evidenceClaims.flatMap((claim) =>
       claim.supports
         .filter((support) => support.sourceId === source.id)
@@ -77,9 +62,9 @@ export function buildSourceLineage(params: {
     return {
       sourceId: source.id,
       label: source.label,
-      sourceType,
+      sourceType: source.sourceType || "unknown",
       lineageLabel: buildLineageLabel({
-        sourceType: source.sourceType,
+        sourceType: source.sourceType || "unknown",
         isPrimarySource,
         claimCount: claimIds.size,
         publishedAt: source.publishedAt,
@@ -87,7 +72,7 @@ export function buildSourceLineage(params: {
       publishedAt: source.publishedAt ?? null,
       isPrimarySource,
       linkedClaimCount: claimIds.size,
-      verificationStatus: source.verificationStatus,
+      verificationStatus: normalizeVerificationStatus(source.verificationStatus),
       checkedAt: source.checkedAt ?? null,
       httpStatus: source.httpStatus ?? null,
       finalUrl: source.finalUrl ?? null,

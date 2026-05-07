@@ -56,7 +56,7 @@ export function suggestedNextActionForGap(message: string): string {
   if (normalized.includes("synthetic") || normalized.includes("mock")) {
     return "Replace synthetic evidence with real source checks.";
   }
-  return "Review the claim and collect additional corroborating evidence.";
+  return "Review supporting evidence and add stronger sources.";
 }
 
 function reasonForGap(message: string): string {

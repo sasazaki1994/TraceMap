@@ -28,7 +28,7 @@ export function SourceLineagePanel({ sourceLineage }: SourceLineagePanelProps) {
                 ) : null}
               </div>
               <p className="source-list-item-meta" style={{ marginTop: "6px" }}>
-                Type: {source.sourceType} · Published: {source.publishedAt ?? "Unknown"}
+                Type: {source.sourceType} · Published: {source.publishedAt ?? "Publication date unknown"}
               </p>
               <p
                 className="source-list-item-meta"
