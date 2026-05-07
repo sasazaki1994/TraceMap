@@ -1,3 +1,5 @@
+export type SourceCandidateOrigin = "manual_url" | "discovered";
+
 export type SourceCandidate = {
   normalizedUrl: string;
   originalUrl: string;
@@ -10,6 +12,7 @@ export type SourceCandidate = {
   sourceCacheEntryId?: string | null;
   sourceFetchSnapshotId?: string | null;
   fetchErrorMessage?: string | null;
+  origin?: SourceCandidateOrigin;
 };
 
 export type SourceIntakeResult = {
