@@ -170,7 +170,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
     kind: "success",
     payload: {
       answer: {
-        title: "Mock investigation briefing",
+        title: "Mock company research mission briefing",
         model: "mock",
         content: `${MOCK_ANSWER_LEAD} — this investigation mission is generated locally without an LLM.\n\nResearch topic:\n${question}\n\nExecutive Summary:\n- Evidence is mocked for the MVP v2 investigation skeleton.\n- Source rows below mirror what a future mission pipeline would attach.\n- The evidence map ties findings, claims, and sources to this snapshot.\n- Unknowns remain visible so reviewers can decide what to verify next.`,
         graphJson: graph,

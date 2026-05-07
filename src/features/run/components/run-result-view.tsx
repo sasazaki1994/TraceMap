@@ -4,12 +4,14 @@ import { useMemo, useState } from "react";
 
 import { Panel } from "@/components/ui/panel";
 import { BriefingReportPanel } from "@/features/run/components/briefing-report-panel";
+import { CompanyResearchReportPanel } from "@/features/run/components/company-research-report-panel";
 import { InvestigationTimeline } from "@/features/run/components/investigation-timeline";
 import { MissionHeader } from "@/features/run/components/mission-header";
 import { SourceLineagePanel } from "@/features/run/components/source-lineage-panel";
 import { UnknownMapPanel } from "@/features/run/components/unknown-map-panel";
 import { alertLevelLabel } from "@/features/run/lib/alert-level-label";
 import { buildBriefingReport } from "@/features/run/lib/build-briefing-report";
+import { buildCompanyResearchReport } from "@/features/run/lib/build-company-research-report";
 import { buildSourceLineage } from "@/features/run/lib/build-source-lineage";
 import { buildUnknowns } from "@/features/run/lib/build-unknowns";
 import { describeGraphNodeTie } from "@/features/run/lib/graph-node-tie-label";
@@ -242,6 +244,29 @@ export function RunResultView({
     () => buildSourceLineage({ sources, evidenceClaims }),
     [sources, evidenceClaims],
   );
+  const companyResearchReport = useMemo(
+    () =>
+      buildCompanyResearchReport({
+        topic: question,
+        answerContent,
+        claims: evidenceClaims.map((claim) => ({
+          id: claim.id,
+          text: claim.summary,
+          confidence: claim.confidence?.level ?? null,
+        })),
+        sources: sources.map((source) => ({
+          id: source.id,
+          title: source.label,
+          url: source.url,
+          sourceType: source.sourceType,
+          publishedAt: source.publishedAt ?? null,
+        })),
+        unknowns,
+        sourceLineage,
+      }),
+    [answerContent, evidenceClaims, question, sourceLineage, sources, unknowns],
+  );
+
   const briefingReport = useMemo(
     () =>
       buildBriefingReport({
@@ -842,6 +867,7 @@ export function RunResultView({
 
           <SourceLineagePanel sourceLineage={sourceLineage} />
           <BriefingReportPanel markdown={briefingReport} />
+          <CompanyResearchReportPanel markdown={companyResearchReport.markdown} />
         </Panel>
       </div>
 
