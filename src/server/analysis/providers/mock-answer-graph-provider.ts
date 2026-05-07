@@ -20,19 +20,19 @@ function buildMockGraph(params: {
       {
         id: "node_source_a",
         kind: "source",
-        label: "Official strategy update (mock)",
+        label: "Interpretability survey (mock)",
         sourceSnapshotId: params.sourceIds[0],
       },
       {
         id: "node_source_b",
         kind: "source",
-        label: "Industry market tracker (mock)",
+        label: "Retrieval quality notes (mock)",
         sourceSnapshotId: params.sourceIds[1],
       },
       {
         id: "node_source_c",
         kind: "source",
-        label: "Business press coverage (mock)",
+        label: "Product memo (mock)",
         sourceSnapshotId: params.sourceIds[2],
       },
       {
@@ -177,7 +177,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
       },
       sources: mappedSourceCandidates.length > 0 ? mappedSourceCandidates : [
         {
-          label: "Official strategy update (mock)",
+          label: "Interpretability survey (mock)",
           sourceType: "web",
           url: "https://example.com/mock/interpretability",
           excerpt:
@@ -185,7 +185,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
           publishedAt: new Date("2025-10-01T00:00:00.000Z"),
         },
         {
-          label: "Industry market tracker (mock)",
+          label: "Retrieval quality notes (mock)",
           sourceType: "document",
           url: "https://example.com/mock/retrieval",
           excerpt:
@@ -193,7 +193,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
           publishedAt: new Date("2024-04-14T00:00:00.000Z"),
         },
         {
-          label: "Business press coverage (mock)",
+          label: "Product memo (mock)",
           sourceType: "note",
           url: null,
           excerpt: "Mock excerpt: internal note without a public URL.",
@@ -204,7 +204,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
         claims: [
           {
             summary:
-              "Sustained EV demand and software services expansion can support medium-term growth (mock claim).",
+              "The synthesis aggregates mocked sources into a single narrative (mock claim).",
             graphNodeId: "node_claim_0",
             supportedSourcePlaceholderIds: ["__src_0__", "__src_1__"],
             supports: [
@@ -235,7 +235,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
               {
                 stepKind: "source",
                 order: 0,
-                label: "Official strategy update (mock)",
+                label: "Interpretability survey (mock)",
                 sourcePlaceholderId: "__src_0__",
               },
               {
@@ -277,7 +277,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
           },
           {
             summary:
-              "Battery-material supply concentration and policy shifts remain material risk factors (mock).",
+              "The product memo supplements internal context without a public URL (mock).",
             graphNodeId: "node_claim_1",
             supportedSourcePlaceholderIds: ["__src_2__"],
             supports: [
@@ -300,7 +300,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
               {
                 stepKind: "source",
                 order: 0,
-                label: "Business press coverage (mock)",
+                label: "Product memo (mock)",
                 sourcePlaceholderId: "__src_2__",
               },
               {
