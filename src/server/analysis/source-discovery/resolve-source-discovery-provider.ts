@@ -1,3 +1,4 @@
+import { braveSourceDiscoveryProvider } from "@/server/analysis/source-discovery/brave-source-discovery-provider";
 import { mockSourceDiscoveryProvider } from "@/server/analysis/source-discovery/mock-source-discovery-provider";
 import type { SourceDiscoveryProvider } from "@/server/analysis/source-discovery/source-discovery-provider";
 
@@ -11,5 +12,6 @@ const disabledProvider: SourceDiscoveryProvider = {
 export function resolveSourceDiscoveryProvider(): SourceDiscoveryProvider {
   const configured = process.env.TRACEMAP_SOURCE_DISCOVERY_PROVIDER?.trim().toLowerCase() ?? "disabled";
   if (configured === "mock") return mockSourceDiscoveryProvider;
+  if (configured === "brave") return braveSourceDiscoveryProvider;
   return disabledProvider;
 }

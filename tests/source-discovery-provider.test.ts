@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { braveSourceDiscoveryProvider } from "@/server/analysis/source-discovery/brave-source-discovery-provider";
 import { mockSourceDiscoveryProvider } from "@/server/analysis/source-discovery/mock-source-discovery-provider";
 import { resolveSourceDiscoveryProvider } from "@/server/analysis/source-discovery/resolve-source-discovery-provider";
 
@@ -9,6 +10,18 @@ describe("source discovery provider", () => {
     const provider = resolveSourceDiscoveryProvider();
     expect(provider.id).toBe("disabled");
     await expect(provider.discoverSources({ researchTopic: "x", maxResults: 5 })).resolves.toEqual({ kind: "success", candidates: [] });
+  });
+
+  it("falls back to disabled for unknown provider", () => {
+    process.env.TRACEMAP_SOURCE_DISCOVERY_PROVIDER = "unknown";
+    const provider = resolveSourceDiscoveryProvider();
+    expect(provider.id).toBe("disabled");
+  });
+
+  it("resolves brave provider", () => {
+    process.env.TRACEMAP_SOURCE_DISCOVERY_PROVIDER = "brave";
+    const provider = resolveSourceDiscoveryProvider();
+    expect(provider).toBe(braveSourceDiscoveryProvider);
   });
 
   it("mock provider is deterministic", async () => {
