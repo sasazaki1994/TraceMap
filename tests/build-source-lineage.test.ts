@@ -118,6 +118,31 @@ describe("buildSourceLineage", () => {
     expect(lineage[0]?.lineageLabel).toContain("publication date unknown");
   });
 
+
+  it("falls back when sourceType is missing at runtime", () => {
+    const lineage = buildSourceLineage({
+      sources: [
+        {
+          id: "src-missing-type",
+          label: "Legacy source",
+          sourceType: ("" as unknown) as "web",
+          publishedAt: null,
+        },
+      ],
+      evidenceClaims: [],
+    });
+
+    expect(lineage[0]).toEqual(
+      expect.objectContaining({
+        sourceId: "src-missing-type",
+        sourceType: "unknown",
+        publishedAt: null,
+        isPrimarySource: false,
+      }),
+    );
+    expect(lineage[0]?.lineageLabel).toContain("Unknown source type");
+  });
+
   it("falls back safely for unknown source types", () => {
     const lineage = buildSourceLineage({
       sources: [
