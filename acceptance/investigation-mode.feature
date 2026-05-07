@@ -13,6 +13,7 @@ Feature: Investigation Mode
     And the user starts the investigation
     Then a new analysis run should be created
     And the run page should display a mission header
+    And the run page should display an investigation guide
     And the run page should display an investigation timeline
     And the run page should display an executive summary
     And the run page should display an evidence map

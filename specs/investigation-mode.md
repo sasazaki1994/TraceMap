@@ -62,6 +62,12 @@ Investigation Mode reuses the current persistence model:
   - DETECTING UNKNOWNS
   - BUILDING REPORT
 - Existing Evidence Graph, claims, sources, share controls, counterpoints, and propagation chains remain available.
+- Run page should show an investigation reading order guide with:
+  - Mission
+  - Evidence Map
+  - Unknown Map
+  - Source Lineage
+  - Briefing Report
 
 ## Provider requirements
 
@@ -76,6 +82,7 @@ Investigation Mode reuses the current persistence model:
 - E2E coverage should confirm the landing page starts an investigation and run page displays:
   - `mission-header`
   - `investigation-timeline`
+  - `investigation-guide`
   - `run-answer`
   - `run-graph`
   - `unknown-map-panel`
