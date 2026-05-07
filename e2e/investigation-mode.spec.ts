@@ -11,8 +11,13 @@ test("investigation panels are visible on a completed run", async ({ page, reque
 
   await expect(page).toHaveURL(/\/runs\//);
   await expect(page.getByTestId("mission-header")).toBeVisible();
+  await expect(page.getByTestId("mission-topic")).toBeVisible();
   await expect(page.getByTestId("investigation-timeline")).toBeVisible();
+  await expect(page.getByTestId("investigation-step")).toHaveCount(5);
   await expect(page.getByTestId("unknown-map-panel")).toBeVisible();
+  await expect(page.getByTestId("unknown-map-item").first()).toBeVisible();
   await expect(page.getByTestId("source-lineage-panel")).toBeVisible();
+  await expect(page.getByTestId("source-lineage-item").first()).toBeVisible();
   await expect(page.getByTestId("briefing-report-panel")).toBeVisible();
+  await expect(page.getByTestId("briefing-report-markdown")).toBeVisible();
 });
