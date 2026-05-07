@@ -193,6 +193,25 @@ function getOpenAiConfig(): { apiKey: string | undefined; model: string; timeout
   };
 }
 
+
+function buildSourceCandidateContext(input: GenerateAnswerGraphInput): string {
+  const candidates = input.sourceCandidates?.slice(0, 5) ?? [];
+  if (candidates.length === 0) {
+    return "";
+  }
+  const lines = candidates.map((candidate, index) => {
+    const label = candidate.label ?? new URL(candidate.normalizedUrl).hostname;
+    const url = candidate.finalUrl ?? candidate.normalizedUrl;
+    const contentType = candidate.contentType ?? "unknown";
+    const excerpt = candidate.excerpt?.slice(0, 400) ?? "(no excerpt)";
+    return `${index + 1}. label: ${label}
+   url: ${url}
+   content_type: ${contentType}
+   excerpt: ${excerpt}`;
+  });
+return `\n\nAvailable source candidates:\n${lines.join("\n")}`;
+}
+
 function getOpenAiModelLabel(): string {
   return process.env.TRACEMAP_OPENAI_MODEL?.trim() || "gpt-4o-mini";
 }
@@ -573,7 +592,7 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
           },
           {
             role: "user",
-            content: `Research topic:\n${input.question}\n\nReturn JSON per schema for an Investigation Mission briefing.`,
+            content: `Research topic:\n${input.question}${buildSourceCandidateContext(input)}\n\nReturn JSON per schema for an Investigation Mission briefing. Prefer candidate URLs when enough grounding exists.`,
           },
         ],
         response_format: {

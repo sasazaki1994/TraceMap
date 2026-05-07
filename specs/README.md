@@ -39,3 +39,4 @@ Each feature spec should describe:
 | Cost and Output Limits | [cost-and-output-limits.md](./cost-and-output-limits.md) |
 | Source Cache and Fetch Snapshot | [source-cache-and-fetch-snapshot.md](./source-cache-and-fetch-snapshot.md) |
 | Run Cache | [run-cache.md](./run-cache.md) |
+| Source Intake and Fetching v0.1 | [source-intake-and-fetching.md](./source-intake-and-fetching.md) |

@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { persistGeneratedAnswerGraph } from "@/server/analysis/persist-generated-answer-graph";
+import { buildSourceIntakeFromQuestion } from "@/server/analysis/source-intake/source-intake-service";
 import { resolveAnswerGraphProvider } from "@/server/analysis/resolve-answer-graph-provider";
 import { buildRunCacheKey } from "@/server/analysis/run-cache-key";
 import {
@@ -62,9 +63,10 @@ export async function createAnalysisRunFromProvider(question: string): Promise<s
   }
 
   if (payload === null) {
+    const sourceIntake = await buildSourceIntakeFromQuestion(question);
     let result;
     try {
-      result = await provider.generateAnswerGraph({ question });
+      result = await provider.generateAnswerGraph({ question, sourceCandidates: sourceIntake.candidates });
     } catch (cause) {
       const message =
         cause instanceof Error ? cause.message : "Answer graph generation failed.";

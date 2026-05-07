@@ -347,7 +347,7 @@ describe("createAnalysisRunFromProvider", () => {
 
     await createAnalysisRunFromProvider("Fresh topic");
 
-    expect(provider.generateAnswerGraph).toHaveBeenCalledWith({ question: "Fresh topic" });
+    expect(provider.generateAnswerGraph).toHaveBeenCalledWith({ question: "Fresh topic", sourceCandidates: [] });
     expect(storeRunCacheEntry).toHaveBeenCalledTimes(1);
     expect(storeRunCacheEntry).toHaveBeenCalledWith({
       cacheKeyInfo: expect.objectContaining({

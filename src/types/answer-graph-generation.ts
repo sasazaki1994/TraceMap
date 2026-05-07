@@ -9,10 +9,12 @@ import type {
 } from "@prisma/client";
 
 import type { AnswerGraphJson } from "@/types/answer-graph";
+import type { SourceCandidate } from "@/types/source-intake";
 
 /** Input for generating graph + evidence payload for a single analysis run. */
 export type GenerateAnswerGraphInput = {
   question: string;
+  sourceCandidates?: SourceCandidate[];
 };
 
 /** One source row to persist as `source_snapshots` (order preserved). */

@@ -28,3 +28,4 @@
 | Cost and Output Limits | `cost-and-output-limits.feature` |
 | Source Cache and Fetch Snapshot | `source-cache-and-fetch-snapshot.feature` |
 | Run Cache | `run-cache.feature` |
+| Source Intake and Fetching v0.1 | `source-intake-and-fetching.feature` |
