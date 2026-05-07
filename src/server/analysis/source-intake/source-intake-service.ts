@@ -6,19 +6,26 @@ import { DEFAULT_DISCOVERY_MAX_RESULTS, DEFAULT_SOURCE_CANDIDATE_MAX_RESULTS } f
 
 export async function buildSourceIntakeFromQuestion(question: string): Promise<SourceIntakeResult> {
   const manualUrls = extractUrls(question);
-  const discoveryProvider = resolveSourceDiscoveryProvider();
+  const discoveryProvider = await resolveSourceDiscoveryProvider();
   const ignoredUrls: SourceIntakeResult["ignoredUrls"] = [];
 
   let discoveredUrls: string[] = [];
   if (discoveryProvider.id !== "disabled") {
-    const discovery = await discoveryProvider.discoverSources({
-      researchTopic: question,
-      maxResults: DEFAULT_DISCOVERY_MAX_RESULTS,
-    });
-    if (discovery.kind === "failure") {
-      ignoredUrls.push({ url: "[source_discovery]", reason: discovery.errorMessage });
-    } else {
-      discoveredUrls = discovery.candidates.map((candidate) => candidate.url);
+    try {
+      const discovery = await discoveryProvider.discoverSources({
+        researchTopic: question,
+        maxResults: DEFAULT_DISCOVERY_MAX_RESULTS,
+      });
+      if (discovery.kind === "failure") {
+        ignoredUrls.push({ url: "[source_discovery]", reason: discovery.errorMessage });
+      } else {
+        discoveredUrls = discovery.candidates.map((candidate) => candidate.url);
+      }
+    } catch (error) {
+      ignoredUrls.push({
+        url: "[source_discovery]",
+        reason: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

@@ -6,7 +6,7 @@ import { resolveSourceDiscoveryProvider } from "@/server/analysis/source-discove
 describe("source discovery provider", () => {
   it("defaults to disabled and returns empty candidates", async () => {
     delete process.env.TRACEMAP_SOURCE_DISCOVERY_PROVIDER;
-    const provider = resolveSourceDiscoveryProvider();
+    const provider = await resolveSourceDiscoveryProvider();
     expect(provider.id).toBe("disabled");
     await expect(provider.discoverSources({ researchTopic: "x", maxResults: 5 })).resolves.toEqual({ kind: "success", candidates: [] });
   });
@@ -20,6 +20,7 @@ describe("source discovery provider", () => {
   it("respects maxResults", async () => {
     const result = await mockSourceDiscoveryProvider.discoverSources({ researchTopic: "Acme", maxResults: 2 });
     expect(result.kind).toBe("success");
-    if (result.kind === "success") expect(result.candidates).toHaveLength(2);
+    const successResult = result as Extract<typeof result, { kind: "success" }>;
+    expect(successResult.candidates).toHaveLength(2);
   });
 });
