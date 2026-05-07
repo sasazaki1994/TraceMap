@@ -196,6 +196,20 @@ CI uses `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tracemap?sch
 - Run Cache stores reusable normalized investigation payloads for fresh repeated topics while preserving run-local answer/source snapshots and evidence rows.
 - Vitest and Playwright coverage; see `specs/` and `acceptance/` for behavior
 
+
+## Optional: Source discovery providers (env-only)
+
+- Default: `TRACEMAP_SOURCE_DISCOVERY_PROVIDER=disabled`
+- `mock`: deterministic test/demo candidates
+- `brave`: calls Brave Search API and requires `TRACEMAP_BRAVE_SEARCH_API_KEY`
+
+Optional discovery envs:
+
+- `TRACEMAP_BRAVE_SEARCH_ENDPOINT` (default `https://api.search.brave.com/res/v1/web/search`)
+- `TRACEMAP_SOURCE_DISCOVERY_TIMEOUT_MS` (default `8000`)
+
+If `brave` is selected without an API key, discovery returns a safe failure. The app does not crash: source intake records the discovery error in `ignoredUrls` and continues when manual URLs are present.
+
 ## Optional: OpenAI answer graph (env-only)
 
 By default, runs use the **mock** answer-graph provider. To call OpenAI from the same persistence path:

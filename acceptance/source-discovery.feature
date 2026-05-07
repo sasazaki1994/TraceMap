@@ -28,3 +28,21 @@ Feature: Source Discovery
     When a user starts an investigation
     Then the investigation should continue with any manually supplied URL candidates
     And the discovery failure should be recorded as ignored source information
+
+Scenario: Brave source discovery returns normalized candidates
+  Given the source discovery provider is configured as "brave"
+  And the Brave API key is configured
+  When source discovery runs for a research topic
+  Then the provider should return search_provider candidates
+  And each candidate should have an http or https URL
+  And duplicate URLs should be removed
+  And no more than the requested max results should be returned
+
+Scenario: Brave source discovery fails safely without API key
+  Given the source discovery provider is configured as "brave"
+  And the Brave API key is missing
+  When source discovery runs for a research topic
+  Then the provider should return a failure result
+  And the analysis intake should not throw
+  And the failure should be recorded as an ignored discovery source
+

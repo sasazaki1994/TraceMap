@@ -33,7 +33,7 @@ Enable TraceMap to discover source candidates from a research topic even when th
 - Do not bypass existing URL safety validation.
 
 ## Provider strategy
-- Environment variable switch: `TRACEMAP_SOURCE_DISCOVERY_PROVIDER=disabled|mock`.
+- Environment variable switch: `TRACEMAP_SOURCE_DISCOVERY_PROVIDER=disabled|mock|brave`.
 - Default is `disabled`.
 - `mock` provider must return deterministic results from the research topic.
 - Provider boundary is designed to allow future providers (e.g. web search backends) without changing intake contracts.
@@ -86,3 +86,27 @@ Enable TraceMap to discover source candidates from a research topic even when th
 ## Acceptance references
 - `acceptance/source-discovery.feature`
 - `acceptance/source-intake-and-fetching.feature`
+
+
+## Brave provider v0.1
+- `brave` provider calls a web-search endpoint with env-gated configuration.
+- Required env: `TRACEMAP_BRAVE_SEARCH_API_KEY`. Missing key returns `failure` and never crashes intake.
+- Optional env: `TRACEMAP_BRAVE_SEARCH_ENDPOINT` (default Brave endpoint), `TRACEMAP_SOURCE_DISCOVERY_TIMEOUT_MS` (default `8000`).
+- Timeout is enforced via `AbortController`; timeout and network exceptions return `failure`.
+- Non-2xx HTTP responses return `failure`.
+- Invalid JSON responses return `failure`.
+- Candidate normalization rules:
+  - map Brave fields to `title` / `url` / `snippet`
+  - accept only `http` / `https` URLs
+  - dedupe by URL within provider output
+  - cap output by `input.maxResults`
+  - set `discoveredBy` to `search_provider`
+- `sourceKind` inference is lightweight rule-based (`official`, `documentation`, `paper`, `news`, `report`, fallback `unknown`).
+
+## Additional non-goals for Brave v0.1
+- No advanced ranking optimization.
+- No LLM rerank stage.
+- No browser crawling.
+- No full-text ingestion in discovery; full content belongs to Source Cache / Fetch Snapshot.
+- Provider failure must not fail the whole analysis run.
+- No multi-provider parallel search in the same run.
