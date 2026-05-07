@@ -11,12 +11,12 @@ export type InvestigationUnknown = {
 export type SourceLineageLite = {
   sourceId: string;
   label: string;
-  sourceType: "web" | "document" | "note";
+  sourceType: string;
   lineageLabel: string;
   publishedAt?: string | null;
-  isPrimarySource: boolean;
-  linkedClaimCount: number;
-  verificationStatus?: "verified" | "unverified" | "unreachable" | "invalid";
+  verificationStatus?: string | null;
+  isPrimarySource?: boolean;
+  linkedClaimCount?: number;
   checkedAt?: string | null;
   httpStatus?: number | null;
   finalUrl?: string | null;

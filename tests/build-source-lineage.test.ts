@@ -135,7 +135,7 @@ describe("buildSourceLineage", () => {
       expect.objectContaining({
         sourceId: "src-unknown",
         label: "Unclassified source",
-        sourceType: "web",
+        sourceType: "rss",
         publishedAt: null,
         isPrimarySource: false,
         linkedClaimCount: 0,
