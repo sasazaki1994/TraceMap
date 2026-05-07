@@ -179,11 +179,13 @@ http://localhost:3000/api/health
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs against a **PostgreSQL 16** service:
+GitHub Actions (`.github/workflows/ci.yml`) runs on `pull_request` and `push` to `main` with a **PostgreSQL 16** service and mock provider defaults.
 
-- Install, `prisma generate`, **`prisma migrate deploy`**
-- Lint, typecheck, Vitest
-- Playwright (Chromium) E2E, including a dev server with `DATABASE_URL` pointing at the job database
+- Static checks: `corepack enable`, `pnpm install --frozen-lockfile`, `pnpm exec prisma generate`, `pnpm exec prisma validate`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`
+- DB checks: `pnpm exec prisma migrate deploy`, `pnpm exec prisma migrate status`, and fresh DB migration verification (`tracemap_verify`)
+- E2E checks: `pnpm exec playwright install --with-deps chromium` and `pnpm test:e2e`
+
+CI uses `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tracemap?schema=public`, `ANSWER_GRAPH_PROVIDER=mock`, and `NODE_ENV=test`, so OpenAI API keys are not required for the default validation path.
 
 ## Current MVP Baseline
 

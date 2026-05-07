@@ -7,33 +7,30 @@ on:
   pull_request:
 
 jobs:
-  verify:
+  install-and-static-checks:
     runs-on: ubuntu-latest
-
+    env:
+      ANSWER_GRAPH_PROVIDER: mock
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tracemap?schema=public
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
-          POSTGRES_DB: tracemap_ci
+          POSTGRES_DB: tracemap
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd "pg_isready -U postgres -d tracemap"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
-
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tracemap_ci
+          --health-retries 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -41,14 +38,17 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm db:generate
+        run: pnpm exec prisma generate
 
-      - name: Apply database migrations
-        run: pnpm exec prisma migrate deploy
+      - name: Validate Prisma schema
+        run: pnpm exec prisma validate
 
       - name: Lint
         run: pnpm lint
@@ -58,6 +58,109 @@ jobs:
 
       - name: Unit test
         run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  database-checks:
+    runs-on: ubuntu-latest
+    needs: install-and-static-checks
+    env:
+      ANSWER_GRAPH_PROVIDER: mock
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tracemap?schema=public
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: tracemap
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tracemap"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm exec prisma generate
+
+      - name: Prisma validate
+        run: pnpm exec prisma validate
+
+      - name: Prisma migrate deploy
+        run: pnpm exec prisma migrate deploy
+
+      - name: Prisma migrate status
+        run: pnpm exec prisma migrate status
+
+      - name: Fresh DB migration verify
+        run: |
+          psql postgresql://postgres:postgres@localhost:5432/postgres -c "CREATE DATABASE tracemap_verify;"
+          DATABASE_URL='postgresql://postgres:postgres@localhost:5432/tracemap_verify?schema=public' pnpm exec prisma migrate deploy
+          DATABASE_URL='postgresql://postgres:postgres@localhost:5432/tracemap_verify?schema=public' pnpm exec prisma migrate status
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: database-checks
+    env:
+      ANSWER_GRAPH_PROVIDER: mock
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tracemap?schema=public
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: tracemap
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tracemap"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm exec prisma generate
+
+      - name: Prisma migrate deploy
+        run: pnpm exec prisma migrate deploy
 
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
