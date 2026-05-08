@@ -19,6 +19,7 @@
 | Area | File |
 |------|------|
 | Investigation Mode | `investigation-mode.feature` |
+| Investigation Depth Mode v0.1 | `investigation-depth-mode.feature` |
 | MVP evidence domain | Existing E2E coverage for claims / alerts / graph behavior |
 | Source detail & sharing | `source-detail-and-sharing.feature` |
 | Visual design (cyber) | `visual-design-system-cyber.feature` |

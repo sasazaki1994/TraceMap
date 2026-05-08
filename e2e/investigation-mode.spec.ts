@@ -6,6 +6,11 @@ test("landing page shows investigation-oriented intake copy", async ({ page }) =
   await expect(page.getByText("Turn a research topic into a traceable investigation mission.")).toBeVisible();
   await expect(page.getByText("Closed Alpha: TraceMap is under active development.")).toBeVisible();
   await expect(page.getByTestId("research-topic-examples")).toBeVisible();
+  await expect(page.getByTestId("investigation-mode-selector")).toBeVisible();
+  await expect(page.getByTestId("investigation-mode-fast")).toBeVisible();
+  await expect(page.getByTestId("investigation-mode-standard")).toBeVisible();
+  await expect(page.getByTestId("investigation-mode-deep")).toBeVisible();
+  await expect(page.getByTestId("investigation-mode-selector")).toHaveValue("standard");
 });
 
 test("investigation panels are visible on a completed run", async ({ page, request }) => {

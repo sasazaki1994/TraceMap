@@ -3,6 +3,7 @@
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 
+import { resolveInvestigationMode } from "@/server/analysis/investigation-limits";
 import { createAnalysisRunFromProvider } from "@/server/analysis/create-analysis-run-from-provider";
 
 export type CreateRunFormState = {
@@ -18,6 +19,11 @@ export async function createMockRunAction(
     return { error: "Research topic is required." };
   }
 
-  const runId = await createAnalysisRunFromProvider(raw.trim());
+  const rawMode = formData.get("mode");
+  const mode = resolveInvestigationMode(
+    typeof rawMode === "string" ? rawMode : undefined,
+  );
+
+  const runId = await createAnalysisRunFromProvider(raw.trim(), { mode });
   redirect(`/runs/${runId}` as Route);
 }

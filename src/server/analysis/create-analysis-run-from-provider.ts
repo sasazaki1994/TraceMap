@@ -12,14 +12,24 @@ import {
 } from "@/server/analysis/run-cache-service";
 import { prisma } from "@/server/db/prisma";
 import type { GeneratedAnswerGraphPayload } from "@/types/answer-graph-generation";
+import type { InvestigationMode } from "@/server/analysis/investigation-limits";
+
+export type CreateAnalysisRunOptions = {
+  mode?: InvestigationMode;
+};
 
 /**
  * Creates an `analysis_runs` row and fills evidence via the configured answer-graph provider.
  * Synchronous path: queued → processing → completed | failed (no background jobs).
  */
-export async function createAnalysisRunFromProvider(question: string): Promise<string> {
+export async function createAnalysisRunFromProvider(
+  question: string,
+  options: CreateAnalysisRunOptions = {},
+): Promise<string> {
   const provider = resolveAnswerGraphProvider();
-  const mode = resolveInvestigationMode(process.env.TRACEMAP_INVESTIGATION_MODE?.trim());
+  const mode = resolveInvestigationMode(
+    options.mode ?? process.env.TRACEMAP_INVESTIGATION_MODE?.trim(),
+  );
 
   const run = await prisma.analysisRun.create({
     data: {

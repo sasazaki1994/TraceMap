@@ -406,6 +406,32 @@ describe("createAnalysisRunFromProvider", () => {
     },
   );
 
+  it("prioritizes explicit mode option over env fallback", async () => {
+    process.env.TRACEMAP_INVESTIGATION_MODE = "deep";
+    const { resolveAnswerGraphProvider } = await import(
+      "@/server/analysis/resolve-answer-graph-provider"
+    );
+    const { buildMockAnswerGraphPayload } = await import(
+      "@/server/analysis/providers/mock-answer-graph-provider"
+    );
+    const payloadResult = buildMockAnswerGraphPayload("Fresh topic");
+    const provider = {
+      id: "mock" as const,
+      modelLabel: "mock",
+      generateAnswerGraph: vi.fn().mockResolvedValue(payloadResult),
+    };
+    vi.mocked(resolveAnswerGraphProvider).mockReturnValue(provider);
+
+    const { createAnalysisRunFromProvider } = await import(
+      "@/server/analysis/create-analysis-run-from-provider"
+    );
+    await createAnalysisRunFromProvider("Fresh topic", { mode: "fast" });
+
+    expect(provider.generateAnswerGraph).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: "fast" }),
+    );
+  });
+
   it("does not store cache entries for provider failures", async () => {
     const { resolveAnswerGraphProvider } = await import(
       "@/server/analysis/resolve-answer-graph-provider"
