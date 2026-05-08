@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 import { PageContainer } from "@/components/ui/page-container";
 import { RunResultView } from "@/features/run/components/run-result-view";
 import { mapAnswerEvidenceForView } from "@/server/analysis/map-run-evidence";
@@ -68,7 +70,7 @@ export default async function SharePage({ params }: SharePageProps) {
     notFound();
   }
 
-  if (shareLink.expiresAt !== null && shareLink.expiresAt < new Date()) {
+  if (shareLink.expiresAt !== null && shareLink.expiresAt <= new Date()) {
     notFound();
   }
 

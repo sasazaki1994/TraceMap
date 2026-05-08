@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 import { PageContainer } from "@/components/ui/page-container";
 import { Panel } from "@/components/ui/panel";
 import { prisma } from "@/server/db/prisma";

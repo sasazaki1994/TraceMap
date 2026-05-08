@@ -56,4 +56,33 @@ test.describe("source-detail-and-sharing", () => {
     await expect(page.getByTestId("source-detail-panel")).toBeVisible();
     await expect(page.getByTestId("source-verification-status").first()).toBeVisible();
   });
+
+  test("revoked share link is no longer readable", async ({ page }) => {
+    test.skip(
+      !databaseConnected,
+      "Requires Postgres at DATABASE_URL, migrations applied, and dev server health check passing.",
+    );
+
+    await page.goto("/");
+    await page.getByLabel("Research topic").fill("Share link revoke E2E question?");
+    await page.getByRole("button", { name: "Start Investigation" }).click();
+    await expect(page).toHaveURL(/\/runs\//);
+
+    await page.getByTestId("share-create-button").click();
+    const shareLocator = page.getByTestId("share-url");
+    await expect(shareLocator).toBeVisible({ timeout: 15_000 });
+    await page.reload();
+    await expect(page.getByTestId("share-link-revoke-button").first()).toBeVisible({
+      timeout: 15_000,
+    });
+    const href = await page.getByTestId("share-url").textContent();
+    expect(href).toBeTruthy();
+
+    await page.getByTestId("share-link-revoke-button").first().click();
+    await expect(page.getByTestId("share-link-status").first()).toHaveText("EXPIRED", {
+      timeout: 15_000,
+    });
+    await page.goto(href!);
+    await expect(page.getByText("This page could not be found.")).toBeVisible();
+  });
 });
