@@ -62,6 +62,7 @@ describe("buildBriefingReport", () => {
       sources,
       unknowns,
       sourceLineage: lineage,
+      sourceQuality: [],
     });
 
     expect(markdown).toContain("# Briefing Report");
@@ -88,6 +89,7 @@ describe("buildBriefingReport", () => {
       sources: [],
       unknowns: [],
       sourceLineage: [],
+      sourceQuality: [],
     });
 
     expect(markdown).toContain("No executive summary is available yet.");
@@ -131,6 +133,7 @@ describe("buildBriefingReport", () => {
           publishedAt: null,
         },
       ],
+      sourceQuality: [],
     });
 
     expect(markdown).toContain("Research topic: No research topic is available.");
@@ -152,6 +155,7 @@ describe("buildBriefingReport", () => {
       sources,
       unknowns,
       sourceLineage: lineage,
+      sourceQuality: [],
     });
 
     expect(markdown.toLowerCase()).not.toContain("investment advice");

@@ -43,3 +43,5 @@ Each feature spec should describe:
 | Run Cache | [run-cache.md](./run-cache.md) |
 | Source Intake and Fetching v0.1 | [source-intake-and-fetching.md](./source-intake-and-fetching.md) |
 | Source Discovery v0.1 | [source-discovery.md](./source-discovery.md) |
+
+- source-quality-and-freshness.md: Source Quality & Freshness Inspector v0.1 (derived quality signals, unknown caveats, report summary)

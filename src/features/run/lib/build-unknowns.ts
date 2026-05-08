@@ -2,6 +2,8 @@ import type {
   InvestigationUnknown,
   InvestigationUnknownSeverity,
 } from "@/types/investigation";
+import { buildSourceQualityUnknowns } from "@/features/run/lib/build-source-quality-unknowns";
+import type { SourceQualitySignal } from "@/types/source-quality";
 import type { AlertLevel, RunEvidenceAlert, RunEvidenceClaim } from "@/types/run-evidence";
 
 export function severityFromAlertLevel(level: AlertLevel): InvestigationUnknownSeverity {
@@ -111,6 +113,7 @@ function fromAlert(params: {
 export function buildUnknowns(params: {
   evidenceAlerts: RunEvidenceAlert[];
   evidenceClaims: RunEvidenceClaim[];
+  sourceQuality?: SourceQualitySignal[];
 }): InvestigationUnknown[] {
   const unknowns: InvestigationUnknown[] = [];
 
@@ -183,6 +186,10 @@ export function buildUnknowns(params: {
         suggestedNextAction: "Verify publication date and recency.",
       });
     }
+  }
+
+  if (params.sourceQuality && params.sourceQuality.length > 0) {
+    unknowns.push(...buildSourceQualityUnknowns(params.sourceQuality));
   }
 
   return unknowns;

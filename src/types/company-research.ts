@@ -1,4 +1,5 @@
 import type { InvestigationUnknown, SourceLineageLite } from "@/types/investigation";
+import type { SourceQualitySignal } from "@/types/source-quality";
 
 export type CompanyResearchReportInput = {
   topic: string;
@@ -13,6 +14,7 @@ export type CompanyResearchReportInput = {
   }>;
   unknowns: InvestigationUnknown[];
   sourceLineage?: SourceLineageLite[];
+  sourceQuality?: SourceQualitySignal[];
 };
 
 export type CompanyResearchReport = {
