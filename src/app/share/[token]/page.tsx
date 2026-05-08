@@ -68,7 +68,7 @@ export default async function SharePage({ params }: SharePageProps) {
     notFound();
   }
 
-  if (shareLink.expiresAt !== null && shareLink.expiresAt < new Date()) {
+  if (shareLink.expiresAt !== null && shareLink.expiresAt <= new Date()) {
     notFound();
   }
 

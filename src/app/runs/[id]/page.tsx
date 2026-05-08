@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PageContainer } from "@/components/ui/page-container";
 import { RunResultView } from "@/features/run/components/run-result-view";
 import { RunShareControls } from "@/features/run/components/run-share-controls";
+import { type RunShareLinkView } from "@/features/run/share-link-status";
 import { mapAnswerEvidenceForView } from "@/server/analysis/map-run-evidence";
 import { selectLatestAnswerSnapshotForView } from "@/server/analysis/select-latest-answer-snapshot";
 import { prisma } from "@/server/db/prisma";
@@ -18,6 +19,15 @@ export default async function RunPage({ params }: RunPageProps) {
   const run = await prisma.analysisRun.findUnique({
     where: { id },
     include: {
+      shareLinks: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          token: true,
+          createdAt: true,
+          expiresAt: true,
+        },
+      },
       answerSnapshots: {
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -67,13 +77,19 @@ export default async function RunPage({ params }: RunPageProps) {
   }
 
   const answer = run.answerSnapshots[0] ?? null;
+  const shareLinks: RunShareLinkView[] = run.shareLinks.map((link) => ({
+    id: link.id,
+    token: link.token,
+    createdAt: link.createdAt.toISOString(),
+    expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
+  }));
   const { sources } = selectLatestAnswerSnapshotForView(run.answerSnapshots);
 
   if (run.status === "failed") {
     return (
       <main>
         <PageContainer className="home-grid">
-          <RunShareControls analysisRunId={run.id} />
+          <RunShareControls analysisRunId={run.id} shareLinks={shareLinks} />
           <RunResultView
             question={run.question}
             answerTitle={null}
@@ -100,7 +116,7 @@ export default async function RunPage({ params }: RunPageProps) {
     return (
       <main>
         <PageContainer className="home-grid">
-          <RunShareControls analysisRunId={run.id} />
+          <RunShareControls analysisRunId={run.id} shareLinks={shareLinks} />
           <RunResultView
             question={run.question}
             answerTitle={null}
@@ -122,7 +138,7 @@ export default async function RunPage({ params }: RunPageProps) {
   return (
     <main>
       <PageContainer className="home-grid">
-        <RunShareControls analysisRunId={run.id} />
+        <RunShareControls analysisRunId={run.id} shareLinks={shareLinks} />
         <RunResultView
           question={run.question}
           answerTitle={answer.title}
