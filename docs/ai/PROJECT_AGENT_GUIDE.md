@@ -90,3 +90,5 @@ TraceMap supports Investigation Depth Mode v0.1 with Fast / Standard / Deep prof
 
 ## Source Quality & Freshness Inspector v0.1
 TraceMap surfaces source quality and freshness as investigation caveats. Source quality is derived from existing source snapshots, fetch metadata, claim support, and cache metadata. It must not be presented as a definitive truth score or investment/legal judgment.
+
+TraceMap may expose lightweight Markdown export actions for generated reports. Report Export Lite copies or downloads existing Markdown previews client-side and does not create persisted report records or imply PDF/PowerPoint/Notion export support.

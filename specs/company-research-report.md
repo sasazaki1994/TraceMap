@@ -39,6 +39,7 @@ Provide a company-focused investigation output mode that organizes public inform
 - OpenAI provider large schema updates are deferred to a later phase.
 - Mock provider and UI skeleton are prioritized first.
 - Report is rendered as Markdown preview first.
+- Preview supports lightweight client-side Copy Markdown and Download `.md` actions.
 - PDF/PowerPoint/Notion integration is out of scope.
 - Investment-advice-like language is prohibited.
 - Bull/Bear framing is treated as research viewpoints based on public information, not investment judgment.
@@ -54,6 +55,7 @@ Provide a company-focused investigation output mode that organizes public inform
 
 - Landing page includes company-research example copy while preserving `name="question"` and `Start Investigation`.
 - Run result includes `company-research-report-panel` and `company-research-report-markdown`.
+- Company report panel includes Copy Markdown / Download `.md` actions for the visible markdown.
 - Panel can be shown as a dedicated section below Briefing Report.
 - Markdown includes: company/topic, executive summary, business overview, growth drivers, risk factors, competitive context, recent developments, evidence summary, unknowns, source lineage notes, and disclaimer.
 

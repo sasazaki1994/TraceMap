@@ -26,6 +26,7 @@
 | Unknown Map and Source Lineage Lite | `unknown-map-and-source-lineage.feature` |
 | Briefing Report | `briefing-report.feature` |
 | Company Research Report Mode | `company-research-report.feature` |
+| Report Export Lite | `report-export-lite.feature` |
 | Real Investigation Pipeline | `real-investigation-pipeline.feature` |
 | Cost and Output Limits | `cost-and-output-limits.feature` |
 | Source Cache and Fetch Snapshot | `source-cache-and-fetch-snapshot.feature` |
