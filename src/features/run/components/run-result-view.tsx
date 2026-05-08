@@ -973,6 +973,16 @@ export function RunResultView({
                         ))}
                       </ul>
                     ) : null}
+                    {selectedSourceQuality.suggestedNextActions.length > 0 ? (
+                      <>
+                        <p style={{ marginTop: "8px" }}>Suggested next actions</p>
+                        <ul className="evidence-list" style={{ marginTop: "6px" }}>
+                          {selectedSourceQuality.suggestedNextActions.map((action) => (
+                            <li key={action}>{action}</li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : null}
                   </div>
                 ) : null}
                 {selectedSource.excerpt ? (

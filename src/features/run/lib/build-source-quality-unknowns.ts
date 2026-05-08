@@ -41,6 +41,16 @@ export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[])
       });
     }
 
+    if (!signal.hasPublishedAt) {
+      unknowns.push({
+        id: `${signal.sourceId}-source-no-publication-date`,
+        text: signal.label,
+        reason: "Source publication date is not available.",
+        severity: "low",
+        suggestedNextAction: "Verify publication date and recency.",
+      });
+    }
+
     if (!signal.hasSupportingQuote && signal.linkedClaimCount > 0) {
       unknowns.push({
         id: `${signal.sourceId}-source-missing-quote`,
@@ -48,6 +58,17 @@ export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[])
         reason: "Source supports claims but has no supporting quote.",
         severity: "low",
         suggestedNextAction: "Locate supporting quote or cited passage.",
+      });
+    }
+
+    if (signal.linkedClaimCount === 0) {
+      unknowns.push({
+        id: `${signal.sourceId}-source-no-linked-claims`,
+        text: signal.label,
+        reason: "Source is not linked to any claim.",
+        severity: "low",
+        suggestedNextAction:
+          "Remove unused source from report if it does not support any claim.",
       });
     }
 
