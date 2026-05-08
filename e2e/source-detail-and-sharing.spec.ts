@@ -75,7 +75,10 @@ test.describe("source-detail-and-sharing", () => {
     expect(href).toBeTruthy();
 
     await page.getByTestId("share-link-revoke-button").first().click();
+    await expect(page.getByTestId("share-link-status").first()).toHaveText("EXPIRED", {
+      timeout: 15_000,
+    });
     await page.goto(href!);
-    await expect(page).toHaveURL(/404/);
+    await expect(page.getByText("This page could not be found.")).toBeVisible();
   });
 });

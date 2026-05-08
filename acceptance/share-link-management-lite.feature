@@ -14,6 +14,11 @@ Feature: Share Link Management Lite
     Then a new read-only share URL should be displayed
     And the link should be listed in the share panel
 
+  Scenario: User copies a share link URL
+    Given an active share link exists on the run detail page
+    When the user clicks the copy button for a share link
+    Then the share link URL should be copied to the clipboard
+
   Scenario: User revokes a share link
     Given an active share link exists
     When the user revokes the share link

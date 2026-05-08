@@ -21,6 +21,7 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
   const [state, formAction, isPending] = useActionState(createShareLinkAction, initialState);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
 
   const links = useMemo(() => {
     return state.token
@@ -69,7 +70,7 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
         </button>
       </form>
       {state.error ? (
-        <p className="form-error" data-testid="share-link-error">
+        <p className="form-error" data-testid="share-link-create-error">
           {state.error}
         </p>
       ) : null}
@@ -112,18 +113,24 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
                   <button
                     type="button"
                     data-testid="share-link-revoke-button"
+                    disabled={revokingId === link.id}
                     onClick={async () => {
                       setError(null);
-                      const result = await revokeShareLinkAction({
-                        analysisRunId,
-                        shareLinkId: link.id,
-                      });
-                      if (!result.ok) {
-                        setError(result.error ?? "Failed to revoke link.");
+                      setRevokingId(link.id);
+                      try {
+                        const result = await revokeShareLinkAction({
+                          analysisRunId,
+                          shareLinkId: link.id,
+                        });
+                        if (!result.ok) {
+                          setError(result.error ?? "Failed to revoke link.");
+                        }
+                      } finally {
+                        setRevokingId(null);
                       }
                     }}
                   >
-                    Revoke
+                    {revokingId === link.id ? "Revoking…" : "Revoke"}
                   </button>
                 ) : null}
               </div>
@@ -133,7 +140,7 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
       </div>
 
       {copyStatus ? <p data-testid="share-link-copy-status">{copyStatus}</p> : null}
-      {error ? <p data-testid="share-link-error">{error}</p> : null}
+      {error ? <p data-testid="share-link-revoke-error">{error}</p> : null}
     </Panel>
   );
 }
