@@ -13,6 +13,7 @@ import { alertLevelLabel } from "@/features/run/lib/alert-level-label";
 import { buildBriefingReport } from "@/features/run/lib/build-briefing-report";
 import { buildCompanyResearchReport } from "@/features/run/lib/build-company-research-report";
 import { buildSourceLineage } from "@/features/run/lib/build-source-lineage";
+import { buildSourceQuality } from "@/features/run/lib/build-source-quality";
 import { buildUnknowns } from "@/features/run/lib/build-unknowns";
 import { describeGraphNodeTie } from "@/features/run/lib/graph-node-tie-label";
 import { lensLabel, orderClaimsForLens } from "@/features/run/lib/run-lens";
@@ -244,9 +245,13 @@ export function RunResultView({
     () => orderClaimsForLens(evidenceClaims, selectedLens),
     [evidenceClaims, selectedLens],
   );
+  const sourceQuality = useMemo(
+    () => buildSourceQuality({ sources, evidenceClaims }),
+    [sources, evidenceClaims],
+  );
   const unknowns = useMemo(
-    () => buildUnknowns({ evidenceAlerts, evidenceClaims }),
-    [evidenceAlerts, evidenceClaims],
+    () => buildUnknowns({ evidenceAlerts, evidenceClaims, sourceQuality }),
+    [evidenceAlerts, evidenceClaims, sourceQuality],
   );
   const sourceLineage = useMemo(
     () => buildSourceLineage({ sources, evidenceClaims }),
@@ -271,8 +276,9 @@ export function RunResultView({
         })),
         unknowns,
         sourceLineage,
+        sourceQuality,
       }),
-    [answerContent, evidenceClaims, question, sourceLineage, sources, unknowns],
+    [answerContent, evidenceClaims, question, sourceLineage, sourceQuality, sources, unknowns],
   );
 
   const briefingReport = useMemo(
@@ -284,8 +290,9 @@ export function RunResultView({
         sources,
         unknowns,
         sourceLineage,
+        sourceQuality,
       }),
-    [answerContent, evidenceClaims, question, sourceLineage, sources, unknowns],
+    [answerContent, evidenceClaims, question, sourceLineage, sourceQuality, sources, unknowns],
   );
 
   const selectedClaimSupportingSourceIds = useMemo(() => {
@@ -316,6 +323,11 @@ export function RunResultView({
   const selectedSource = useMemo(
     () => sources.find((s) => s.id === selectedSourceId) ?? null,
     [sources, selectedSourceId],
+  );
+
+  const selectedSourceQuality = useMemo(
+    () => sourceQuality.find((quality) => quality.sourceId === selectedSourceId) ?? null,
+    [selectedSourceId, sourceQuality],
   );
 
   const flatCounterpoints = useMemo(
@@ -887,7 +899,7 @@ export function RunResultView({
             ))}
           </ul>
 
-          <SourceLineagePanel sourceLineage={sourceLineage} />
+          <SourceLineagePanel sourceLineage={sourceLineage} sourceQuality={sourceQuality} />
           <BriefingReportPanel markdown={briefingReport} />
           <CompanyResearchReportPanel markdown={companyResearchReport.markdown} />
         </Panel>
@@ -948,6 +960,20 @@ export function RunResultView({
                   >
                     Final URL: {selectedSource.finalUrl}
                   </p>
+                ) : null}
+                {selectedSourceQuality ? (
+                  <div data-testid="source-quality-summary" style={{ marginTop: "12px" }}>
+                    <p data-testid="source-quality-level">Quality: {selectedSourceQuality.qualityLevel}</p>
+                    <p data-testid="source-freshness-status">Freshness: {selectedSourceQuality.freshnessStatus}</p>
+                    <p data-testid="source-reachability-status">Reachability: {selectedSourceQuality.reachabilityStatus}</p>
+                    {selectedSourceQuality.reasons.length > 0 ? (
+                      <ul className="evidence-list" style={{ marginTop: "6px" }}>
+                        {selectedSourceQuality.reasons.map((reason) => (
+                          <li key={reason}>{reason}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
                 ) : null}
                 {selectedSource.excerpt ? (
                   <p className="run-answer-body" style={{ marginTop: "12px" }}>

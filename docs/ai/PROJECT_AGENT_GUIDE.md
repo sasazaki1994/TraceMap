@@ -86,3 +86,7 @@ TraceMap supports Investigation Depth Mode v0.1 with Fast / Standard / Deep prof
 ---
 
 運用上の最終判断基準は本ファイルとし、各ツールの入口ファイルはこのガイドへ誘導するラッパーとして扱います。
+
+
+## Source Quality & Freshness Inspector v0.1
+TraceMap surfaces source quality and freshness as investigation caveats. Source quality is derived from existing source snapshots, fetch metadata, claim support, and cache metadata. It must not be presented as a definitive truth score or investment/legal judgment.

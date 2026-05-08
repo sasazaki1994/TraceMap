@@ -1,5 +1,6 @@
 import type { RunSourceView } from "@/features/run/components/run-result-view";
 import type { InvestigationUnknown, SourceLineageLite } from "@/types/investigation";
+import type { SourceQualitySignal } from "@/types/source-quality";
 import type { RunEvidenceClaim } from "@/types/run-evidence";
 
 type BuildBriefingReportInput = {
@@ -9,6 +10,7 @@ type BuildBriefingReportInput = {
   sources: RunSourceView[];
   unknowns: InvestigationUnknown[];
   sourceLineage: SourceLineageLite[];
+  sourceQuality: SourceQualitySignal[];
 };
 
 function linesOrFallback<T>(
@@ -34,6 +36,7 @@ export function buildBriefingReport({
   sources,
   unknowns,
   sourceLineage,
+  sourceQuality,
 }: BuildBriefingReportInput): string {
   const topic = nonEmpty(researchTopic, "No research topic is available.");
   const executiveSummary = answerContent.trim() || "No executive summary is available yet.";
@@ -62,6 +65,13 @@ export function buildBriefingReport({
       )}`,
     "No unresolved unknowns are currently highlighted.",
   );
+
+  const qualityCount = { strong: 0, usable: 0, limited: 0, weak: 0 } as Record<string, number>;
+  for (const signal of sourceQuality) qualityCount[signal.qualityLevel] += 1;
+  const qualityIssues = sourceQuality.filter((signal) =>
+    signal.freshnessStatus === "stale" || signal.reachabilityStatus === "unreachable" || signal.reachabilityStatus === "invalid",
+  );
+
   const lineageLines = linesOrFallback(
     sourceLineage,
     (lineage) =>
@@ -88,6 +98,18 @@ export function buildBriefingReport({
     "",
     "## Unknowns / Open Questions",
     ...unknownLines,
+    "",
+    "## Source Quality Summary",
+    `- Strong sources: ${qualityCount.strong}`,
+    `- Usable sources: ${qualityCount.usable}`,
+    `- Limited sources: ${qualityCount.limited}`,
+    `- Weak sources: ${qualityCount.weak}`,
+    ...(qualityIssues.length
+      ? [
+          "- Stale or unreachable sources:",
+          ...qualityIssues.map((item) => `  - ${item.label}: ${item.reachabilityStatus} / ${item.freshnessStatus}`),
+        ]
+      : ["- Stale or unreachable sources: none highlighted."]),
     "",
     "## Source Lineage Summary",
     ...lineageLines,

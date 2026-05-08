@@ -34,6 +34,16 @@ export function buildCompanyResearchReport(input: CompanyResearchReportInput): C
   const unknownLines = input.unknowns.length
     ? input.unknowns.map((u) => `- [${u.severity.toUpperCase()}] ${u.text} — ${u.reason}`)
     : ["- No unresolved unknowns are currently highlighted."];
+
+  const sourceQualityLines = input.sourceQuality?.length
+    ? input.sourceQuality
+        .filter((signal) => signal.qualityLevel === "weak" || signal.qualityLevel === "limited")
+        .map(
+          (signal) =>
+            `- ${signal.label}: quality=${signal.qualityLevel}, reachability=${signal.reachabilityStatus}, freshness=${signal.freshnessStatus}`,
+        )
+    : ["- No source quality caveats are currently highlighted."];
+
   const lineageLines = input.sourceLineage?.length
     ? input.sourceLineage.map((l) => `- ${l.label}: ${l.lineageLabel}`)
     : ["- No source lineage notes are available yet."];
@@ -68,6 +78,9 @@ export function buildCompanyResearchReport(input: CompanyResearchReportInput): C
     "",
     "## Unknowns / Open Questions",
     ...unknownLines,
+    "",
+    "## Evidence Quality / Limits",
+    ...sourceQualityLines,
     "",
     "## Source Lineage Notes",
     ...lineageLines,

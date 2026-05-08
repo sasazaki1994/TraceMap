@@ -142,3 +142,10 @@ Fast / Standard / Deep mode selection v0.1 is implemented at the landing/server-
 Mode is included in Run Cache key.
 Mode does not yet persist on `AnalysisRun`.
 Source discovery breadth, full RAG, background Deep mode execution, and streaming remain future work.
+
+
+## Source Quality & Freshness Inspector v0.1
+- Source Cache / Fetch Snapshot metadata is reused to derive source quality signals in Source Lineage and Source Detail UI.
+- stale / unreachable / invalid / unknown freshness can be surfaced as Unknown Map caveats.
+- Source Quality is a research caution indicator, not a definitive truth/reliability score.
+- MVP freshness rule is simple (180-day threshold) and can evolve to domain-specific rules later.
