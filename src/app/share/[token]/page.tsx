@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 import { PageContainer } from "@/components/ui/page-container";
 import { RunResultView } from "@/features/run/components/run-result-view";
 import { mapAnswerEvidenceForView } from "@/server/analysis/map-run-evidence";
