@@ -71,7 +71,11 @@ test.describe("source-detail-and-sharing", () => {
     await page.getByTestId("share-create-button").click();
     const shareLocator = page.getByTestId("share-url");
     await expect(shareLocator).toBeVisible({ timeout: 15_000 });
-    const href = await shareLocator.textContent();
+    await page.reload();
+    await expect(page.getByTestId("share-link-revoke-button").first()).toBeVisible({
+      timeout: 15_000,
+    });
+    const href = await page.getByTestId("share-url").textContent();
     expect(href).toBeTruthy();
 
     await page.getByTestId("share-link-revoke-button").first().click();
