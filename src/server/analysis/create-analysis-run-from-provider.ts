@@ -16,6 +16,7 @@ import type { InvestigationMode } from "@/server/analysis/investigation-limits";
 
 export type CreateAnalysisRunOptions = {
   mode?: InvestigationMode;
+  manualSourceUrls?: string[];
 };
 
 /**
@@ -30,6 +31,8 @@ export async function createAnalysisRunFromProvider(
   const mode = resolveInvestigationMode(
     options.mode ?? process.env.TRACEMAP_INVESTIGATION_MODE?.trim(),
   );
+
+  const hasManualSourceUrls = (options.manualSourceUrls?.length ?? 0) > 0;
 
   const run = await prisma.analysisRun.create({
     data: {
@@ -53,8 +56,9 @@ export async function createAnalysisRunFromProvider(
   let payload: GeneratedAnswerGraphPayload | null = null;
   let shouldStoreRunCache = false;
 
-  try {
-    const cached = await lookupRunCacheEntry(cacheKeyInfo);
+  if (!hasManualSourceUrls) {
+    try {
+      const cached = await lookupRunCacheEntry(cacheKeyInfo);
     if (cached.kind === "hit") {
       console.info("[analysis] run cache hit", {
         runId: run.id,
@@ -69,17 +73,20 @@ export async function createAnalysisRunFromProvider(
         reason: cached.reason,
       });
     }
-  } catch (cause) {
-    console.error("[analysis] run cache lookup failed", {
-      runId: run.id,
-      cause,
-    });
+    } catch (cause) {
+      console.error("[analysis] run cache lookup failed", {
+        runId: run.id,
+        cause,
+      });
+    }
   }
 
   if (payload === null) {
     let sourceIntake: SourceIntakeResult = { candidates: [], ignoredUrls: [] };
     try {
-      sourceIntake = await buildSourceIntakeFromQuestion(question);
+      sourceIntake = await buildSourceIntakeFromQuestion(question, {
+        manualSourceUrls: options.manualSourceUrls ?? [],
+      });
     } catch (cause) {
       console.error("[analysis] source intake failed", { runId: run.id, cause });
     }
@@ -152,7 +159,7 @@ export async function createAnalysisRunFromProvider(
     } satisfies Prisma.AnalysisRunUpdateInput,
   });
 
-  if (shouldStoreRunCache) {
+  if (shouldStoreRunCache && !hasManualSourceUrls) {
     try {
       await storeRunCacheEntry({ cacheKeyInfo, payload });
       console.info("[analysis] run cache stored", {

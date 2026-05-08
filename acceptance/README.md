@@ -33,5 +33,6 @@
 | Run Cache | `run-cache.feature` |
 | Source Intake and Fetching v0.1 | `source-intake-and-fetching.feature` |
 | Source Discovery v0.1 | `source-discovery.feature` |
+| Manual Source URL Intake v0.1 | `manual-source-url-intake.feature` |
 
 - source-quality-and-freshness.feature: Source quality/freshness indicators, unknown caveats, and report summary behavior

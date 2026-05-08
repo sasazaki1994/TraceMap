@@ -48,6 +48,7 @@ export function QuestionIntake() {
         />
         <div className="muted" data-testid="research-topic-examples" style={{ marginTop: "0.6rem" }}>
           <p>Examples:</p>
+          <p style={{ marginTop: "0.35rem" }}>公式URLを貼ると、根拠確認と出典追跡がしやすくなります。</p>
           <ul style={{ marginTop: "0.35rem", paddingLeft: "1rem" }}>
             <li>トヨタ自動車のEV戦略について、成長要因・リスク・競合状況・未確認事項を根拠付きで整理する</li>
             <li>国内生成AI市場の主要プレイヤーを比較し、公開情報ベースで市場機会と不明点を整理する</li>
@@ -55,6 +56,22 @@ export function QuestionIntake() {
             <li>中小企業向けSaaS市場で、Vertical SaaSが伸びる要因とリスクを調査する</li>
           </ul>
         </div>
+        <label className="question-label" htmlFor="sourceUrls" style={{ marginTop: "1rem" }}>
+          Optional source URLs
+        </label>
+        <p className="muted" style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
+          Add one URL per line. TraceMap will prioritize these sources when building the evidence map.
+        </p>
+        <textarea
+          id="sourceUrls"
+          name="sourceUrls"
+          placeholder={`https://example.com/official-report
+https://example.com/press-release
+https://example.com/technical-doc`}
+          rows={4}
+          disabled={isPending}
+          data-testid="manual-source-urls-input"
+        />
         <label className="question-label" htmlFor="mode" style={{ marginTop: "1rem" }}>
           Investigation depth
         </label>
