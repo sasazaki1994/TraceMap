@@ -55,6 +55,29 @@ export function QuestionIntake() {
             <li>中小企業向けSaaS市場で、Vertical SaaSが伸びる要因とリスクを調査する</li>
           </ul>
         </div>
+        <label className="question-label" htmlFor="mode" style={{ marginTop: "1rem" }}>
+          Investigation depth
+        </label>
+        <p className="muted" style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
+          Choose how broad the investigation should be.
+        </p>
+        <select
+          id="mode"
+          name="mode"
+          defaultValue="standard"
+          disabled={isPending}
+          data-testid="investigation-mode-selector"
+        >
+          <option value="fast" data-testid="investigation-mode-fast">
+            Fast — quick scan with fewer sources and claims
+          </option>
+          <option value="standard" data-testid="investigation-mode-standard">
+            Standard — balanced evidence map for normal research
+          </option>
+          <option value="deep" data-testid="investigation-mode-deep">
+            Deep — broader investigation with more claims and counterpoints
+          </option>
+        </select>
         {state.error ? <p className="form-error">{state.error}</p> : null}
         <div className="question-actions">
           <button type="submit" disabled={isPending}>

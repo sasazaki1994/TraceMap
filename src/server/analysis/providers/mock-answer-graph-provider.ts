@@ -1,6 +1,9 @@
 import type { AnswerGraphProvider } from "@/server/analysis/answer-graph-provider";
+import { getInvestigationLimitsForMode } from "@/server/analysis/investigation-limits";
 import { answerGraphJsonSchema, type AnswerGraphJson } from "@/types/answer-graph";
 import type {
+  GeneratedEvidenceClaimInput,
+  GeneratedSourceSnapshot,
   GenerateAnswerGraphInput,
   GenerateAnswerGraphResult,
 } from "@/types/answer-graph-generation";
@@ -150,6 +153,8 @@ function mapSourceCandidates(input: GenerateAnswerGraphInput) {
  */
 export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | string): GenerateAnswerGraphResult {
   const normalizedInput = typeof input === "string" ? { question: input } : input;
+  const mode = normalizedInput.mode ?? "standard";
+  const limits = getInvestigationLimitsForMode(mode);
   const question = normalizedInput.question;
   const preview =
     question.length > 120 ? `${question.slice(0, 117)}...` : question;
@@ -165,6 +170,139 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
   });
 
   const mappedSourceCandidates = mapSourceCandidates(normalizedInput);
+  const defaultSources: GeneratedSourceSnapshot[] = [
+    {
+      label: "Interpretability survey (mock)",
+      sourceType: "web",
+      url: "https://example.com/mock/interpretability",
+      excerpt:
+        "Mock excerpt: interpretability helps users trust outputs and debug failures.",
+      publishedAt: new Date("2025-10-01T00:00:00.000Z"),
+    },
+    {
+      label: "Retrieval quality notes (mock)",
+      sourceType: "document",
+      url: "https://example.com/mock/retrieval",
+      excerpt:
+        "Mock excerpt: retrieval quality changes which sources enter the graph.",
+      publishedAt: new Date("2024-04-14T00:00:00.000Z"),
+    },
+    {
+      label: "Product memo (mock)",
+      sourceType: "note",
+      url: null,
+      excerpt: "Mock excerpt: internal note without a public URL.",
+      publishedAt: null,
+    },
+  ];
+  const sources: GeneratedSourceSnapshot[] = (
+    mappedSourceCandidates.length > 0 ? mappedSourceCandidates : defaultSources
+  ).slice(0, Math.min(limits.maxSources, 3));
+
+  const claims: GeneratedEvidenceClaimInput[] = [
+    {
+      summary:
+        "The synthesis aggregates mocked sources into a single narrative (mock claim).",
+      graphNodeId: "node_claim_0",
+      supportedSourcePlaceholderIds: ["__src_0__", "__src_1__"],
+      supports: [
+        {
+          sourcePlaceholderId: "__src_0__",
+          supportKind: "direct",
+          isPrimarySource: true,
+          supportingQuote:
+            "Interpretability helps users trust outputs and debug failures.",
+        },
+        {
+          sourcePlaceholderId: "__src_1__",
+          supportKind: "supplemental",
+          isPrimarySource: false,
+          supportingQuote:
+            "Retrieval quality changes which sources enter the graph.",
+        },
+      ],
+      counterpoints: [
+        {
+          summary:
+            "Mock counterpoint: web and document sources may disagree on scope (claim 1).",
+          relationKind: "contradiction",
+          graphNodeId: "node_counterclaim_0",
+        },
+      ],
+      propagationChain: [
+        {
+          stepKind: "source",
+          order: 0,
+          label: "Interpretability survey (mock)",
+          sourcePlaceholderId: "__src_0__",
+        },
+        {
+          stepKind: "evidence_snippet",
+          order: 1,
+          label: "Quoted evidence",
+          sourcePlaceholderId: "__src_0__",
+          detail: "Interpretability helps users trust outputs and debug failures.",
+        },
+        {
+          stepKind: "source_interpretation",
+          order: 2,
+          label: "Interpretation",
+          detail:
+            "The source is interpreted as support for operational trust and debugging value.",
+        },
+        {
+          stepKind: "claim",
+          order: 3,
+          label: "Primary claim (mock)",
+          claimGraphNodeId: "node_claim_0",
+        },
+        {
+          stepKind: "answer_segment",
+          order: 4,
+          label: "Decision-ready segment",
+          detail:
+            "Use interpretability evidence when deciding whether an AI answer should be adopted.",
+        },
+      ],
+      alerts: [{ level: "info", message: "Mock claim alert: check whether both sources cover the same time range." }],
+    },
+    {
+      summary:
+        "The product memo supplements internal context without a public URL (mock).",
+      graphNodeId: "node_claim_1",
+      supportedSourcePlaceholderIds: ["__src_2__"],
+      supports: [{
+        sourcePlaceholderId: "__src_2__",
+        supportKind: "indirect",
+        isPrimarySource: false,
+        contradictionNote:
+          "Internal notes can disagree with public sources and may not be independently verifiable.",
+      }],
+      counterpoints: [{ summary: "Mock counterpoint: internal notes may be stale relative to web sources (claim 2).", relationKind: "different_premise" }],
+      propagationChain: [
+        {
+          stepKind: "source",
+          order: 0,
+          label: "Product memo (mock)",
+          sourcePlaceholderId: "__src_2__",
+        },
+        {
+          stepKind: "source_interpretation",
+          order: 1,
+          label: "Operational interpretation",
+          detail:
+            "The internal note is interpreted as local operational context rather than directly verifiable evidence.",
+        },
+        {
+          stepKind: "claim",
+          order: 2,
+          label: "Secondary claim (mock)",
+          claimGraphNodeId: "node_claim_1",
+        },
+      ],
+      alerts: [{ level: "warning", message: "Mock claim alert: note-type sources are not publicly verifiable." }],
+    },
+  ];
 
   return {
     kind: "success",
@@ -175,157 +313,15 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
         content: `${MOCK_ANSWER_LEAD} — this investigation mission is generated locally without an LLM.\n\nResearch topic:\n${question}\n\nExecutive Summary:\n- Evidence is mocked for the MVP v2 investigation skeleton.\n- Source rows below mirror what a future mission pipeline would attach.\n- The evidence map ties findings, claims, and sources to this snapshot.\n- Unknowns remain visible so reviewers can decide what to verify next.`,
         graphJson: graph,
       },
-      sources: mappedSourceCandidates.length > 0 ? mappedSourceCandidates : [
-        {
-          label: "Interpretability survey (mock)",
-          sourceType: "web",
-          url: "https://example.com/mock/interpretability",
-          excerpt:
-            "Mock excerpt: interpretability helps users trust outputs and debug failures.",
-          publishedAt: new Date("2025-10-01T00:00:00.000Z"),
-        },
-        {
-          label: "Retrieval quality notes (mock)",
-          sourceType: "document",
-          url: "https://example.com/mock/retrieval",
-          excerpt:
-            "Mock excerpt: retrieval quality changes which sources enter the graph.",
-          publishedAt: new Date("2024-04-14T00:00:00.000Z"),
-        },
-        {
-          label: "Product memo (mock)",
-          sourceType: "note",
-          url: null,
-          excerpt: "Mock excerpt: internal note without a public URL.",
-          publishedAt: null,
-        },
-      ],
+      sources,
       evidence: {
-        claims: [
-          {
-            summary:
-              "The synthesis aggregates mocked sources into a single narrative (mock claim).",
-            graphNodeId: "node_claim_0",
-            supportedSourcePlaceholderIds: ["__src_0__", "__src_1__"],
-            supports: [
-              {
-                sourcePlaceholderId: "__src_0__",
-                supportKind: "direct",
-                isPrimarySource: true,
-                supportingQuote:
-                  "Interpretability helps users trust outputs and debug failures.",
-              },
-              {
-                sourcePlaceholderId: "__src_1__",
-                supportKind: "supplemental",
-                isPrimarySource: false,
-                supportingQuote:
-                  "Retrieval quality changes which sources enter the graph.",
-              },
-            ],
-            counterpoints: [
-              {
-                summary:
-                  "Mock counterpoint: web and document sources may disagree on scope (claim 1).",
-                relationKind: "contradiction",
-                graphNodeId: "node_counterclaim_0",
-              },
-            ],
-            propagationChain: [
-              {
-                stepKind: "source",
-                order: 0,
-                label: "Interpretability survey (mock)",
-                sourcePlaceholderId: "__src_0__",
-              },
-              {
-                stepKind: "evidence_snippet",
-                order: 1,
-                label: "Quoted evidence",
-                sourcePlaceholderId: "__src_0__",
-                detail:
-                  "Interpretability helps users trust outputs and debug failures.",
-              },
-              {
-                stepKind: "source_interpretation",
-                order: 2,
-                label: "Interpretation",
-                detail:
-                  "The source is interpreted as support for operational trust and debugging value.",
-              },
-              {
-                stepKind: "claim",
-                order: 3,
-                label: "Primary claim (mock)",
-                claimGraphNodeId: "node_claim_0",
-              },
-              {
-                stepKind: "answer_segment",
-                order: 4,
-                label: "Decision-ready segment",
-                detail:
-                  "Use interpretability evidence when deciding whether an AI answer should be adopted.",
-              },
-            ],
-            alerts: [
-              {
-                level: "info",
-                message:
-                  "Mock claim alert: check whether both sources cover the same time range.",
-              },
-            ],
-          },
-          {
-            summary:
-              "The product memo supplements internal context without a public URL (mock).",
-            graphNodeId: "node_claim_1",
-            supportedSourcePlaceholderIds: ["__src_2__"],
-            supports: [
-              {
-                sourcePlaceholderId: "__src_2__",
-                supportKind: "indirect",
-                isPrimarySource: false,
-                contradictionNote:
-                  "Internal notes can disagree with public sources and may not be independently verifiable.",
-              },
-            ],
-            counterpoints: [
-              {
-                summary:
-                  "Mock counterpoint: internal notes may be stale relative to web sources (claim 2).",
-                relationKind: "different_premise",
-              },
-            ],
-            propagationChain: [
-              {
-                stepKind: "source",
-                order: 0,
-                label: "Product memo (mock)",
-                sourcePlaceholderId: "__src_2__",
-              },
-              {
-                stepKind: "source_interpretation",
-                order: 1,
-                label: "Operational interpretation",
-                detail:
-                  "The internal note is interpreted as local operational context rather than directly verifiable evidence.",
-              },
-              {
-                stepKind: "claim",
-                order: 2,
-                label: "Secondary claim (mock)",
-                claimGraphNodeId: "node_claim_1",
-              },
-            ],
-            alerts: [
-              {
-                level: "warning",
-                message:
-                  "Mock claim alert: note-type sources are not publicly verifiable.",
-              },
-            ],
-          },
-        ],
+        claims: claims
+          .slice(0, Math.min(limits.maxClaims, mode === "fast" ? 1 : 2))
+          .map((claim) => ({
+            ...claim,
+            counterpoints: claim.counterpoints?.slice(0, limits.maxCounterpointsPerClaim),
+            alerts: claim.alerts?.slice(0, limits.maxAlertsPerClaim),
+          })),
         alert: {
           level: "warning",
           message:

@@ -68,4 +68,12 @@ describe("run cache key", () => {
       "日本語 テーマ 調査",
     );
   });
+
+  it("changes when investigation mode changes", () => {
+    const fast = buildRunCacheKey({ ...baseInput, mode: "fast" }).cacheKey;
+    const standard = buildRunCacheKey({ ...baseInput, mode: "standard" }).cacheKey;
+    const deep = buildRunCacheKey({ ...baseInput, mode: "deep" }).cacheKey;
+    expect(fast).not.toBe(standard);
+    expect(standard).not.toBe(deep);
+  });
 });

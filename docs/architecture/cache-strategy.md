@@ -138,5 +138,7 @@ future hardening item.
 
 Source Cache / Fetch Snapshot v0.1 is implemented for provider-returned URLs.
 Run Cache v0.1 is implemented for reusable normalized investigation payloads.
-Web Search, full RAG, background jobs, streaming, and Fast / Standard / Deep
-mode selection remain unimplemented.
+Fast / Standard / Deep mode selection v0.1 is implemented at the landing/server-action/provider-input level.
+Mode is included in Run Cache key.
+Mode does not yet persist on `AnalysisRun`.
+Source discovery breadth, full RAG, background Deep mode execution, and streaming remain future work.

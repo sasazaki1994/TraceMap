@@ -30,6 +30,7 @@ Each feature spec should describe:
 | Spec | Document |
 |------|----------|
 | Investigation Mode MVP v2 | [investigation-mode.md](./investigation-mode.md) |
+| Investigation Depth Mode v0.1 | [investigation-depth-mode.md](./investigation-depth-mode.md) |
 | Source detail & sharing | [source-detail-and-sharing.md](./source-detail-and-sharing.md) |
 | Visual design (cyber) | [visual-design-system-cyber.md](./visual-design-system-cyber.md) |
 | MVP evidence domain (claims / alerts / counterpoints) | [mvp-evidence-domain.md](./mvp-evidence-domain.md) |

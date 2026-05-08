@@ -21,4 +21,23 @@ describe("mockAnswerGraphProvider source candidates", () => {
     expect(result.payload.sources[0]?.label).toBe("Example A");
     expect(result.payload.sources[0]?.url).toBe("https://example.com/a");
   });
+
+  it("applies mode-based limits for fast/deep", async () => {
+    const fast = await mockAnswerGraphProvider.generateAnswerGraph({
+      question: "q",
+      mode: "fast",
+    });
+    const deep = await mockAnswerGraphProvider.generateAnswerGraph({
+      question: "q",
+      mode: "deep",
+    });
+
+    expect(fast.kind).toBe("success");
+    expect(deep.kind).toBe("success");
+    if (fast.kind !== "success" || deep.kind !== "success") return;
+
+    expect(fast.payload.evidence?.claims.length).toBeLessThanOrEqual(1);
+    expect(deep.payload.evidence?.claims.length).toBeGreaterThanOrEqual(2);
+    expect(fast.payload.sources.length).toBeLessThanOrEqual(3);
+  });
 });
