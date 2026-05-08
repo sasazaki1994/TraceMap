@@ -5,6 +5,19 @@ type SourceLineagePanelProps = {
 };
 
 export function SourceLineagePanel({ sourceLineage }: SourceLineagePanelProps) {
+  const toSafeUrl = (value: string | null | undefined): string | null => {
+    if (!value) {
+      return null;
+    }
+    try {
+      const parsed = new URL(value);
+      const protocol = parsed.protocol.toLowerCase();
+      return protocol === "http:" || protocol === "https:" ? parsed.toString() : null;
+    } catch {
+      return null;
+    }
+  };
+
   return (
     <section
       className="investigation-panel"
@@ -17,7 +30,9 @@ export function SourceLineagePanel({ sourceLineage }: SourceLineagePanelProps) {
       </p>
       {sourceLineage.length > 0 ? (
         <ul className="investigation-list">
-          {sourceLineage.map((source) => (
+          {sourceLineage.map((source) => {
+            const safeUrl = toSafeUrl(source.url);
+            return (
             <li
               key={source.sourceId}
               className="investigation-list-item"
@@ -60,15 +75,16 @@ export function SourceLineagePanel({ sourceLineage }: SourceLineagePanelProps) {
               <p className="muted" style={{ marginTop: "6px" }}>
                 {source.lineageLabel}
               </p>
-              {source.url ? (
+              {safeUrl ? (
                 <p style={{ marginTop: "6px", wordBreak: "break-all" }}>
-                  <a href={source.url} rel="noreferrer" target="_blank">
-                    {source.url}
+                  <a href={safeUrl} rel="noreferrer" target="_blank">
+                    {safeUrl}
                   </a>
                 </p>
               ) : null}
             </li>
-          ))}
+            );
+          })}
         </ul>
       ) : (
         <p className="muted" style={{ marginTop: "0.75rem" }}>

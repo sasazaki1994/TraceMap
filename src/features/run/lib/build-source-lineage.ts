@@ -14,6 +14,22 @@ type SourceForLineage = {
   contentType?: string | null;
 };
 
+function sanitizeLineageUrl(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  try {
+    const parsed = new URL(value);
+    const protocol = parsed.protocol.toLowerCase();
+    if (protocol === "http:" || protocol === "https:") {
+      return parsed.toString();
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function sourceTypeLabel(sourceType: string): string {
   switch (sourceType) {
     case "web":
@@ -39,7 +55,7 @@ function lineageCategory(params: { sourceType: string; isPrimarySource: boolean 
     case "note":
       return "Social / Unverified Source";
     default:
-      return "Unknown Source Type";
+      return "Unknown source type";
   }
 }
 
@@ -82,7 +98,7 @@ export function buildSourceLineage(params: {
     return {
       sourceId: source.id,
       label: source.label,
-      url: source.url ?? null,
+      url: sanitizeLineageUrl(source.url),
       sourceType: source.sourceType || "unknown",
       lineageLabel: buildLineageLabel({
         sourceType: source.sourceType || "unknown",

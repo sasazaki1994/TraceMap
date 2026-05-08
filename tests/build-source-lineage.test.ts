@@ -114,7 +114,7 @@ describe("buildSourceLineage", () => {
       evidenceClaims: [],
     });
 
-    expect(lineage[0]?.verificationStatus ?? "unverified").toBe("unverified");
+    expect(lineage[0]?.verificationStatus).toBeNull();
     expect(lineage[0]?.lineageLabel).toContain("publication date unknown");
   });
 
@@ -140,7 +140,7 @@ describe("buildSourceLineage", () => {
         isPrimarySource: false,
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Unknown Source Type");
+    expect(lineage[0]?.lineageLabel).toContain("Unknown source type");
   });
 
   it("falls back safely for unknown source types", () => {
@@ -166,7 +166,22 @@ describe("buildSourceLineage", () => {
         linkedClaimCount: 0,
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Unknown Source Type");
+    expect(lineage[0]?.lineageLabel).toContain("Unknown source type");
     expect(lineage[0]?.lineageLabel).toContain("publication date unknown");
+  });
+
+  it("sanitizes unsafe source URLs in lineage output", () => {
+    const lineage = buildSourceLineage({
+      sources: [
+        {
+          id: "src-unsafe",
+          label: "Unsafe source",
+          url: "javascript:alert(1)",
+          sourceType: "web",
+        },
+      ],
+      evidenceClaims: [],
+    });
+    expect(lineage[0]?.url).toBeNull();
   });
 });
