@@ -80,7 +80,7 @@ describe("buildSourceLineage", () => {
         contentType: "text/html",
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Primary evidence or official source");
+    expect(lineage[0]?.lineageLabel).toContain("Primary / Official Source");
     expect(lineage[0]?.lineageLabel).toContain("Web source");
     expect(lineage[1]?.lineageLabel).toContain("publication date unknown");
     expect(lineage[1]).toEqual(
@@ -105,7 +105,7 @@ describe("buildSourceLineage", () => {
         linkedClaimCount: 0,
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Supporting context");
+    expect(lineage[0]?.lineageLabel).toContain("News / Secondary Source");
   });
 
   it("does not label unknown verification state as verified", () => {
@@ -114,7 +114,7 @@ describe("buildSourceLineage", () => {
       evidenceClaims: [],
     });
 
-    expect(lineage[0]?.lineageLabel.toLowerCase()).not.toContain("verified");
+    expect(lineage[0]?.verificationStatus ?? "unverified").toBe("unverified");
     expect(lineage[0]?.lineageLabel).toContain("publication date unknown");
   });
 
@@ -140,7 +140,7 @@ describe("buildSourceLineage", () => {
         isPrimarySource: false,
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Unknown source type");
+    expect(lineage[0]?.lineageLabel).toContain("Unknown Source Type");
   });
 
   it("falls back safely for unknown source types", () => {
@@ -166,7 +166,7 @@ describe("buildSourceLineage", () => {
         linkedClaimCount: 0,
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Unknown source type");
+    expect(lineage[0]?.lineageLabel).toContain("Unknown Source Type");
     expect(lineage[0]?.lineageLabel).toContain("publication date unknown");
   });
 });

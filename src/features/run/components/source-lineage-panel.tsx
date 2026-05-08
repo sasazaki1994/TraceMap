@@ -12,6 +12,9 @@ export function SourceLineagePanel({ sourceLineage }: SourceLineagePanelProps) {
       style={{ marginTop: "1.25rem" }}
     >
       <h3 className="run-question-label">Source Lineage Lite</h3>
+      <p className="muted" style={{ marginTop: "0.25rem" }}>
+        Lite provenance view. This does not guarantee full origin verification.
+      </p>
       {sourceLineage.length > 0 ? (
         <ul className="investigation-list">
           {sourceLineage.map((source) => (
@@ -57,6 +60,13 @@ export function SourceLineagePanel({ sourceLineage }: SourceLineagePanelProps) {
               <p className="muted" style={{ marginTop: "6px" }}>
                 {source.lineageLabel}
               </p>
+              {source.url ? (
+                <p style={{ marginTop: "6px", wordBreak: "break-all" }}>
+                  <a href={source.url} rel="noreferrer" target="_blank">
+                    {source.url}
+                  </a>
+                </p>
+              ) : null}
             </li>
           ))}
         </ul>

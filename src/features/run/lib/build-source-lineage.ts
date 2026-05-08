@@ -4,6 +4,7 @@ import type { RunEvidenceClaim } from "@/types/run-evidence";
 type SourceForLineage = {
   id: string;
   label: string;
+  url?: string | null;
   sourceType: string;
   publishedAt?: string | null;
   verificationStatus?: string | null;
@@ -26,6 +27,22 @@ function sourceTypeLabel(sourceType: string): string {
   }
 }
 
+function lineageCategory(params: { sourceType: string; isPrimarySource: boolean }): string {
+  if (params.isPrimarySource) {
+    return "Primary / Official Source";
+  }
+  switch (params.sourceType) {
+    case "web":
+      return "News / Secondary Source";
+    case "document":
+      return "Commentary / Analysis Source";
+    case "note":
+      return "Social / Unverified Source";
+    default:
+      return "Unknown Source Type";
+  }
+}
+
 function buildLineageLabel(params: {
   sourceType: string;
   isPrimarySource: boolean;
@@ -33,7 +50,10 @@ function buildLineageLabel(params: {
   publishedAt?: string | null;
 }): string {
   const parts = [
-    params.isPrimarySource ? "Primary evidence or official source" : "Supporting context",
+    lineageCategory({
+      sourceType: params.sourceType,
+      isPrimarySource: params.isPrimarySource,
+    }),
     sourceTypeLabel(params.sourceType),
     params.claimCount === 1 ? "linked to 1 claim" : `linked to ${params.claimCount} claims`,
     params.publishedAt ? `published ${params.publishedAt}` : "publication date unknown",
@@ -62,6 +82,7 @@ export function buildSourceLineage(params: {
     return {
       sourceId: source.id,
       label: source.label,
+      url: source.url ?? null,
       sourceType: source.sourceType || "unknown",
       lineageLabel: buildLineageLabel({
         sourceType: source.sourceType || "unknown",
