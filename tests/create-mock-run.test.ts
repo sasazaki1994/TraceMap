@@ -78,6 +78,7 @@ function resetPersistMocks() {
 describe("createAnalysisRunFromProvider", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    delete process.env.TRACEMAP_INVESTIGATION_MODE;
     const { prisma } = await import("@/server/db/prisma");
     const p = prisma as unknown as {
       analysisRun: {
@@ -347,16 +348,63 @@ describe("createAnalysisRunFromProvider", () => {
 
     await createAnalysisRunFromProvider("Fresh topic");
 
-    expect(provider.generateAnswerGraph).toHaveBeenCalledWith({ question: "Fresh topic", sourceCandidates: [] });
+    expect(provider.generateAnswerGraph).toHaveBeenCalledWith({ question: "Fresh topic", sourceCandidates: [], mode: "standard" });
     expect(storeRunCacheEntry).toHaveBeenCalledTimes(1);
     expect(storeRunCacheEntry).toHaveBeenCalledWith({
       cacheKeyInfo: expect.objectContaining({
         providerId: "mock",
         providerModel: "mock",
+        mode: "standard",
       }),
       payload: payloadResult.kind === "success" ? payloadResult.payload : undefined,
     });
   });
+
+  it.each(["fast", "deep"] as const)(
+    "propagates %s mode from env into provider input and cache key",
+    async (mode) => {
+      process.env.TRACEMAP_INVESTIGATION_MODE = mode;
+
+      const { resolveAnswerGraphProvider } = await import(
+        "@/server/analysis/resolve-answer-graph-provider"
+      );
+      const { buildMockAnswerGraphPayload } = await import(
+        "@/server/analysis/providers/mock-answer-graph-provider"
+      );
+      const { lookupRunCacheEntry, storeRunCacheEntry } = await import(
+        "@/server/analysis/run-cache-service"
+      );
+      const payloadResult = buildMockAnswerGraphPayload("Fresh topic");
+      const provider = {
+        id: "mock" as const,
+        modelLabel: "mock",
+        generateAnswerGraph: vi.fn().mockResolvedValue(payloadResult),
+      };
+      vi.mocked(resolveAnswerGraphProvider).mockReturnValue(provider);
+      vi.mocked(lookupRunCacheEntry).mockResolvedValueOnce({
+        kind: "miss",
+        cacheKey: `cache-key-${mode}`,
+        reason: "not_found",
+      });
+
+      const { createAnalysisRunFromProvider } = await import(
+        "@/server/analysis/create-analysis-run-from-provider"
+      );
+
+      await createAnalysisRunFromProvider("Fresh topic");
+
+      expect(provider.generateAnswerGraph).toHaveBeenCalledWith({
+        question: "Fresh topic",
+        sourceCandidates: [],
+        mode,
+      });
+      expect(storeRunCacheEntry).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cacheKeyInfo: expect.objectContaining({ mode }),
+        }),
+      );
+    },
+  );
 
   it("does not store cache entries for provider failures", async () => {
     const { resolveAnswerGraphProvider } = await import(

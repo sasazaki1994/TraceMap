@@ -4,6 +4,7 @@ import { persistGeneratedAnswerGraph } from "@/server/analysis/persist-generated
 import type { SourceIntakeResult } from "@/types/source-intake";
 import { buildSourceIntakeFromQuestion } from "@/server/analysis/source-intake/source-intake-service";
 import { resolveAnswerGraphProvider } from "@/server/analysis/resolve-answer-graph-provider";
+import { resolveInvestigationMode } from "@/server/analysis/investigation-limits";
 import { buildRunCacheKey } from "@/server/analysis/run-cache-key";
 import {
   lookupRunCacheEntry,
@@ -18,6 +19,7 @@ import type { GeneratedAnswerGraphPayload } from "@/types/answer-graph-generatio
  */
 export async function createAnalysisRunFromProvider(question: string): Promise<string> {
   const provider = resolveAnswerGraphProvider();
+  const mode = resolveInvestigationMode(process.env.TRACEMAP_INVESTIGATION_MODE?.trim());
 
   const run = await prisma.analysisRun.create({
     data: {
@@ -35,6 +37,7 @@ export async function createAnalysisRunFromProvider(question: string): Promise<s
     researchTopic: question,
     providerId: provider.id,
     providerModel: provider.modelLabel ?? null,
+    mode,
   });
 
   let payload: GeneratedAnswerGraphPayload | null = null;
@@ -72,7 +75,7 @@ export async function createAnalysisRunFromProvider(question: string): Promise<s
     }
     let result;
     try {
-      result = await provider.generateAnswerGraph({ question, sourceCandidates: sourceIntake.candidates });
+      result = await provider.generateAnswerGraph({ question, sourceCandidates: sourceIntake.candidates, mode });
     } catch (cause) {
       const message =
         cause instanceof Error ? cause.message : "Answer graph generation failed.";

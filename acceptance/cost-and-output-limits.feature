@@ -12,3 +12,16 @@ Feature: Cost and Output Limits
     When the payload is normalized
     Then the answer content should be trimmed safely
     And the run should remain valid if required evidence is intact
+
+  Scenario Outline: Mode profile applies mode-specific caps
+    Given investigation mode is "<mode>"
+    And a provider returns more sources and claims than that mode allows
+    When the payload is normalized
+    Then the normalized payload should not exceed the mode source limit
+    And the normalized payload should not exceed the mode claim limit
+
+    Examples:
+      | mode     |
+      | fast     |
+      | standard |
+      | deep     |
