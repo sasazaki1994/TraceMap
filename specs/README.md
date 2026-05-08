@@ -37,6 +37,7 @@ Each feature spec should describe:
 | Unknown Map & Source Lineage Lite | [unknown-map-and-source-lineage.md](./unknown-map-and-source-lineage.md) |
 | Briefing Report preview | [briefing-report.md](./briefing-report.md) |
 | Company Research Report Mode | [company-research-report.md](./company-research-report.md) |
+| Report Export Lite | [report-export-lite.md](./report-export-lite.md) |
 | Real Investigation Pipeline | [real-investigation-pipeline.md](./real-investigation-pipeline.md) |
 | Cost and Output Limits | [cost-and-output-limits.md](./cost-and-output-limits.md) |
 | Source Cache and Fetch Snapshot | [source-cache-and-fetch-snapshot.md](./source-cache-and-fetch-snapshot.md) |

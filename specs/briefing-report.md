@@ -21,12 +21,13 @@ Define the MVP v2 Briefing Report preview: a Markdown-formatted, shareable summa
   - `## Unknowns / Open Questions`
   - `## Source Lineage Summary`
 - Render the Markdown as readable preformatted text for MVP.
+- Allow lightweight Markdown reuse from the preview via client-side copy and `.md` download actions.
 - Generate the preview from `answerContent`, `evidenceClaims`, `sources`, and Unknown Map / Source Lineage helper output.
 
 ## Non-goals
 
 - No persisted report table.
-- No downloadable PDF, editor, comments, or approval workflow.
+- No downloadable PDF, editor, comments, or approval workflow beyond lightweight `.md` copy/download.
 - No Markdown parser dependency.
 - No investment recommendation, buy/sell recommendation, or action language that could be read as financial advice.
 
@@ -56,6 +57,7 @@ Define the MVP v2 Briefing Report preview: a Markdown-formatted, shareable summa
   - `data-testid="briefing-report-panel"`
   - `data-testid="briefing-report-markdown"`
 - The report preview must include summary, claims, sources, unknowns, and source lineage summary where data exists.
+- The panel exposes Copy Markdown and Download `.md` actions for the currently displayed report text.
 - Empty sections should use clear fallback text rather than hiding the whole report.
 
 ## Provider requirements
