@@ -22,7 +22,7 @@ Define the MVP policy for bounding provider output size and cost exposure while 
 
 - No billing product implementation.
 - No per-user quota tables.
-- No Fast / Standard / Deep runtime mode switch in this slice.
+- No billing product implementation tied to the mode switch in this slice.
 - No UI redesign.
 - No streaming or background queue.
 
@@ -62,15 +62,16 @@ The LLM must produce investigation facts and evidence, not UI rendering instruct
 - Do not ask the LLM for UI style or layout fields.
 - UI components derive visual layout from persisted graph/evidence data.
 
-## Future Fast / Standard / Deep mode
+## Fast / Standard / Deep mode (MVP runtime profile)
 
-Future modes can vary source count, claim count, retrieval depth, cache freshness, and model choice:
+Runtime mode is selected by `TRACEMAP_INVESTIGATION_MODE` (`fast` / `standard` / `deep`, default `standard`).
+Mode controls normalization limits and source candidate budget:
 
-- Fast: small caps, cache-friendly, lowest latency/cost.
-- Standard: balanced source and claim count.
-- Deep: larger evidence budget, stricter freshness, and background execution.
+- Fast: sources 3, claims 3, counterpoints 1, alerts 1.
+- Standard: sources 5, claims 8, counterpoints 2, alerts 2.
+- Deep: sources 12, claims 16, counterpoints 3, alerts 3.
 
-This slice only defines fixed MVP limits and does not add mode selection.
+This slice does not yet add per-user billing/entitlement mode gating.
 
 ## Test requirements
 

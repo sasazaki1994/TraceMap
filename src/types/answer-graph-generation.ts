@@ -10,11 +10,13 @@ import type {
 
 import type { AnswerGraphJson } from "@/types/answer-graph";
 import type { SourceCandidate } from "@/types/source-intake";
+import type { InvestigationMode } from "@/server/analysis/investigation-limits";
 
 /** Input for generating graph + evidence payload for a single analysis run. */
 export type GenerateAnswerGraphInput = {
   question: string;
   sourceCandidates?: SourceCandidate[];
+  mode?: InvestigationMode;
 };
 
 /** One source row to persist as `source_snapshots` (order preserved). */

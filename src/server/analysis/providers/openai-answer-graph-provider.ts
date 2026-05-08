@@ -1,7 +1,10 @@
 import OpenAI from "openai";
 
 import type { AnswerGraphProvider } from "@/server/analysis/answer-graph-provider";
-import { INVESTIGATION_LIMITS } from "@/server/analysis/investigation-limits";
+import {
+  INVESTIGATION_LIMITS,
+  getInvestigationLimitsForMode,
+} from "@/server/analysis/investigation-limits";
 import {
   INSUFFICIENT_GROUNDING_MESSAGE,
   isValidPublicHttpUrl as isValidPublicHttpUrlValue,
@@ -195,7 +198,8 @@ function getOpenAiConfig(): { apiKey: string | undefined; model: string; timeout
 
 
 function buildSourceCandidateContext(input: GenerateAnswerGraphInput): string {
-  const candidates = input.sourceCandidates?.slice(0, 5) ?? [];
+  const limits = getInvestigationLimitsForMode(input.mode ?? "standard");
+  const candidates = input.sourceCandidates?.slice(0, limits.maxSources) ?? [];
   if (candidates.length === 0) {
     return "";
   }
@@ -241,8 +245,12 @@ function providerFailure(
  */
 export function validateStructuredAnswerPayload(
   parsed: StructuredAnswerPayload,
+  mode?: GenerateAnswerGraphInput["mode"],
 ): ValidateStructuredPayloadResult {
-  const normalized = normalizeGeneratedAnswerGraph(parsed);
+  const normalized = normalizeGeneratedAnswerGraph(
+    parsed,
+    getInvestigationLimitsForMode(mode ?? "standard"),
+  );
   if (normalized.kind === "failure") {
     return providerFailure(normalized.reason, normalized.errorMessage);
   }
@@ -624,7 +632,7 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
         );
       }
 
-      const validated = validateStructuredAnswerPayload(parsed);
+      const validated = validateStructuredAnswerPayload(parsed, input.mode);
       if (validated.kind === "failure") {
         return validated;
       }

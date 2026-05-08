@@ -347,12 +347,13 @@ describe("createAnalysisRunFromProvider", () => {
 
     await createAnalysisRunFromProvider("Fresh topic");
 
-    expect(provider.generateAnswerGraph).toHaveBeenCalledWith({ question: "Fresh topic", sourceCandidates: [] });
+    expect(provider.generateAnswerGraph).toHaveBeenCalledWith({ question: "Fresh topic", sourceCandidates: [], mode: "standard" });
     expect(storeRunCacheEntry).toHaveBeenCalledTimes(1);
     expect(storeRunCacheEntry).toHaveBeenCalledWith({
       cacheKeyInfo: expect.objectContaining({
         providerId: "mock",
         providerModel: "mock",
+        mode: "standard",
       }),
       payload: payloadResult.kind === "success" ? payloadResult.payload : undefined,
     });
