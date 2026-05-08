@@ -34,7 +34,7 @@ export function UnknownMapPanel({ unknowns }: UnknownMapPanelProps) {
           ))}
         </ul>
       ) : (
-        <p className="muted">No unresolved gaps are highlighted yet.</p>
+        <p className="muted">No unresolved investigation gaps were detected in this run.</p>
       )}
     </section>
   );

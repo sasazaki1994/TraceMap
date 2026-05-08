@@ -11,6 +11,7 @@ export type InvestigationUnknown = {
 export type SourceLineageLite = {
   sourceId: string;
   label: string;
+  url?: string | null;
   sourceType: string;
   lineageLabel: string;
   publishedAt?: string | null;
