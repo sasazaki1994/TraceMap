@@ -2,10 +2,21 @@ import type { SourceCandidate, SourceIntakeResult } from "@/types/source-intake"
 import { resolveSourceCacheForUrl } from "@/server/analysis/source-cache-service";
 import { extractUrls } from "@/server/analysis/source-intake/extract-urls";
 import { resolveSourceDiscoveryProvider } from "@/server/analysis/source-discovery/resolve-source-discovery-provider";
-import { DEFAULT_DISCOVERY_MAX_RESULTS, DEFAULT_SOURCE_CANDIDATE_MAX_RESULTS } from "@/server/analysis/source-discovery/source-discovery-service";
+import {
+  DEFAULT_DISCOVERY_MAX_RESULTS,
+  DEFAULT_SOURCE_CANDIDATE_MAX_RESULTS,
+} from "@/server/analysis/source-discovery/source-discovery-service";
 
-export async function buildSourceIntakeFromQuestion(question: string): Promise<SourceIntakeResult> {
-  const manualUrls = extractUrls(question);
+export type BuildSourceIntakeOptions = {
+  manualSourceUrls?: string[];
+};
+
+export async function buildSourceIntakeFromQuestion(
+  question: string,
+  options: BuildSourceIntakeOptions = {},
+): Promise<SourceIntakeResult> {
+  const topicUrls = extractUrls(question);
+  const manualUrls = options.manualSourceUrls ?? [];
   const discoveryProvider = resolveSourceDiscoveryProvider();
   const ignoredUrls: SourceIntakeResult["ignoredUrls"] = [];
 
@@ -24,6 +35,7 @@ export async function buildSourceIntakeFromQuestion(question: string): Promise<S
 
   const merged = [
     ...manualUrls.map((url) => ({ url, origin: "manual_url" as const })),
+    ...topicUrls.map((url) => ({ url, origin: "topic_url" as const })),
     ...discoveredUrls.map((url) => ({ url, origin: "discovered" as const })),
   ];
 
@@ -52,14 +64,19 @@ export async function buildSourceIntakeFromQuestion(question: string): Promise<S
       normalizedUrl: result.normalizedUrl,
       originalUrl: result.originalUrl,
       finalUrl: result.finalUrl,
-      label: result.finalUrl ? new URL(result.finalUrl).hostname : new URL(result.normalizedUrl).hostname,
+      label: result.finalUrl
+        ? new URL(result.finalUrl).hostname
+        : new URL(result.normalizedUrl).hostname,
       excerpt: result.excerpt,
       contentType: result.contentType,
       httpStatus: result.httpStatus,
       fetchedAt: result.checkedAt,
       sourceCacheEntryId: result.sourceCacheEntryId,
       sourceFetchSnapshotId: result.sourceFetchSnapshotId,
-      fetchErrorMessage: result.verificationStatus !== "verified" ? `verification_status:${result.verificationStatus}` : null,
+      fetchErrorMessage:
+        result.verificationStatus !== "verified"
+          ? `verification_status:${result.verificationStatus}`
+          : null,
       origin: item.origin,
     });
 

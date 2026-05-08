@@ -1,4 +1,4 @@
-export type SourceCandidateOrigin = "manual_url" | "discovered";
+export type SourceCandidateOrigin = "manual_url" | "topic_url" | "discovered";
 
 export type SourceCandidate = {
   normalizedUrl: string;
