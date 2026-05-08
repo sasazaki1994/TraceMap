@@ -2,7 +2,7 @@ import OpenAI from "openai";
 
 import type { AnswerGraphProvider } from "@/server/analysis/answer-graph-provider";
 import {
-  INVESTIGATION_LIMITS,
+  type InvestigationLimits,
   getInvestigationLimitsForMode,
 } from "@/server/analysis/investigation-limits";
 import {
@@ -25,7 +25,8 @@ export const OPENAI_INSUFFICIENT_GROUNDING_MESSAGE =
 
 export const isValidPublicHttpUrl = isValidPublicHttpUrlValue;
 
-const OPENAI_STRUCTURED_SCHEMA = {
+function buildOpenAiSchema(limits: InvestigationLimits) {
+  return {
   type: "object",
   additionalProperties: false,
   properties: {
@@ -41,12 +42,12 @@ const OPENAI_STRUCTURED_SCHEMA = {
     answer_content: {
       type: "string",
       description: "Main answer text in markdown-friendly plain text.",
-      maxLength: INVESTIGATION_LIMITS.maxAnswerContentChars,
+      maxLength: limits.maxAnswerContentChars,
     },
     claims: {
       type: "array",
       description: "Atomic claims; each must cite source ids from the sources array.",
-      maxItems: INVESTIGATION_LIMITS.maxClaims,
+      maxItems: limits.maxClaims,
       items: {
         type: "object",
         additionalProperties: false,
@@ -54,7 +55,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
           id: { type: "string" },
           summary: {
             type: "string",
-            maxLength: INVESTIGATION_LIMITS.maxClaimSummaryChars,
+            maxLength: limits.maxClaimSummaryChars,
           },
           supported_by_source_ids: {
             type: "array",
@@ -65,7 +66,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
           counterpoints: {
             type: "array",
             description: "Counterarguments or caveats specific to this claim.",
-            maxItems: INVESTIGATION_LIMITS.maxCounterpointsPerClaim,
+            maxItems: limits.maxCounterpointsPerClaim,
             items: {
               type: "object",
               additionalProperties: false,
@@ -88,7 +89,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
           propagation_chain: {
             type: "array",
             description: "Ordered evidence propagation chain for the claim.",
-            maxItems: INVESTIGATION_LIMITS.maxPropagationStepsPerClaim,
+            maxItems: limits.maxPropagationStepsPerClaim,
             items: {
               type: "object",
               additionalProperties: false,
@@ -113,7 +114,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
           alerts: {
             type: "array",
             description: "Alerts scoped to this claim (quality, policy).",
-            maxItems: INVESTIGATION_LIMITS.maxAlertsPerClaim,
+            maxItems: limits.maxAlertsPerClaim,
             items: {
               type: "object",
               additionalProperties: false,
@@ -134,7 +135,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
     sources: {
       type: "array",
       description: "At least two distinct real web pages (http or https URLs with a host).",
-      maxItems: INVESTIGATION_LIMITS.maxSources,
+      maxItems: limits.maxSources,
       items: {
         type: "object",
         additionalProperties: false,
@@ -151,7 +152,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
           },
           excerpt: {
             type: "string",
-            maxLength: INVESTIGATION_LIMITS.maxSourceExcerptChars,
+            maxLength: limits.maxSourceExcerptChars,
           },
         },
         required: ["id", "label", "source_type", "url", "excerpt"],
@@ -178,6 +179,7 @@ const OPENAI_STRUCTURED_SCHEMA = {
   },
   required: ["sufficient_grounding", "answer_title", "answer_content", "claims", "sources"],
 } as const;
+}
 
 // TODO(investigation-result-schema): keep this MVP v2 schema stable and add richer
 // Unknown Map / Source Lineage / Briefing Report fields in a later provider phase.
@@ -564,6 +566,8 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
     input: GenerateAnswerGraphInput,
   ): Promise<GenerateAnswerGraphResult> {
     const { apiKey, model, timeoutMs } = getOpenAiConfig();
+    const limits = getInvestigationLimitsForMode(input.mode ?? "standard");
+    const schema = buildOpenAiSchema(limits);
 
     if (!apiKey) {
       return {
@@ -591,7 +595,7 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
               "When sufficient_grounding is true: include at least two distinct sources, each with a real public http or https URL you could verify (well-known references, standards, documentation, or authoritative pages).",
               "Do not invent URLs. If you cannot meet that bar, set sufficient_grounding to false (the run will fail — do not add fake links).",
               "Every claim must list supported_by_source_ids referencing sources[].id values.",
-              `Keep output concise: at most ${INVESTIGATION_LIMITS.maxSources} sources, ${INVESTIGATION_LIMITS.maxClaims} claims, ${INVESTIGATION_LIMITS.maxCounterpointsPerClaim} counterpoints per claim, ${INVESTIGATION_LIMITS.maxAlertsPerClaim} alerts per claim, and ${INVESTIGATION_LIMITS.maxPropagationStepsPerClaim} propagation steps per claim.`,
+              `Keep output concise: at most ${limits.maxSources} sources, ${limits.maxClaims} claims, ${limits.maxCounterpointsPerClaim} counterpoints per claim, ${limits.maxAlertsPerClaim} alerts per claim, and ${limits.maxPropagationStepsPerClaim} propagation steps per claim.`,
               "Do not include UI-only layout instructions, coordinates, colors, or style fields; TraceMap derives presentation separately.",
               "Prefer per-claim counterpoints and alerts when caveats differ by claim; use top-level counterpoint_summary and alert only for a single shared caveat or answer-wide note.",
               "Separate 'cannot answer from sources' (sufficient_grounding false) from 'answer with caveats' (sufficient_grounding true, use alert.warning for limitations).",
@@ -608,7 +612,7 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
           json_schema: {
             name: "trace_map_answer_graph",
             description: "Minimal answer graph slice for TraceMap persistence.",
-            schema: OPENAI_STRUCTURED_SCHEMA as unknown as Record<string, unknown>,
+            schema: schema as unknown as Record<string, unknown>,
             strict: true,
           },
         },

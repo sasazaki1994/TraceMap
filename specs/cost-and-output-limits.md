@@ -20,7 +20,6 @@ Define the MVP policy for bounding provider output size and cost exposure while 
 
 ## Non-goals
 
-- No billing product implementation.
 - No per-user quota tables.
 - No billing product implementation tied to the mode switch in this slice.
 - No UI redesign.
@@ -67,9 +66,9 @@ The LLM must produce investigation facts and evidence, not UI rendering instruct
 Runtime mode is selected by `TRACEMAP_INVESTIGATION_MODE` (`fast` / `standard` / `deep`, default `standard`).
 Mode controls normalization limits and source candidate budget:
 
-- Fast: sources 3, claims 3, counterpoints 1, alerts 1.
-- Standard: sources 5, claims 8, counterpoints 2, alerts 2.
-- Deep: sources 12, claims 16, counterpoints 3, alerts 3.
+- Fast: sources 3, claims 3, counterpoints 1, alerts 1, propagation steps 3, answer content 2000 chars, source excerpt 800 chars, claim summary 300 chars.
+- Standard: sources 5, claims 8, counterpoints 2, alerts 2, propagation steps 5, answer content 4000 chars, source excerpt 1200 chars, claim summary 500 chars.
+- Deep: sources 12, claims 16, counterpoints 3, alerts 3, propagation steps 7, answer content 7000 chars, source excerpt 1600 chars, claim summary 700 chars.
 
 This slice does not yet add per-user billing/entitlement mode gating.
 
