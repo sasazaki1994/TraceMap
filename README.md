@@ -177,9 +177,12 @@ http://localhost:3000/api/health
 
 人間が運用ルールを更新する場合も、まず `docs/ai/PROJECT_AGENT_GUIDE.md` を更新し、必要最小限だけ各入口ファイルへ反映してください。
 
-## Beta Validation Guide
+## Beta Validation
 
-See `docs/beta-validation.md` for the required beta stabilization command set, core flow checklist, and known non-goals.
+For local setup, validation commands, manual flow checks, and a copy-pasteable result report template, see:
+
+- `docs/beta-validation.md`
+- `docs/local-verification.md`
 
 ## CI
 
