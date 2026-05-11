@@ -5,49 +5,49 @@ export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[])
   return sourceQuality.flatMap((signal) => {
     const unknowns: InvestigationUnknown[] = [];
 
-    if (signal.reachabilityStatus === "unreachable") {
+    if (signal.reachability === "unreachable") {
       unknowns.push({
         id: `${signal.sourceId}-source-unreachable`,
         text: signal.label,
         reason: "Source is unreachable.",
         severity: "high",
-        suggestedNextAction: "Re-check source URL.",
+        suggestedNextAction: "Replace or re-check the source URL.",
       });
-    } else if (signal.reachabilityStatus === "invalid") {
+    } else if (signal.reachability === "invalid") {
       unknowns.push({
         id: `${signal.sourceId}-source-invalid`,
         text: signal.label,
         reason: "Source URL appears invalid.",
         severity: "high",
-        suggestedNextAction: "Re-check source URL.",
+        suggestedNextAction: "Replace or re-check the source URL.",
       });
     }
 
-    if (signal.freshnessStatus === "stale") {
+    if (signal.freshness === "stale") {
       unknowns.push({
         id: `${signal.sourceId}-source-stale`,
         text: signal.label,
-        reason: "Source may be stale.",
+        reason: "A supporting source may be stale.",
         severity: "medium",
-        suggestedNextAction: "Verify publication date and recency.",
+        suggestedNextAction: "Verify whether newer primary or official sources exist.",
       });
-    } else if (signal.freshnessStatus === "unknown") {
+    } else if (signal.freshness === "unknown") {
       unknowns.push({
         id: `${signal.sourceId}-source-freshness-unknown`,
         text: signal.label,
         reason: "Source freshness is unknown.",
         severity: "medium",
-        suggestedNextAction: "Verify publication date and recency.",
+        suggestedNextAction: "Verify whether newer primary or official sources exist.",
       });
     }
 
-    if (!signal.hasPublishedAt) {
+    if (!Boolean(signal.publishedAt)) {
       unknowns.push({
         id: `${signal.sourceId}-source-no-publication-date`,
         text: signal.label,
         reason: "Source publication date is not available.",
         severity: "low",
-        suggestedNextAction: "Verify publication date and recency.",
+        suggestedNextAction: "Verify whether newer primary or official sources exist.",
       });
     }
 

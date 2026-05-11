@@ -8,15 +8,15 @@ describe("buildSourceQualityUnknowns", () => {
       {
         sourceId: "s1",
         label: "S1",
-        qualityLevel: "weak",
-        freshnessStatus: "stale",
-        reachabilityStatus: "unreachable",
+        quality: "weak",
+        freshness: "stale",
+        reachability: "unreachable",
         isPrimarySource: false,
         linkedClaimCount: 1,
-        hasPublishedAt: false,
+        publishedAt: null,
         hasSupportingQuote: false,
         reasons: [],
-        suggestedNextActions: [],
+        
       },
     ]);
 
@@ -35,15 +35,15 @@ describe("buildSourceQualityUnknowns", () => {
       {
         sourceId: "s2",
         label: "S2",
-        qualityLevel: "weak",
-        freshnessStatus: "fresh",
-        reachabilityStatus: "reachable",
+        quality: "weak",
+        freshness: "fresh",
+        reachability: "reachable",
         isPrimarySource: false,
         linkedClaimCount: 0,
-        hasPublishedAt: true,
+        publishedAt: "2026-01-01",
         hasSupportingQuote: false,
         reasons: [],
-        suggestedNextActions: [],
+        
       },
     ]);
 

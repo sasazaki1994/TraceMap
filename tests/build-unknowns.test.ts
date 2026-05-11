@@ -192,3 +192,16 @@ describe("buildUnknowns", () => {
     expect(buildUnknowns({ evidenceAlerts: [], evidenceClaims: [] })).toEqual([]);
   });
 });
+
+
+it("adds stale source gap from source quality", () => {
+  const unknowns = buildUnknowns({
+    evidenceAlerts: [],
+    evidenceClaims: [],
+    sourceQuality: [{
+      sourceId: "s1", label: "S1", quality: "weak", freshness: "stale", reachability: "reachable",
+      reasons: ["stale"], linkedClaimCount: 1, hasSupportingQuote: true,
+    }],
+  });
+  expect(unknowns.some((u) => u.reason.toLowerCase().includes("stale"))).toBe(true);
+});

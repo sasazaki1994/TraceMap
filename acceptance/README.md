@@ -38,4 +38,4 @@
 | Share Link Management Lite | `share-link-management-lite.feature` |
 | Beta Readiness | `beta-readiness.feature` |
 
-- source-quality-and-freshness.feature: Source quality/freshness indicators, unknown caveats, and report summary behavior
+| Source Quality & Freshness Inspector v0.1 | `source-quality-and-freshness-inspector.feature` |
