@@ -37,10 +37,10 @@ export function buildCompanyResearchReport(input: CompanyResearchReportInput): C
 
   const sourceQualityLines = input.sourceQuality?.length
     ? input.sourceQuality
-        .filter((signal) => signal.qualityLevel === "weak" || signal.qualityLevel === "limited")
+        .filter((signal) => signal.quality === "weak" || signal.quality === "limited")
         .map(
           (signal) =>
-            `- ${signal.label}: quality=${signal.qualityLevel}, reachability=${signal.reachabilityStatus}, freshness=${signal.freshnessStatus}`,
+            `- ${signal.label}: quality=${signal.quality}, reachability=${signal.reachability}, freshness=${signal.freshness}`,
         )
     : ["- No source quality caveats are currently highlighted."];
 

@@ -247,7 +247,7 @@ export function RunResultView({
     [evidenceClaims, selectedLens],
   );
   const sourceQuality = useMemo(
-    () => buildSourceQuality({ sources, evidenceClaims }),
+    () => buildSourceQuality({ sources, claimSupports: evidenceClaims }),
     [sources, evidenceClaims],
   );
   const unknowns = useMemo(
@@ -965,9 +965,9 @@ export function RunResultView({
                 ) : null}
                 {selectedSourceQuality ? (
                   <div data-testid="source-quality-summary" style={{ marginTop: "12px" }}>
-                    <p data-testid="source-quality-level">Quality: {selectedSourceQuality.qualityLevel}</p>
-                    <p data-testid="source-freshness-status">Freshness: {selectedSourceQuality.freshnessStatus}</p>
-                    <p data-testid="source-reachability-status">Reachability: {selectedSourceQuality.reachabilityStatus}</p>
+                    <p data-testid="source-quality-badge">Quality: {selectedSourceQuality.quality}</p>
+                    <p data-testid="source-freshness-badge">Freshness: {selectedSourceQuality.freshness}</p>
+                    <p data-testid="source-reachability-badge">Reachability: {selectedSourceQuality.reachability}</p>
                     {selectedSourceQuality.reasons.length > 0 ? (
                       <ul className="evidence-list" style={{ marginTop: "6px" }}>
                         {selectedSourceQuality.reasons.map((reason) => (
@@ -975,14 +975,9 @@ export function RunResultView({
                         ))}
                       </ul>
                     ) : null}
-                    {selectedSourceQuality.suggestedNextActions.length > 0 ? (
+                    {selectedSourceQuality.suggestedAction ? (
                       <>
-                        <p style={{ marginTop: "8px" }}>Suggested next actions</p>
-                        <ul className="evidence-list" style={{ marginTop: "6px" }}>
-                          {selectedSourceQuality.suggestedNextActions.map((action) => (
-                            <li key={action}>{action}</li>
-                          ))}
-                        </ul>
+                        <p style={{ marginTop: "8px" }}>Suggested next action: {selectedSourceQuality.suggestedAction}</p>
                       </>
                     ) : null}
                   </div>

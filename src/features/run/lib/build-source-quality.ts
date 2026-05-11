@@ -1,9 +1,11 @@
 import type { RunSourceView } from "@/features/run/components/run-result-view";
-import type { SourceQualitySignal } from "@/types/source-quality";
+import type { SourceQualityInspection } from "@/types/source-quality";
 import type { RunEvidenceClaim } from "@/types/run-evidence";
 
-const FRESHNESS_DAYS = 180;
+const POSSIBLY_STALE_DAYS = 365;
+const STALE_DAYS = 730;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const OFFICIAL_TYPES = ["official", "government", "company", "academic", "reference"];
 
 function parseDate(value: string | null | undefined): Date | null {
   if (!value) return null;
@@ -11,104 +13,112 @@ function parseDate(value: string | null | undefined): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function toReachability(source: RunSourceView): SourceQualitySignal["reachabilityStatus"] {
-  if (source.verificationStatus === "unreachable") return "unreachable";
-  if (source.verificationStatus === "invalid") return "invalid";
-  if (source.verificationStatus === "verified") return "reachable";
-  if (typeof source.httpStatus === "number" && source.httpStatus >= 200 && source.httpStatus <= 399) {
-    return "reachable";
+function isValidHttpUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
   }
+}
+
+function isOfficialLikeSourceType(sourceType: string | null | undefined): boolean {
+  const normalized = (sourceType ?? "").toLowerCase();
+  return OFFICIAL_TYPES.some((v) => normalized.includes(v));
+}
+
+function buildReachability(source: RunSourceView): SourceQualityInspection["reachability"] {
+  if (source.verificationStatus === "invalid" || !isValidHttpUrl(source.url)) return "invalid";
+  if (source.verificationStatus === "unreachable") return "unreachable";
+  if (typeof source.httpStatus === "number") return source.httpStatus >= 400 ? "unreachable" : "reachable";
+  if (source.verificationStatus === "verified") return "reachable";
   return "unchecked";
 }
 
-export function buildSourceQuality(params: {
+function buildFreshness(source: RunSourceView, now: Date): SourceQualityInspection["freshness"] {
+  const publishedDate = parseDate(source.publishedAt);
+  if (!publishedDate) return "unknown";
+  const ageDays = (now.getTime() - publishedDate.getTime()) / DAY_MS;
+  if (ageDays >= STALE_DAYS) return "stale";
+  if (ageDays >= POSSIBLY_STALE_DAYS) return "possibly_stale";
+  if (isOfficialLikeSourceType(source.sourceType)) return "fresh";
+  return "fresh";
+}
+
+export function buildSourceQualityInspections(params: {
   sources: RunSourceView[];
-  evidenceClaims: RunEvidenceClaim[];
+  claimSupports?: RunEvidenceClaim[];
   now?: Date;
-}): SourceQualitySignal[] {
+}): SourceQualityInspection[] {
   const now = params.now ?? new Date();
+  const claims = params.claimSupports ?? [];
 
   return params.sources.map((source) => {
-    const supports = params.evidenceClaims.flatMap((claim) =>
-      claim.supports.filter((support) => support.sourceId === source.id),
-    );
-    const linkedClaimCount = new Set(
-      params.evidenceClaims
-        .filter((claim) => claim.supports.some((support) => support.sourceId === source.id))
-        .map((claim) => claim.id),
-    ).size;
+    const supports = claims.flatMap((claim) => claim.supports.filter((support) => support.sourceId === source.id));
     const isPrimarySource = supports.some((support) => support.isPrimarySource);
     const hasSupportingQuote = supports.some((support) => Boolean(support.supportingQuote?.trim()));
-    const reachabilityStatus = toReachability(source);
+    const hasContradiction = supports.some((support) => Boolean(support.contradictionNote?.trim()));
+    const linkedClaimCount = new Set(
+      claims.filter((claim) => claim.supports.some((support) => support.sourceId === source.id)).map((claim) => claim.id),
+    ).size;
 
-    const referenceDate = parseDate(source.publishedAt) ?? parseDate(source.checkedAt);
-    const freshnessStatus = !referenceDate
-      ? "unknown"
-      : (now.getTime() - referenceDate.getTime()) / DAY_MS <= FRESHNESS_DAYS
-        ? "fresh"
-        : "stale";
-
-    let qualityLevel: SourceQualitySignal["qualityLevel"] = "usable";
-    if (reachabilityStatus === "unreachable" || reachabilityStatus === "invalid" || freshnessStatus === "stale" || linkedClaimCount === 0) {
-      qualityLevel = "weak";
-    } else if (reachabilityStatus === "unchecked" || freshnessStatus === "unknown") {
-      qualityLevel = "limited";
-    } else if (reachabilityStatus === "reachable" && freshnessStatus === "fresh" && isPrimarySource && hasSupportingQuote) {
-      qualityLevel = "strong";
-    }
+    const reachability = buildReachability(source);
+    const freshness = buildFreshness(source, now);
 
     const reasons: string[] = [];
-    const suggestedNextActions: string[] = [];
+    if (reachability === "invalid") reasons.push("Source URL is invalid.");
+    if (reachability === "unreachable") reasons.push("Source URL is unreachable.");
+    if (freshness === "stale") reasons.push("Source publication date appears stale.");
+    if (freshness === "possibly_stale") reasons.push("Source may be stale.");
+    if (freshness === "unknown") reasons.push("Source publication date is unknown.");
+    if (!hasSupportingQuote && linkedClaimCount > 0) reasons.push("No supporting quote is attached.");
+    if (hasContradiction) reasons.push("Contradiction note exists for this support.");
 
-    if (reachabilityStatus === "unreachable") {
-      reasons.push("Source URL was marked unreachable.");
-      suggestedNextActions.push("Re-check source URL.");
+    const unknownType = source.sourceType === "note";
+
+    let quality: SourceQualityInspection["quality"] = "usable";
+    if (reachability === "invalid" || reachability === "unreachable" || hasContradiction) {
+      quality = "weak";
+    } else if (!source.publishedAt || unknownType || !hasSupportingQuote) {
+      quality = "limited";
+    } else if ((isPrimarySource || isOfficialLikeSourceType(source.sourceType)) && freshness === "fresh") {
+      quality = "strong";
     }
-    if (reachabilityStatus === "invalid") {
-      reasons.push("Source URL was marked invalid.");
-      suggestedNextActions.push("Re-check source URL.");
-    }
-    if (freshnessStatus === "stale") {
-      reasons.push("Source publication/check date appears stale.");
-      suggestedNextActions.push("Verify publication date and recency.");
-    }
-    if (freshnessStatus === "unknown") {
-      reasons.push("Publication/check date is unknown.");
-      suggestedNextActions.push("Verify publication date and recency.");
-    }
-    if (!isPrimarySource) {
-      reasons.push("Primary or official source confirmation is limited.");
-      suggestedNextActions.push("Locate a primary or official source.");
-    }
-    if (!hasSupportingQuote && linkedClaimCount > 0) {
-      reasons.push("Source supports claims without a direct quote.");
-      suggestedNextActions.push("Locate supporting quote or cited passage.");
-    }
-    if (linkedClaimCount === 0) {
-      reasons.push("Source is not linked to any claim.");
-      suggestedNextActions.push("Remove unused source from report if it does not support any claim.");
-    }
+
+    const suggestedAction =
+      quality === "weak"
+        ? "Replace or re-check the source URL and supporting evidence."
+        : freshness === "stale" || freshness === "possibly_stale"
+          ? "Verify whether newer primary or official sources exist."
+          : freshness === "unknown"
+            ? "Verify publication date or source recency."
+            : !hasSupportingQuote && linkedClaimCount > 0
+              ? "Locate a direct supporting quote."
+              : undefined;
 
     return {
       sourceId: source.id,
       label: source.label,
-      qualityLevel,
-      freshnessStatus,
-      reachabilityStatus,
+      quality,
+      freshness,
+      reachability,
+      reasons: reasons.length > 0 ? reasons : ["No major caveats detected from available metadata."],
+      suggestedAction,
       isPrimarySource,
+      sourceType: source.sourceType,
+      publishedAt: source.publishedAt ?? null,
+      checkedAt: source.checkedAt ?? null,
+      httpStatus: source.httpStatus ?? null,
       linkedClaimCount,
-      hasPublishedAt: Boolean(source.publishedAt),
       hasSupportingQuote,
       verificationStatus: source.verificationStatus ?? null,
-      httpStatus: source.httpStatus ?? null,
-      checkedAt: source.checkedAt ?? null,
-      publishedAt: source.publishedAt ?? null,
       contentType: source.contentType ?? null,
       finalUrl: source.finalUrl ?? null,
       sourceCacheEntryId: source.sourceCacheEntryId ?? null,
       sourceFetchSnapshotId: source.sourceFetchSnapshotId ?? null,
-      reasons,
-      suggestedNextActions: [...new Set(suggestedNextActions)],
     };
   });
 }
+
+export const buildSourceQuality = buildSourceQualityInspections;
