@@ -15,6 +15,19 @@ export function normalizeRunHistorySearchQuery(value: string | undefined): strin
   return value.trim().slice(0, 100);
 }
 
+
+function toErrorPreview(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  const normalized = value.trim();
+  if (!normalized) {
+    return null;
+  }
+  const max = 100;
+  return normalized.length > max ? `${normalized.slice(0, max).trim()}…` : normalized;
+}
+
 export async function listRunHistory(params: { status: RunHistoryStatusFilter; q: string }): Promise<RunHistoryItem[]> {
   const runs = await prisma.analysisRun.findMany({
     orderBy: { createdAt: "desc" },
@@ -48,7 +61,7 @@ export async function listRunHistory(params: { status: RunHistoryStatusFilter; q
       id: run.id,
       researchTopic: run.question,
       status: run.status,
-      lastErrorMessage: run.lastErrorMessage,
+      lastErrorMessage: toErrorPreview(run.lastErrorMessage),
       answerTitle: latestAnswer?.title ?? null,
       sourceCount: latestAnswer?._count.sourceSnapshots ?? 0,
       claimCount: latestAnswer?._count.claims ?? 0,

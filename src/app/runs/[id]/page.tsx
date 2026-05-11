@@ -143,6 +143,7 @@ export default async function RunPage({ params }: RunPageProps) {
   return (
     <main>
       <PageContainer className="home-grid">
+        <Link href="/runs" className="saved-run-link">Back to saved investigations</Link>
         <RunShareControls analysisRunId={run.id} shareLinks={shareLinks} />
         <RunResultView
           question={run.question}
