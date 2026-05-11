@@ -64,7 +64,7 @@ export default async function SavedInvestigationsPage() {
   });
 
   return (
-    <main data-testid="saved-investigations-page">
+    <main data-testid="run-history-page">
       <PageContainer className="home-grid">
         <Panel>
           <div className="eyebrow">Run History</div>
@@ -89,13 +89,13 @@ export default async function SavedInvestigationsPage() {
               {runs.map((run) => {
                 const latestAnswer = run.answerSnapshots[0] ?? null;
                 return (
-                  <li key={run.id} data-testid="saved-investigation-item" className="saved-run-item">
+                  <li key={run.id} data-testid="run-history-item" className="saved-run-item">
                     <div className="saved-run-item-top">
-                      <h2 data-testid="saved-investigation-topic" className="saved-run-topic">
+                      <h2 data-testid="run-history-topic" className="saved-run-topic">
                         {run.question}
                       </h2>
                       <span
-                        data-testid="saved-investigation-status"
+                        data-testid="run-history-status"
                         className={statusClassName(run.status)}
                       >
                         {run.status.toUpperCase()}
@@ -104,22 +104,22 @@ export default async function SavedInvestigationsPage() {
                     <p className="muted saved-run-time">
                       Created: {formatDate(run.createdAt)} · Updated: {formatDate(run.updatedAt)}
                     </p>
-                    <p data-testid="saved-investigation-answer-title" className="saved-run-answer-title">
+                    <p data-testid="run-history-answer-title" className="saved-run-answer-title">
                       Latest answer: {latestAnswer?.title?.trim() || "(No answer title)"}
                     </p>
                     <div className="saved-run-meta">
-                      <span data-testid="saved-investigation-source-count">
+                      <span data-testid="run-history-source-count">
                         Sources: {latestAnswer?._count.sourceSnapshots ?? 0}
                       </span>
-                      <span data-testid="saved-investigation-claim-count">
+                      <span data-testid="run-history-claim-count">
                         Claims: {latestAnswer?._count.claims ?? 0}
                       </span>
-                      <span data-testid="saved-investigation-alert-count">
+                      <span data-testid="run-history-alert-count">
                         Alerts: {latestAnswer?._count.alerts ?? 0}
                       </span>
                     </div>
                     {run.status === "failed" && run.lastErrorMessage ? (
-                      <p data-testid="saved-investigation-error" className="saved-run-error">
+                      <p data-testid="run-history-error" className="saved-run-error">
                         {shortenError(run.lastErrorMessage)}
                       </p>
                     ) : null}

@@ -34,6 +34,9 @@ test("investigation panels are visible on a completed run", async ({ page, reque
   await expect(page.getByTestId("unknown-map-item").first()).toBeVisible();
   await expect(page.getByTestId("source-lineage-panel")).toBeVisible();
   await expect(page.getByTestId("source-lineage-item").first()).toBeVisible();
+  await expect(page.getByTestId("source-quality-panel")).toBeVisible();
+  await expect(page.getByTestId("source-quality-item").first()).toBeVisible();
+  await expect(page.getByTestId("share-link-section")).toBeVisible();
   await expect(page.getByTestId("briefing-report-panel")).toBeVisible();
   await expect(page.getByTestId("briefing-report-markdown")).toBeVisible();
 });

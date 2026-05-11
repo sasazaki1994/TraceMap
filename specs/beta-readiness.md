@@ -1,0 +1,65 @@
+# Beta Readiness v0.1
+
+## Purpose
+Define the minimum integrated product bar for releasing TraceMap as a third-party testable beta.
+
+## User value
+Users can complete an end-to-end investigation flow from topic intake to evidence-backed report preview without requiring OpenAI credentials.
+
+## Scope
+- Investigation intake from landing page
+- Analysis run creation via AI or mock provider
+- Run detail surfaces Mission Header, Investigation Timeline, Evidence Map, Unknown Map Lite, Source Lineage Lite, Source Quality/Freshness Lite
+- Source detail drilldown for claim-source relations
+- Briefing Report Markdown preview
+- Markdown copy/download actions
+- Share link read-only experience
+- Run history / saved investigations page
+- Empty / loading / error states for beta usability
+- lint / typecheck / test / build verification
+
+## Non-goals
+- Billing, workspace, full RBAC, OAuth
+- RAG, embeddings, reranking, background jobs, streaming
+- Full crawling and document export (PDF/PPT/Notion)
+- Large DB refactors or OpenAI provider schema rewrite
+
+## Existing implementation constraints
+- Keep existing Evidence Graph / Claim / Source / Alert / Counterpoint persistence path
+- Preserve OpenAI provider grounding, URL validation, claim-source reference validation, and failed-run handling
+- Avoid broad migration; derive new UI panels from existing snapshots
+
+## Data model strategy
+- Use existing tables: `AnalysisRun`, `AnswerSnapshot`, `SourceSnapshot`, `Claim`, `ClaimSourceSnapshot`, `Alert`, `Counterpoint`, `ClaimConfidence`, `ClaimPropagationChain`, `ShareLink`
+- Unknown Map is derived from alerts/confidence/support signals
+- Source Lineage and Quality are derived from source metadata and claim-source links
+
+## UI requirements
+- Landing text uses “Research topic” and “Start Investigation”
+- Run detail includes required beta data-testids:
+  - `mission-header`, `mission-topic`, `investigation-timeline`, `investigation-step`, `evidence-map`
+  - `unknown-map-panel`, `unknown-map-item`
+  - `source-lineage-panel`, `source-lineage-item`
+  - `source-quality-panel`, `source-quality-item`
+  - `briefing-report-panel`, `briefing-report-markdown`
+  - `copy-markdown-button`, `download-markdown-button`
+  - `share-link-section`
+- Run history includes `run-history-page`, `run-history-item`
+
+## Provider requirements
+- Mock provider must be sufficient for UI walkthroughs (claims/sources/alerts/counterpoints)
+- OpenAI provider remains compatible with current structured output and does not auto-mark failed runs as completed
+
+## Test requirements
+- Unit tests for unknowns, lineage, quality, and briefing report builders
+- UI/E2E checks for mission/timeline/panels/export/share/run history
+- `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm exec prisma validate` (and `pnpm test:e2e` when available)
+
+## Acceptance references
+- `acceptance/beta-readiness.feature`
+- `acceptance/investigation-mode.feature`
+- `acceptance/unknown-map-and-source-lineage.feature`
+- `acceptance/source-quality-and-freshness.feature`
+- `acceptance/briefing-report.feature`
+- `acceptance/report-export-lite.feature`
+- `acceptance/run-history-and-saved-investigations.feature`

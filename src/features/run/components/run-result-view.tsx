@@ -8,6 +8,7 @@ import { CompanyResearchReportPanel } from "@/features/run/components/company-re
 import { InvestigationTimeline } from "@/features/run/components/investigation-timeline";
 import { MissionHeader } from "@/features/run/components/mission-header";
 import { SourceLineagePanel } from "@/features/run/components/source-lineage-panel";
+import { SourceQualityPanel } from "@/features/run/components/source-quality-panel";
 import { UnknownMapPanel } from "@/features/run/components/unknown-map-panel";
 import { alertLevelLabel } from "@/features/run/lib/alert-level-label";
 import { buildBriefingReport } from "@/features/run/lib/build-briefing-report";
@@ -900,6 +901,7 @@ export function RunResultView({
           </ul>
 
           <SourceLineagePanel sourceLineage={sourceLineage} sourceQuality={sourceQuality} />
+          <SourceQualityPanel sourceQuality={sourceQuality} />
           <BriefingReportPanel markdown={briefingReport} />
           <CompanyResearchReportPanel markdown={companyResearchReport.markdown} />
         </Panel>
