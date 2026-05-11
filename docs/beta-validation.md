@@ -11,7 +11,7 @@ For local execution details and reporting format, see `docs/local-verification.m
 - `pnpm typecheck`
 - `pnpm test`
 - `pnpm build`
-- `pnpm exec playwright install --with-deps chromium`
+- `pnpm exec playwright install --with-deps chromium` (Linux/CI) or `pnpm exec playwright install chromium` (macOS/Windows)
 - `pnpm test:e2e`
 
 ## Required beta flows

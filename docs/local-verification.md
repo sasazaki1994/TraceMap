@@ -59,8 +59,12 @@ Run in this order:
 3. `pnpm typecheck`
 4. `pnpm test`
 5. `pnpm build`
-6. `pnpm exec playwright install --with-deps chromium`
+6. Install Playwright Chromium (pick your OS):
+   - Linux / CI: `pnpm exec playwright install --with-deps chromium`
+   - macOS / Windows: `pnpm exec playwright install chromium`
 7. `pnpm test:e2e`
+
+Use `--with-deps` on Linux/CI where system packages are installed by Playwright; use the non-`--with-deps` variant on macOS/Windows where those OS dependencies are preinstalled.
 
 These command names are aligned with `package.json` scripts and existing CLI invocations.
 
@@ -147,7 +151,7 @@ Use the following template directly in GitHub Issues/PRs.
 | `pnpm typecheck` | PASS / FAIL / SKIPPED | |
 | `pnpm test` | PASS / FAIL / SKIPPED | |
 | `pnpm build` | PASS / FAIL / SKIPPED | |
-| `pnpm exec playwright install --with-deps chromium` | PASS / FAIL / SKIPPED | |
+| `pnpm exec playwright install --with-deps chromium` (Linux/CI) or `pnpm exec playwright install chromium` (macOS/Windows) | PASS / FAIL / SKIPPED | |
 | `pnpm test:e2e` | PASS / FAIL / SKIPPED | |
 
 ## Manual Flow Results
@@ -202,7 +206,7 @@ Use the following template directly in GitHub Issues/PRs.
 - **DATABASE_URL missing**: set `.env` from `.env.example` and restart command shell.
 - **PostgreSQL not running**: run `docker compose up -d` and verify container health.
 - **Prisma client not generated**: run `pnpm db:generate` and retry checks.
-- **Playwright browser missing**: run `pnpm exec playwright install --with-deps chromium`.
+- **Playwright browser missing**: run `pnpm exec playwright install --with-deps chromium` on Linux/CI, or `pnpm exec playwright install chromium` on macOS/Windows.
 - **Playwright OS dependency / proxy issue**: capture apt/proxy error logs and mark as environment failure.
 - **OpenAI provider enabled without API key**: revert to mock provider for baseline, or set valid API key for OpenAI path.
 
