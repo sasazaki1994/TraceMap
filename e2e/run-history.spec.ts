@@ -24,7 +24,9 @@ test.describe("run-history", () => {
 
     await page.goto("/runs");
     await expect(page.getByTestId("run-history-page")).toBeVisible();
-    const empty = page.getByTestId("saved-investigations-empty");
+    await expect(page.getByTestId("run-history-status-filter")).toBeVisible();
+    await expect(page.getByTestId("run-history-search")).toBeVisible();
+    const empty = page.getByTestId("run-history-empty");
     const item = page.getByTestId("run-history-item");
     await expect(empty.or(item.first())).toBeVisible();
   });
@@ -44,7 +46,7 @@ test.describe("run-history", () => {
     await page.goto("/runs");
     const runItem = page.getByTestId("run-history-item").filter({ hasText: topic }).first();
     await expect(runItem).toBeVisible();
-    await runItem.getByTestId("saved-investigation-open-link").click();
+    await runItem.getByTestId("run-history-item-open").click();
     await expect(page).toHaveURL(/\/runs\//);
     await expect(page.getByTestId("mission-topic")).toContainText(topic);
   });
