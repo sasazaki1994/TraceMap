@@ -37,11 +37,19 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
       : shareLinks;
   }, [shareLinks, state.token]);
 
-  const makeShareUrl = (token: string) => {
+  const makeRelativeShareUrl = (token: string) => `/share/${token}`;
+
+  const makeAbsoluteShareUrl = (token: string) => {
     if (typeof window === "undefined") {
-      return `/share/${token}`;
+      return makeRelativeShareUrl(token);
     }
-    return `${window.location.origin}/share/${token}`;
+    return `${window.location.origin}${makeRelativeShareUrl(token)}`;
+  };
+
+  const formatDateTime = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toISOString();
   };
 
   async function handleCopy(url: string) {
@@ -77,7 +85,8 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
 
       <div data-testid="share-link-list" style={{ marginTop: 16, display: "grid", gap: 12 }}>
         {links.map((link, idx) => {
-          const url = makeShareUrl(link.token);
+          const displayUrl = makeRelativeShareUrl(link.token);
+          const copyUrl = makeAbsoluteShareUrl(link.token);
           const active = isShareLinkActive(link.expiresAt);
           return (
             <div
@@ -93,19 +102,19 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
                 data-testid={idx === 0 ? "share-url" : "share-link-url"}
                 style={{ marginBottom: 8, wordBreak: "break-all" }}
               >
-                {url}
+                {displayUrl}
               </p>
               <p data-testid="share-link-created-at" className="muted" style={{ marginBottom: 4 }}>
-                createdAt: {new Date(link.createdAt).toLocaleString()}
+                createdAt: {formatDateTime(link.createdAt)}
               </p>
               <p data-testid="share-link-expires-at" className="muted" style={{ marginBottom: 8 }}>
-                expiresAt: {link.expiresAt ? new Date(link.expiresAt).toLocaleString() : "never"}
+                expiresAt: {link.expiresAt ? formatDateTime(link.expiresAt) : "never"}
               </p>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <button
                   type="button"
                   data-testid="share-link-copy-button"
-                  onClick={() => void handleCopy(url)}
+                  onClick={() => void handleCopy(copyUrl)}
                 >
                   Copy
                 </button>
