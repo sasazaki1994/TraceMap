@@ -29,7 +29,7 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
           {
             id: `new-${state.token}`,
             token: state.token,
-            createdAt: new Date().toISOString(),
+            createdAt: "pending",
             expiresAt: null,
           },
           ...shareLinks,
@@ -105,7 +105,7 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
                 {displayUrl}
               </p>
               <p data-testid="share-link-created-at" className="muted" style={{ marginBottom: 4 }}>
-                createdAt: {formatDateTime(link.createdAt)}
+                createdAt: {link.createdAt === "pending" ? "pending" : formatDateTime(link.createdAt)}
               </p>
               <p data-testid="share-link-expires-at" className="muted" style={{ marginBottom: 8 }}>
                 expiresAt: {link.expiresAt ? formatDateTime(link.expiresAt) : "never"}
