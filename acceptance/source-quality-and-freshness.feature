@@ -21,3 +21,9 @@ Scenario: Briefing Report includes source quality summary
   Then the report should include a source quality summary
   And the report should mention unreachable or stale sources when present
   And the report should not hide source quality limitations
+
+Scenario: Run page shows dedicated source quality panel
+  Given an analysis run has completed
+  When the user opens the run detail page
+  Then the source quality panel should be visible
+  And source quality items should be listed when sources exist

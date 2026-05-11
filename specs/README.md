@@ -47,5 +47,6 @@ Each feature spec should describe:
 | Manual Source URL Intake v0.1 | [manual-source-url-intake.md](./manual-source-url-intake.md) |
 | Run History and Saved Investigations UI v0.1 | [run-history-and-saved-investigations.md](./run-history-and-saved-investigations.md) |
 | Share Link Management Lite v0.1 | [share-link-management-lite.md](./share-link-management-lite.md) |
+| Beta Readiness v0.1 | [beta-readiness.md](./beta-readiness.md) |
 
 - source-quality-and-freshness.md: Source Quality & Freshness Inspector v0.1 (derived quality signals, unknown caveats, report summary)

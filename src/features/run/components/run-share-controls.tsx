@@ -58,7 +58,7 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
   }
 
   return (
-    <Panel className="run-share-panel" data-testid="share-panel">
+    <Panel className="run-share-panel" data-testid="share-link-section">
       <div className="eyebrow">Share</div>
       <p className="muted" style={{ marginTop: 8, marginBottom: 12 }}>
         Create a read-only link so others can view this run without signing in.

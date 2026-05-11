@@ -64,7 +64,7 @@ export default async function SavedInvestigationsPage() {
   });
 
   return (
-    <main data-testid="saved-investigations-page">
+    <main data-testid="run-history-page">
       <PageContainer className="home-grid">
         <Panel>
           <div className="eyebrow">Run History</div>
@@ -89,7 +89,7 @@ export default async function SavedInvestigationsPage() {
               {runs.map((run) => {
                 const latestAnswer = run.answerSnapshots[0] ?? null;
                 return (
-                  <li key={run.id} data-testid="saved-investigation-item" className="saved-run-item">
+                  <li key={run.id} data-testid="run-history-item" className="saved-run-item">
                     <div className="saved-run-item-top">
                       <h2 data-testid="saved-investigation-topic" className="saved-run-topic">
                         {run.question}
