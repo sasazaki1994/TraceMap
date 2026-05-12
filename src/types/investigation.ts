@@ -5,7 +5,9 @@ export type InvestigationUnknownCategory =
   | "source"
   | "freshness"
   | "contradiction"
-  | "report";
+  | "report"
+  | "comparison"
+  | "scope";
 
 export type InvestigationUnknown = {
   id: string;
@@ -14,6 +16,8 @@ export type InvestigationUnknown = {
   severity: InvestigationUnknownSeverity;
   category: InvestigationUnknownCategory;
   suggestedNextAction: string;
+  relatedClaimIds?: string[];
+  relatedSourceIds?: string[];
 };
 
 export type SourceLineageLite = {
