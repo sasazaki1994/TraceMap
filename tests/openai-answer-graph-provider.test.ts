@@ -22,6 +22,15 @@ const baseStructured = {
       id: "c1",
       summary: "Claim one.",
       supported_by_source_ids: ["s1"],
+      support_relations: [
+        {
+          source_id: "s1",
+          support_kind: "direct" as const,
+          is_primary_source: true,
+          supporting_quote: "Quoted support.",
+          contradiction_note: "Scope is limited.",
+        },
+      ],
     },
   ],
   sources: [
@@ -208,6 +217,15 @@ describe("realOpenAiAnswerGraphProvider", () => {
     expect(result.payload.evidence?.claims[0]?.supportedSourcePlaceholderIds).toContain(
       "__src_0__",
     );
+    expect(result.payload.evidence?.claims[0]?.supports).toEqual([
+      {
+        sourcePlaceholderId: "__src_0__",
+        supportKind: "direct",
+        isPrimarySource: true,
+        supportingQuote: "Quoted support.",
+        contradictionNote: "Scope is limited.",
+      },
+    ]);
     expect(result.payload.evidence?.alert).toEqual({
       level: "info",
       message: "Heuristic note.",
@@ -244,6 +262,7 @@ describe("realOpenAiAnswerGraphProvider", () => {
 
     expect(systemMessage?.content).toContain("investigation mission results");
     expect(systemMessage?.content).toContain("Do not provide investment advice");
+    expect(systemMessage?.content).toContain("include support_relations");
     expect(userMessage?.content).toContain("Research topic:");
     expect(userMessage?.content).toContain("Investigation Mission briefing");
     expect(userMessage?.content).not.toContain("Available source candidates");
@@ -308,6 +327,34 @@ describe("realOpenAiAnswerGraphProvider", () => {
   });
 
 
+
+
+  it("includes support_relations in strict response schema", async () => {
+    process.env.TRACEMAP_OPENAI_API_KEY = "sk-test";
+    createCompletion.mockResolvedValue({
+      choices: [{ message: { content: JSON.stringify(baseStructured) } }],
+    });
+
+    const { realOpenAiAnswerGraphProvider } = await import(
+      "@/server/analysis/providers/openai-answer-graph-provider"
+    );
+
+    const result = await realOpenAiAnswerGraphProvider.generateAnswerGraph({
+      question: "Q",
+    });
+
+    expect(result.kind).toBe("success");
+    const request = createCompletion.mock.calls.at(-1)?.[0] as
+      | {
+          response_format?: {
+            json_schema?: { schema?: { properties?: { claims?: { items?: { properties?: Record<string, unknown> } } } } };
+          };
+        }
+      | undefined;
+    const claimProperties = request?.response_format?.json_schema?.schema?.properties?.claims?.items?.properties;
+    expect(claimProperties).toBeDefined();
+    expect(claimProperties).toHaveProperty("support_relations");
+  });
 
   it("adds compact source context when sourceCandidates are provided", async () => {
     process.env.TRACEMAP_OPENAI_API_KEY = "sk-test";

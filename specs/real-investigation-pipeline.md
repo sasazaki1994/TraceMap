@@ -119,3 +119,54 @@ See `acceptance/real-investigation-pipeline.feature`.
 - Web Search and retrieval-backed source discovery.
 - Background job orchestration for longer-running investigations.
 - Streaming progress updates after the synchronous slice is stable.
+
+## OpenAI support relations alignment
+
+### Purpose
+Align the OpenAI Structured Output schema with downstream support-relation persistence so claim-source evidence metadata can be generated under strict JSON schema mode.
+
+### User value
+- Claim evidence quality is more transparent because support kind, primary-source flags, supporting quotes, and contradiction notes can be returned and persisted.
+- Source Quality and confidence signals are computed from richer per-source claim support metadata without changing the persisted schema.
+
+### Scope
+- Extend OpenAI structured schema to allow `claims[].support_relations`.
+- Keep `support_relations[].source_id` aligned to `sources[].id` and `claims[].supported_by_source_ids`.
+- Keep support relation shape aligned with existing `StructuredSupportRelation` (`support_kind`, `is_primary_source`, optional `supporting_quote`, optional `contradiction_note`).
+- Update OpenAI system prompt to request support relations when available and prohibit fabricated quotes or over-claiming primary source authority.
+- Preserve existing normalization and persistence pipeline behavior, while safely dropping invalid support relations that do not map to retained supported source ids.
+
+### Non-goals
+- No DB schema or migration changes.
+- No run/result UI redesign.
+- No provider migration to a different OpenAI API surface.
+
+### Existing implementation constraints
+- `TRACEMAP_ANSWER_GRAPH_PROVIDER=mock` remains default.
+- `sufficient_grounding`, URL validation, minimum source count, and claim-source reference checks must remain unchanged.
+- Investigation Depth Mode limits continue to bound max sources/claims/support payload size.
+
+### Provider schema requirements
+- `claims.items.properties.support_relations` is an array with maxItems equal to source limit.
+- Required support relation fields are `source_id`, `support_kind`, `is_primary_source`.
+- `support_kind` enum is `direct | supplemental | indirect`.
+- Optional `supporting_quote` is capped by source excerpt max length.
+- Optional `contradiction_note` is allowed.
+
+### Validation requirements
+- Legacy payloads without `support_relations` remain valid.
+- Relation entries with unknown/trimmed-out source ids or ids not listed in retained `supported_by_source_ids` are dropped during normalization.
+- Existing hard-failure rules for invalid source references in `supported_by_source_ids` remain unchanged.
+
+### Persistence requirements
+- Persisted claim support rows continue mapping to `ClaimSourceSnapshot` with support kind, primary-source flag, supporting quote, and contradiction note.
+- Claim confidence and derived alert behavior continues using persisted support metadata.
+
+### Test requirements
+- Provider schema includes `support_relations` under claims.
+- Valid support relations pass validation and reach generated payload supports.
+- Invalid support relation source ids are safely dropped without breaking valid claims.
+- Existing insufficient grounding / invalid URL / unknown claim source validation failures remain.
+
+### Acceptance references
+- `acceptance/real-investigation-pipeline.feature` scenarios for support relation schema and persistence alignment.
