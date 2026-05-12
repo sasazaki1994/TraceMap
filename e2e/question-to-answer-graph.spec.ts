@@ -95,6 +95,8 @@ test.describe("investigation-mode", () => {
     await expect(page.getByTestId("briefing-report-markdown")).toContainText(
       "# Briefing Report",
     );
+    await expect(page.getByTestId("copy-markdown-button")).toHaveCount(1);
+    await expect(page.getByTestId("download-markdown-button")).toHaveCount(1);
 
     await page.getByTestId("source-row").first().click();
     await expect(page.getByTestId("source-detail-panel")).toContainText(
