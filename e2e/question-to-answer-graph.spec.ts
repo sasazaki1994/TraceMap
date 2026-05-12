@@ -48,7 +48,7 @@ test.describe("investigation-mode", () => {
     await expect(alertRow).toHaveAttribute("data-alert-level", "warning");
     await expect(alertRow.getByTestId("run-alert-level")).toHaveText(/Warning/i);
 
-    await expect(page.getByTestId("run-graph")).toBeVisible();
+    await expect(page.getByTestId("evidence-map")).toBeVisible();
     await expect(page.getByTestId("run-claim-graph-link").first()).toContainText(
       "node_claim_0",
     );
@@ -136,7 +136,7 @@ test.describe("investigation-mode", () => {
     expect(page.url()).not.toBe(firstRunUrl);
 
     await expect(page.getByTestId("run-answer")).toContainText("Mock trace snapshot");
-    await expect(page.getByTestId("run-graph")).toBeVisible();
+    await expect(page.getByTestId("evidence-map")).toBeVisible();
     await expect(page.getByTestId("unknown-map-panel")).toBeVisible();
     await expect(page.getByTestId("source-lineage-panel")).toBeVisible();
     await expect(page.getByTestId("briefing-report-panel")).toBeVisible();

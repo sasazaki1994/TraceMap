@@ -10,6 +10,8 @@ type MarkdownExportActionsProps = {
   copyButtonTestId: string;
   downloadButtonTestId: string;
   copyStatusTestId: string;
+  copyButtonLegacyTestId?: string;
+  downloadButtonLegacyTestId?: string;
 };
 
 export function MarkdownExportActions({
@@ -18,6 +20,8 @@ export function MarkdownExportActions({
   copyButtonTestId,
   downloadButtonTestId,
   copyStatusTestId,
+  copyButtonLegacyTestId,
+  downloadButtonLegacyTestId,
 }: MarkdownExportActionsProps) {
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
 
@@ -56,13 +60,20 @@ export function MarkdownExportActions({
   return (
     <div className="report-export-actions">
       <div className="report-export-buttons">
-        <button type="button" className="ghost-button" data-testid={copyButtonTestId} onClick={handleCopy}>
+        <button
+          type="button"
+          className="ghost-button"
+          data-testid={copyButtonTestId}
+          data-legacy-testid={copyButtonLegacyTestId}
+          onClick={handleCopy}
+        >
           Copy Markdown
         </button>
         <button
           type="button"
           className="ghost-button"
           data-testid={downloadButtonTestId}
+          data-legacy-testid={downloadButtonLegacyTestId}
           onClick={handleDownload}
         >
           Download .md

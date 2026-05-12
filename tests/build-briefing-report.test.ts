@@ -95,7 +95,7 @@ describe("buildBriefingReport", () => {
     expect(markdown).toContain("No executive summary is available yet.");
     expect(markdown).toContain("- No key claims are available yet.");
     expect(markdown).toContain("- No supporting sources are available yet.");
-    expect(markdown).toContain("- No unresolved unknowns are currently highlighted.");
+    expect(markdown).toContain("- No critical unknowns detected in this beta run.");
     expect(markdown).toContain("- No source lineage summary is available yet.");
     expect(markdown).not.toContain("undefined");
     expect(markdown).not.toContain("null");

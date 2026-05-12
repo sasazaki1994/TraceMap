@@ -13,9 +13,11 @@ export function BriefingReportPanel({ markdown }: BriefingReportPanelProps) {
       <MarkdownExportActions
         markdown={markdown}
         fileName={safeMarkdownFileName("briefing-report")}
-        copyButtonTestId="briefing-report-copy-button"
-        downloadButtonTestId="briefing-report-download-button"
+        copyButtonTestId="copy-markdown-button"
+        downloadButtonTestId="download-markdown-button"
         copyStatusTestId="briefing-report-copy-status"
+        copyButtonLegacyTestId="briefing-report-copy-button"
+        downloadButtonLegacyTestId="briefing-report-download-button"
       />
       <pre className="briefing-report-markdown" data-testid="briefing-report-markdown">
         {markdown}

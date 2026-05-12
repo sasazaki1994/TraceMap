@@ -45,6 +45,20 @@ Users can complete an end-to-end investigation flow from topic intake to evidenc
   - `copy-markdown-button`, `download-markdown-button`
   - `share-link-section`
 - Run history includes `run-history-page`, `run-history-item`
+- Evidence map test id is `evidence-map` (legacy `run-graph` may coexist during migration)
+- Briefing export test ids are `copy-markdown-button` and `download-markdown-button` (legacy IDs may coexist)
+
+## Beta completion checklist (v0.2 hardening)
+- Mock provider only flow completes without OpenAI credentials.
+- Landing → Start Investigation → Run detail panels render without blocking empty/loading/error states.
+- Source detail drilldown shows source URL, verification, claim links, and quality caveats.
+- Share link section is visible and read-only page clearly indicates shared mode.
+- Run history supports status filter + query search and empty state messaging.
+
+## Empty / Loading / Error baseline
+- Empty collections must render explicit helper copy (claims/sources/unknowns/quality/lineage/history).
+- Loading/submission states must disable primary actions to prevent duplicate actions.
+- Failure states must show investigation/share/history-safe fallback copy, not raw stack traces.
 
 ## Provider requirements
 - Mock provider must be sufficient for UI walkthroughs (claims/sources/alerts/counterpoints)

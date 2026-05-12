@@ -453,7 +453,7 @@ export function RunResultView({
           <h3 className="run-question-label" style={{ marginTop: "1.25rem" }}>
             Evidence graph
           </h3>
-          <div className="run-graph-wrap" data-testid="run-graph">
+          <div className="run-graph-wrap" data-testid="evidence-map" data-legacy-testid="run-graph">
             {graph.nodes.length === 0 ? (
               <p className="muted">
                 Evidence map is not available yet. Start an investigation from a research

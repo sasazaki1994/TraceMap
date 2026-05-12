@@ -16,16 +16,11 @@ type BuildBriefingReportInput = {
 function linesOrFallback<T>(items: T[], format: (item: T) => string, fallback: string): string[] {
   return items.length === 0 ? [`- ${fallback}`] : items.map(format);
 }
-
 const nonEmpty = (value: string, fallback: string) => value.trim() || fallback;
 
 export function buildBriefingReport(input: BuildBriefingReportInput): string {
   const { researchTopic, answerContent, evidenceClaims, sources, unknowns, sourceLineage, sourceQuality } = input;
-  const qualityCount = { strong: 0, usable: 0, limited: 0, weak: 0 } as Record<string, number>;
-  for (const signal of sourceQuality) qualityCount[signal.quality] += 1;
-  const qualityIssues = sourceQuality.filter(
-    (signal) => signal.freshness === "stale" || signal.reachability === "unreachable" || signal.reachability === "invalid",
-  );
+  const generatedAt = new Date().toISOString();
 
   return [
     "# Briefing Report",
@@ -45,19 +40,8 @@ export function buildBriefingReport(input: BuildBriefingReportInput): string {
     ...linesOrFallback(
       unknowns,
       (unknown) => `- [${unknown.severity.toUpperCase()}] ${nonEmpty(unknown.text, "Unspecified investigation gap")} — ${nonEmpty(unknown.suggestedNextAction, "Review this gap before reusing the finding.")}`,
-      "No unresolved unknowns are currently highlighted.",
+      "No critical unknowns detected in this beta run.",
     ),
-    "",
-    "## Source Quality Summary",
-    `- Strong: ${qualityCount.strong}`,
-    `- Usable: ${qualityCount.usable}`,
-    `- Limited: ${qualityCount.limited}`,
-    `- Weak: ${qualityCount.weak}`,
-    "",
-    "## Source Quality Notes",
-    ...(qualityIssues.length
-      ? qualityIssues.map((item) => `- ${item.label}: ${item.reachability} / ${item.freshness}`)
-      : ["- No major source quality caveats highlighted."]),
     "",
     "## Source Lineage Summary",
     ...linesOrFallback(
@@ -65,5 +49,18 @@ export function buildBriefingReport(input: BuildBriefingReportInput): string {
       (lineage) => `- ${nonEmpty(lineage.label, "Untitled source")}: ${nonEmpty(lineage.lineageLabel, "Lineage not available")}; type=${lineage.sourceType}; published=${lineage.publishedAt ?? "Unknown"}`,
       "No source lineage summary is available yet.",
     ),
+    "",
+    "## Source Quality Notes",
+    ...linesOrFallback(
+      sourceQuality,
+      (quality) => `- ${quality.label}: quality=${quality.quality}, freshness=${quality.freshness}, reachability=${quality.reachability}. ${quality.reasons[0] ?? ""}`,
+      "No source quality notes are available yet.",
+    ),
+    "",
+    "## Generated From",
+    `- Topic: ${nonEmpty(researchTopic, "Unknown")}`,
+    `- Generated at: ${generatedAt}`,
+    `- Source count: ${sources.length}`,
+    `- Claim count: ${evidenceClaims.length}`,
   ].join("\n");
 }
