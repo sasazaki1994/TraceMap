@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 
 import {
   createMockRunAction,
@@ -96,7 +97,7 @@ https://example.com/technical-doc`}
           </option>
         </select>
         {state.error ? <p className="form-error">{state.error}</p> : null}
-        {disabled ? <p className="form-error">Please sign in to start an investigation.</p> : null}
+        {disabled ? <p className="form-error">Please sign in to start an investigation. <Link href="/login">Sign in</Link></p> : null}
         <div className="question-actions">
           <button type="submit" disabled={isPending || disabled}>
             {isPending ? "Running investigation..." : "Start an Investigation"}

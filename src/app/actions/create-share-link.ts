@@ -23,7 +23,10 @@ export async function createShareLinkAction(
     const token = await createShareLinkForRun(raw.trim(), user.id);
     return { token };
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Failed to create share link.";
-    return { error: message };
+    console.error("[share] createShareLinkAction failed", { cause: e, analysisRunId: raw.trim() });
+    const safeMessage = e instanceof Error && e.message === "Analysis run not found."
+      ? "Analysis run not found."
+      : "Failed to create share link.";
+    return { error: safeMessage };
   }
 }

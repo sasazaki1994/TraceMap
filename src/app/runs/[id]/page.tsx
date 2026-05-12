@@ -26,7 +26,6 @@ export default async function RunPage({ params }: RunPageProps) {
   const run = await prisma.analysisRun.findUnique({
     where: { id },
     include: {
-      ownerId: true,
       shareLinks: {
         orderBy: { createdAt: "desc" },
         select: {
