@@ -302,6 +302,30 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
       ],
       alerts: [{ level: "warning", message: "Mock claim alert: note-type sources are not publicly verifiable." }],
     },
+    {
+      summary:
+        "Cross-source consistency is partially unresolved and should be verified against fresh public evidence (mock).",
+      graphNodeId: "node_claim_0",
+      supportedSourcePlaceholderIds: ["__src_1__"],
+      supports: [
+        {
+          sourcePlaceholderId: "__src_1__",
+          supportKind: "supplemental",
+          isPrimarySource: false,
+        },
+      ],
+      counterpoints: [
+        {
+          summary: "Mock counterpoint: claim may be time-sensitive and requires recency checks.",
+          relationKind: "temporal_mismatch",
+        },
+      ],
+      propagationChain: [
+        { stepKind: "source", order: 0, label: "Retrieval quality notes (mock)", sourcePlaceholderId: "__src_1__" },
+        { stepKind: "claim", order: 1, label: "Consistency gap (mock)", claimGraphNodeId: "node_claim_0" },
+      ],
+      alerts: [{ level: "warning", message: "Mock claim alert: supporting evidence is limited to one non-primary source." }],
+    },
   ];
 
   return {
@@ -316,7 +340,7 @@ export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | st
       sources,
       evidence: {
         claims: claims
-          .slice(0, Math.min(limits.maxClaims, mode === "fast" ? 1 : 2))
+          .slice(0, Math.min(limits.maxClaims, mode === "fast" ? 1 : 3))
           .map((claim) => ({
             ...claim,
             counterpoints: claim.counterpoints?.slice(0, limits.maxCounterpointsPerClaim),

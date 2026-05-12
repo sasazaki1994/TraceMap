@@ -44,7 +44,7 @@ test.describe("source-detail-and-sharing", () => {
     await expect(page.getByTestId("mission-header")).toBeVisible();
     await expect(page.getByTestId("investigation-timeline")).toBeVisible();
     await expect(page.getByTestId("run-answer")).toBeVisible();
-    await expect(page.getByTestId("run-graph")).toBeVisible();
+    await expect(page.getByTestId("evidence-map")).toBeVisible();
     await expect(page.getByTestId("unknown-map-panel")).toBeVisible();
     await expect(page.getByTestId("source-lineage-panel")).toBeVisible();
     await expect(page.getByTestId("briefing-report-panel")).toBeVisible();
