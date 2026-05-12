@@ -42,3 +42,8 @@
 
 | Closed Beta Readiness v0.1 (incremental) | `closed-beta-readiness.feature` |
 | Basic Auth and Owner Scope | `basic-auth-and-owner-scope.feature` |
+
+| Source Quality and Evidence Accuracy | `source-quality-and-evidence-accuracy.feature` |
+| Source Detail Evidence Drilldown | `source-detail-evidence-drilldown.feature` |
+| Unknown Map Categorization | `unknown-map-categorization.feature` |
+| Report Export and Templates | `report-export-and-templates.feature` |
