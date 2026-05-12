@@ -79,7 +79,7 @@ describe("buildBriefingReport", () => {
     expect(markdown).toContain("## Unknowns / Open Questions");
     expect(markdown).toContain("[MEDIUM] Primary source is missing.");
     expect(markdown).toContain("## Source Quality Summary");
-    expect(markdown).toContain("## Source Quality Notes");
+    expect(markdown).toContain("### Notes");
     expect(markdown).toContain("## Source Lineage Summary");
     expect(markdown).toContain("Primary evidence");
     expect(markdown).not.toContain("undefined");
@@ -168,11 +168,12 @@ describe("buildBriefingReport", () => {
           sourceId: "src-1",
           label: "Industry report",
           quality: "weak",
-          freshness: "possibly_stale",
+          freshness: "stale",
           reachability: "unchecked",
           reasons: ["Needs verification."],
           linkedClaimCount: 1,
           hasSupportingQuote: true,
+          warnings: [],
         },
       ],
     });
@@ -180,7 +181,7 @@ describe("buildBriefingReport", () => {
     expect(markdown.toLowerCase()).not.toContain("investment advice");
     expect(markdown.toLowerCase()).not.toContain("buy recommendation");
     expect(markdown.toLowerCase()).not.toContain("sell recommendation");
-    expect(markdown).toContain("Weak / Possibly stale / Unchecked");
+    expect(markdown).toContain("Weak / Stale / Unchecked");
   });
 
   it("avoids unsafe URLs in markdown links", () => {

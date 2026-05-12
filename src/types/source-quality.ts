@@ -1,12 +1,13 @@
-export type SourceQualityLevel = "strong" | "usable" | "limited" | "weak";
+export type SourceQualityLevel = "strong" | "usable" | "limited" | "weak" | "unknown";
 
-export type SourceFreshnessLevel = "fresh" | "possibly_stale" | "stale" | "unknown";
+export type SourceFreshnessLevel = "fresh" | "stale" | "unknown";
 
 export type SourceReachabilityLevel =
   | "reachable"
   | "unreachable"
   | "invalid"
-  | "unchecked";
+  | "unchecked"
+  | "unknown";
 
 export type SourceQualityInspection = {
   sourceId: string;
@@ -15,7 +16,8 @@ export type SourceQualityInspection = {
   freshness: SourceFreshnessLevel;
   reachability: SourceReachabilityLevel;
   reasons: string[];
-  suggestedAction?: string;
+  warnings: string[];
+  suggestedNextAction?: string;
   isPrimarySource?: boolean;
   sourceType?: string | null;
   publishedAt?: string | null;
