@@ -3,64 +3,23 @@ import type { InvestigationUnknown, SourceLineageLite } from "@/types/investigat
 import type { SourceQualitySignal } from "@/types/source-quality";
 import type { RunEvidenceClaim } from "@/types/run-evidence";
 
-type BuildBriefingReportInput = {
-  researchTopic: string;
-  answerContent: string;
-  evidenceClaims: RunEvidenceClaim[];
-  sources: RunSourceView[];
-  unknowns: InvestigationUnknown[];
-  sourceLineage: SourceLineageLite[];
-  sourceQuality: SourceQualitySignal[];
-};
-
-function linesOrFallback<T>(items: T[], format: (item: T) => string, fallback: string): string[] {
-  return items.length === 0 ? [`- ${fallback}`] : items.map(format);
-}
-const nonEmpty = (value: string, fallback: string) => value.trim() || fallback;
+type BuildBriefingReportInput = { researchTopic: string; answerContent: string; evidenceClaims: RunEvidenceClaim[]; sources: RunSourceView[]; unknowns: InvestigationUnknown[]; sourceLineage: SourceLineageLite[]; sourceQuality: SourceQualitySignal[]; };
+const nonEmpty = (v: string, f: string) => v.trim() || f;
+const safeUrl=(v:string|null|undefined)=>{if(!v) return ""; try{const u=new URL(v); return ["http:","https:"].includes(u.protocol)?u.toString():"";}catch{return ""}};
+const label={strong:"Strong",usable:"Usable",limited:"Limited",weak:"Weak"} as const;
 
 export function buildBriefingReport(input: BuildBriefingReportInput): string {
-  const { researchTopic, answerContent, evidenceClaims, sources, unknowns, sourceLineage, sourceQuality } = input;
   const generatedAt = new Date().toISOString();
-
+  const qCounts = { strong:0, usable:0, limited:0, weak:0 };
+  input.sourceQuality.forEach((s)=>qCounts[s.quality]++);
   return [
-    "# Briefing Report",
-    "",
-    "## Executive Summary",
-    `Research topic: ${nonEmpty(researchTopic, "No research topic is available.")}`,
-    "",
-    answerContent.trim() || "No executive summary is available yet.",
-    "",
-    "## Key Claims",
-    ...linesOrFallback(evidenceClaims, (claim) => `- ${nonEmpty(claim.summary, "Untitled claim")}`, "No key claims are available yet."),
-    "",
-    "## Supporting Sources",
-    ...linesOrFallback(sources, (source) => `- ${nonEmpty(source.label, "Untitled source")}${source.url ? ` (${source.url})` : ""}`, "No supporting sources are available yet."),
-    "",
-    "## Unknowns / Open Questions",
-    ...linesOrFallback(
-      unknowns,
-      (unknown) => `- [${unknown.severity.toUpperCase()}] ${nonEmpty(unknown.text, "Unspecified investigation gap")} — ${nonEmpty(unknown.suggestedNextAction, "Review this gap before reusing the finding.")}`,
-      "No critical unknowns detected in this beta run.",
-    ),
-    "",
-    "## Source Lineage Summary",
-    ...linesOrFallback(
-      sourceLineage,
-      (lineage) => `- ${nonEmpty(lineage.label, "Untitled source")}: ${nonEmpty(lineage.lineageLabel, "Lineage not available")}; type=${lineage.sourceType}; published=${lineage.publishedAt ?? "Unknown"}`,
-      "No source lineage summary is available yet.",
-    ),
-    "",
-    "## Source Quality Notes",
-    ...linesOrFallback(
-      sourceQuality,
-      (quality) => `- ${quality.label}: quality=${quality.quality}, freshness=${quality.freshness}, reachability=${quality.reachability}. ${quality.reasons[0] ?? ""}`,
-      "No source quality notes are available yet.",
-    ),
-    "",
-    "## Generated From",
-    `- Topic: ${nonEmpty(researchTopic, "Unknown")}`,
-    `- Generated at: ${generatedAt}`,
-    `- Source count: ${sources.length}`,
-    `- Claim count: ${evidenceClaims.length}`,
-  ].join("\n");
+    "# Briefing Report","","## Executive Summary", input.answerContent.trim() || "No executive summary is available yet.","",
+    "## Key Claims", ...(input.evidenceClaims.length?input.evidenceClaims.map(c=>`- ${nonEmpty(c.summary,'Untitled claim')}`):["- No key claims are available yet."]),"",
+    "## Supporting Sources", ...(input.sources.length?input.sources.map(s=>`- ${nonEmpty(s.label,'Untitled source')}${safeUrl(s.url)?` (${safeUrl(s.url)})`:''}`):["- No supporting sources are available yet."]),"",
+    "## Unknowns / Open Questions", ...(input.unknowns.length?input.unknowns.map(u=>`- [${u.severity.toUpperCase()}] ${nonEmpty(u.text,'Unspecified investigation gap')} — ${nonEmpty(u.suggestedNextAction,'Review this gap before reusing the finding.')}`):["- No critical unknowns detected in this beta run."]),"",
+    "## Source Quality Summary", `- Strong: ${qCounts.strong}`,`- Usable: ${qCounts.usable}`,`- Limited: ${qCounts.limited}`,`- Weak: ${qCounts.weak}`,"",
+    "## Source Quality Notes", ...(input.sourceQuality.length?input.sourceQuality.map(q=>`- ${q.label}: ${label[q.quality]} / ${q.freshness} / ${q.reachability}. ${q.reasons.join(' ')}`):["- No source quality notes are available yet."]),"",
+    "## Source Lineage Summary", ...(input.sourceLineage.length?input.sourceLineage.map(l=>`- ${nonEmpty(l.label,'Untitled source')}: ${nonEmpty(l.lineageLabel,'Lineage not available')}`):["- No source lineage summary is available yet."]),"",
+    "## Generated From", `- Topic: ${nonEmpty(input.researchTopic,'Unknown')}`, `- Generated at: ${generatedAt}`, `- Source count: ${input.sources.length}`, `- Claim count: ${input.evidenceClaims.length}`, `- Unknown count: ${input.unknowns.length}`,
+  ].join('\n');
 }

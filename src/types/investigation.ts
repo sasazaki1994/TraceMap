@@ -1,10 +1,18 @@
 export type InvestigationUnknownSeverity = "high" | "medium" | "low";
 
+export type InvestigationUnknownCategory =
+  | "evidence"
+  | "source"
+  | "freshness"
+  | "contradiction"
+  | "report";
+
 export type InvestigationUnknown = {
   id: string;
   text: string;
   reason: string;
   severity: InvestigationUnknownSeverity;
+  category: InvestigationUnknownCategory;
   suggestedNextAction: string;
 };
 

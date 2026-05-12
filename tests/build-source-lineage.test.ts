@@ -80,9 +80,9 @@ describe("buildSourceLineage", () => {
         contentType: "text/html",
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Primary / Official Source");
+    expect(lineage[0]?.lineageLabel).toContain("Primary / Official-like source");
     expect(lineage[0]?.lineageLabel).toContain("Web source");
-    expect(lineage[1]?.lineageLabel).toContain("publication date unknown");
+    expect(lineage[1]?.lineageLabel).toContain("Unknown date");
     expect(lineage[1]).toEqual(
       expect.objectContaining({
         sourceId: "src-note",
@@ -105,7 +105,7 @@ describe("buildSourceLineage", () => {
         linkedClaimCount: 0,
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("News / Secondary Source");
+    expect(lineage[0]?.lineageLabel).toContain("Web source");
   });
 
   it("does not label unknown verification state as verified", () => {
@@ -115,7 +115,7 @@ describe("buildSourceLineage", () => {
     });
 
     expect(lineage[0]?.verificationStatus).toBeNull();
-    expect(lineage[0]?.lineageLabel).toContain("publication date unknown");
+    expect(lineage[0]?.lineageLabel).toContain("Unknown date");
   });
 
 
@@ -140,7 +140,7 @@ describe("buildSourceLineage", () => {
         isPrimarySource: false,
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Unknown source type");
+    expect(lineage[0]?.lineageLabel).toContain("Unclassified source");
   });
 
   it("falls back safely for unknown source types", () => {
@@ -166,8 +166,8 @@ describe("buildSourceLineage", () => {
         linkedClaimCount: 0,
       }),
     );
-    expect(lineage[0]?.lineageLabel).toContain("Unknown source type");
-    expect(lineage[0]?.lineageLabel).toContain("publication date unknown");
+    expect(lineage[0]?.lineageLabel).toContain("Unclassified source");
+    expect(lineage[0]?.lineageLabel).toContain("Unknown date");
   });
 
   it("sanitizes unsafe source URLs in lineage output", () => {

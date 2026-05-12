@@ -37,6 +37,7 @@ const unknowns = [
     text: "Primary source is missing.",
     reason: "Primary or official evidence is missing.",
     severity: "medium",
+    category: "source",
     suggestedNextAction: "Check official or primary source.",
   },
 ] satisfies InvestigationUnknown[];
@@ -67,7 +68,7 @@ describe("buildBriefingReport", () => {
 
     expect(markdown).toContain("# Briefing Report");
     expect(markdown).toContain("## Executive Summary");
-    expect(markdown).toContain("Research topic: Compare domestic generative AI market players.");
+    expect(markdown).toContain("- Topic: Compare domestic generative AI market players.");
     expect(markdown).toContain("Executive summary body.");
     expect(markdown).toContain("## Key Claims");
     expect(markdown).toContain("The market contains several competing AI platform vendors.");
@@ -75,9 +76,12 @@ describe("buildBriefingReport", () => {
     expect(markdown).toContain("Industry report (https://example.com/report)");
     expect(markdown).toContain("## Unknowns / Open Questions");
     expect(markdown).toContain("[MEDIUM] Primary source is missing.");
+    expect(markdown).toContain("## Source Quality Summary");
+    expect(markdown).toContain("## Source Quality Notes");
     expect(markdown).toContain("## Source Lineage Summary");
     expect(markdown).toContain("Primary evidence");
     expect(markdown).not.toContain("undefined");
+    expect(markdown).toContain("- Unknown count:");
     expect(markdown).not.toContain("null");
   });
 
@@ -98,6 +102,7 @@ describe("buildBriefingReport", () => {
     expect(markdown).toContain("- No critical unknowns detected in this beta run.");
     expect(markdown).toContain("- No source lineage summary is available yet.");
     expect(markdown).not.toContain("undefined");
+    expect(markdown).toContain("- Unknown count:");
     expect(markdown).not.toContain("null");
   });
 
@@ -136,7 +141,7 @@ describe("buildBriefingReport", () => {
       sourceQuality: [],
     });
 
-    expect(markdown).toContain("Research topic: No research topic is available.");
+    expect(markdown).toContain("- Topic: Unknown");
     expect(markdown).toContain("- Untitled claim");
     expect(markdown).toContain("- Untitled source");
     expect(markdown).toContain(
@@ -144,6 +149,7 @@ describe("buildBriefingReport", () => {
     );
     expect(markdown).toContain("- Untitled source: Lineage not available");
     expect(markdown).not.toContain("undefined");
+    expect(markdown).toContain("- Unknown count:");
     expect(markdown).not.toContain("null");
   });
 

@@ -11,7 +11,8 @@ export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[])
         text: signal.label,
         reason: "Source is unreachable.",
         severity: "high",
-        suggestedNextAction: "Replace or re-check the source URL.",
+        category: "source",
+      suggestedNextAction: "Replace or re-check the source URL.",
       });
     } else if (signal.reachability === "invalid") {
       unknowns.push({
@@ -19,7 +20,8 @@ export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[])
         text: signal.label,
         reason: "Source URL appears invalid.",
         severity: "high",
-        suggestedNextAction: "Replace or re-check the source URL.",
+        category: "source",
+      suggestedNextAction: "Replace or re-check the source URL.",
       });
     }
 
@@ -29,7 +31,8 @@ export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[])
         text: signal.label,
         reason: "A supporting source may be stale.",
         severity: "medium",
-        suggestedNextAction: "Verify whether newer primary or official sources exist.",
+        category: "source",
+      suggestedNextAction: "Verify whether newer primary or official sources exist.",
       });
     } else if (signal.freshness === "unknown") {
       unknowns.push({
@@ -37,7 +40,8 @@ export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[])
         text: signal.label,
         reason: "Source freshness is unknown.",
         severity: "medium",
-        suggestedNextAction: "Verify whether newer primary or official sources exist.",
+        category: "source",
+      suggestedNextAction: "Verify whether newer primary or official sources exist.",
       });
     }
 
@@ -47,7 +51,8 @@ export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[])
         text: signal.label,
         reason: "Source publication date is not available.",
         severity: "low",
-        suggestedNextAction: "Verify whether newer primary or official sources exist.",
+        category: "source",
+      suggestedNextAction: "Verify whether newer primary or official sources exist.",
       });
     }
 
@@ -57,7 +62,8 @@ export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[])
         text: signal.label,
         reason: "Source supports claims but has no supporting quote.",
         severity: "low",
-        suggestedNextAction: "Locate supporting quote or cited passage.",
+        category: "source",
+      suggestedNextAction: "Locate supporting quote or cited passage.",
       });
     }
 
@@ -67,7 +73,8 @@ export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[])
         text: signal.label,
         reason: "Source is not linked to any claim.",
         severity: "low",
-        suggestedNextAction:
+        category: "source",
+      suggestedNextAction:
           "Remove unused source from report if it does not support any claim.",
       });
     }

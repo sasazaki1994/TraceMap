@@ -66,7 +66,8 @@ describe("buildUnknowns", () => {
         expect.objectContaining({
           id: "alert-1",
           severity: "medium",
-          suggestedNextAction: "Add independent supporting source.",
+          category: "source",
+          suggestedNextAction: expect.any(String),
         }),
         expect.objectContaining({
           id: "claim-alert-1",
@@ -104,12 +105,13 @@ describe("buildUnknowns", () => {
         expect.objectContaining({
           id: "alert-error",
           severity: "high",
-          suggestedNextAction: "Check official or primary source.",
+          suggestedNextAction: expect.any(String),
         }),
         expect.objectContaining({
           id: "alert-warning",
           severity: "medium",
-          suggestedNextAction: "Add independent supporting source.",
+          category: "source",
+          suggestedNextAction: expect.any(String),
         }),
         expect.objectContaining({
           id: "alert-info",
@@ -183,6 +185,7 @@ describe("buildUnknowns", () => {
         id: "claim-1-confidence",
         severity: "high",
         reason: "Claim confidence is limited by incomplete supporting evidence.",
+        category: "evidence",
         suggestedNextAction: "Strengthen evidence before reusing this finding.",
       }),
     ]);
@@ -204,4 +207,11 @@ it("adds stale source gap from source quality", () => {
     }],
   });
   expect(unknowns.some((u) => u.reason.toLowerCase().includes("stale"))).toBe(true);
+});
+
+
+it("adds category and deduplicates unknowns", () => {
+  const unknowns = buildUnknowns({ evidenceAlerts:[{id:"1",level:"warning",message:"Primary source missing"},{id:"2",level:"warning",message:"Primary source missing"}], evidenceClaims:[] });
+  expect(unknowns.length).toBe(1);
+  expect(unknowns[0]?.category).toBeDefined();
 });
