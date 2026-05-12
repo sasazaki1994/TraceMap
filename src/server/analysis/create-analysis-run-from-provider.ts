@@ -17,6 +17,7 @@ import type { InvestigationMode } from "@/server/analysis/investigation-limits";
 export type CreateAnalysisRunOptions = {
   mode?: InvestigationMode;
   manualSourceUrls?: string[];
+  ownerId?: string;
 };
 
 /**
@@ -37,6 +38,7 @@ export async function createAnalysisRunFromProvider(
   const run = await prisma.analysisRun.create({
     data: {
       question,
+      ownerId: options.ownerId ?? null,
       status: "queued",
     },
   });

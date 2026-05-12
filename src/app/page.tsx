@@ -3,8 +3,11 @@ import { Panel } from "@/components/ui/panel";
 import { QuestionIntake } from "@/features/landing/components/question-intake";
 import Link from "next/link";
 import { siteConfig } from "@/lib/site";
+import { AuthStatus } from "@/components/auth/auth-status";
+import { getCurrentUser } from "@/server/auth/current-user";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const user = await getCurrentUser();
   return (
     <main>
       <PageContainer className="home-grid">
@@ -17,6 +20,7 @@ export default function HomePage() {
             <span>Prisma Ready</span>
             <span>Spec Driven</span>
           </div>
+          <AuthStatus />
           <div style={{ marginTop: "1rem" }}>
             <Link href="/runs" data-testid="saved-investigations-link" className="saved-run-link">
               Saved Investigations
@@ -24,7 +28,7 @@ export default function HomePage() {
           </div>
         </Panel>
 
-        <QuestionIntake />
+        <QuestionIntake disabled={!user} />
       </PageContainer>
     </main>
   );

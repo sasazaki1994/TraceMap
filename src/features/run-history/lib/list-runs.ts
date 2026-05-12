@@ -28,11 +28,12 @@ function toErrorPreview(value: string | null | undefined): string | null {
   return normalized.length > max ? `${normalized.slice(0, max).trim()}…` : normalized;
 }
 
-export async function listRunHistory(params: { status: RunHistoryStatusFilter; q: string }): Promise<RunHistoryItem[]> {
+export async function listRunHistory(params: { status: RunHistoryStatusFilter; q: string; ownerId: string }): Promise<RunHistoryItem[]> {
   const runs = await prisma.analysisRun.findMany({
     orderBy: { createdAt: "desc" },
     take: 50,
     where: {
+      ownerId: params.ownerId,
       ...(params.status !== "all" ? { status: params.status } : {}),
       ...(params.q ? { question: { contains: params.q } } : {}),
     },

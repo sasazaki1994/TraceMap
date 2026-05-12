@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 
 import {
   createMockRunAction,
@@ -10,7 +11,7 @@ import { Panel } from "@/components/ui/panel";
 
 const initialState: CreateRunFormState = {};
 
-export function QuestionIntake() {
+export function QuestionIntake({ disabled = false }: { disabled?: boolean }) {
   const [state, formAction, isPending] = useActionState(
     createMockRunAction,
     initialState,
@@ -43,7 +44,7 @@ export function QuestionIntake() {
           name="question"
           placeholder="例: トヨタ自動車のEV戦略について、成長要因・リスク・競合状況・未確認事項を根拠付きで整理する"
           rows={6}
-          disabled={isPending}
+          disabled={isPending || disabled}
           required
         />
         <div className="muted" data-testid="research-topic-examples" style={{ marginTop: "0.6rem" }}>
@@ -69,7 +70,7 @@ export function QuestionIntake() {
 https://example.com/press-release
 https://example.com/technical-doc`}
           rows={4}
-          disabled={isPending}
+          disabled={isPending || disabled}
           data-testid="manual-source-urls-input"
         />
         <label className="question-label" htmlFor="mode" style={{ marginTop: "1rem" }}>
@@ -82,7 +83,7 @@ https://example.com/technical-doc`}
           id="mode"
           name="mode"
           defaultValue="standard"
-          disabled={isPending}
+          disabled={isPending || disabled}
           data-testid="investigation-mode-selector"
         >
           <option value="fast" data-testid="investigation-mode-fast">
@@ -96,8 +97,9 @@ https://example.com/technical-doc`}
           </option>
         </select>
         {state.error ? <p className="form-error">{state.error}</p> : null}
+        {disabled ? <p className="form-error">Please sign in to start an investigation. <Link href="/login">Sign in</Link></p> : null}
         <div className="question-actions">
-          <button type="submit" disabled={isPending}>
+          <button type="submit" disabled={isPending || disabled}>
             {isPending ? "Running investigation..." : "Start an Investigation"}
           </button>
           <span className="muted">Closed Alpha demo path: mock mission creates an instant run.</span>

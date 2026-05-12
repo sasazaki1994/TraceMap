@@ -2,6 +2,7 @@
 
 import type { Route } from "next";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/server/auth/current-user";
 
 import { resolveInvestigationMode } from "@/server/analysis/investigation-limits";
 import { createAnalysisRunFromProvider } from "@/server/analysis/create-analysis-run-from-provider";
@@ -30,9 +31,15 @@ export async function createMockRunAction(
     return { error: manualSourceUrlsResult.message };
   }
 
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return { error: "Sign in is required to start an investigation." };
+  }
+
   const runId = await createAnalysisRunFromProvider(raw.trim(), {
     mode,
     manualSourceUrls: manualSourceUrlsResult.manualSourceUrls,
+    ownerId: currentUser.id,
   });
   redirect(`/runs/${runId}` as Route);
 }

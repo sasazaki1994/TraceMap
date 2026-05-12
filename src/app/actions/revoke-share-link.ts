@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { revokeShareLinkForRun } from "@/server/share/revoke-share-link";
+import { getCurrentUser } from "@/server/auth/current-user";
 
 export async function revokeShareLinkAction(params: {
   analysisRunId: string;
@@ -17,9 +18,12 @@ export async function revokeShareLinkAction(params: {
   }
 
   try {
+    const user = await getCurrentUser();
+    if (!user) return { ok: false, error: "Authentication required." };
     await revokeShareLinkForRun({
       analysisRunId: params.analysisRunId.trim(),
       shareLinkId: params.shareLinkId.trim(),
+      ownerId: user.id,
     });
     revalidatePath(`/runs/${params.analysisRunId.trim()}`);
     return { ok: true };

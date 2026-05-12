@@ -9,9 +9,9 @@ function newShareToken(): string {
 /**
  * Creates a read-only share link row for an analysis run. Returns the opaque token.
  */
-export async function createShareLinkForRun(analysisRunId: string): Promise<string> {
+export async function createShareLinkForRun(analysisRunId: string, ownerId: string): Promise<string> {
   const run = await prisma.analysisRun.findUnique({
-    where: { id: analysisRunId },
+    where: { id: analysisRunId, ownerId },
     select: { id: true },
   });
 
