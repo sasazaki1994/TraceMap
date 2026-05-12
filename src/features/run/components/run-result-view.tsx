@@ -58,6 +58,7 @@ type RunResultViewProps = {
   evidenceAlerts?: RunEvidenceAlert[];
   /** Shown when the run did not complete successfully (e.g. failed pipeline). */
   runStatusBanner?: string | null;
+  runId?: string;
 };
 
 const GRAPH_W = 420;
@@ -192,6 +193,7 @@ export function RunResultView({
   evidenceClaims = [],
   evidenceAlerts = [],
   runStatusBanner,
+  runId,
 }: RunResultViewProps) {
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [selectedGraphNodeId, setSelectedGraphNodeId] = useState<string | null>(
@@ -851,7 +853,7 @@ export function RunResultView({
 
           <SourceLineagePanel sourceLineage={sourceLineage} sourceQuality={sourceQuality} />
           <SourceQualityPanel sourceQuality={sourceQuality} />
-          <BriefingReportPanel markdown={briefingReport} />
+          <BriefingReportPanel runId={runId} briefingMarkdown={briefingReport} companyResearchMarkdown={companyResearchReport.markdown} />
           <CompanyResearchReportPanel markdown={companyResearchReport.markdown} />
         </Panel>
       </div>

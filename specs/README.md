@@ -48,8 +48,10 @@ Each feature spec should describe:
 | Run History and Saved Investigations UI v0.1 | [run-history-and-saved-investigations.md](./run-history-and-saved-investigations.md) |
 | Share Link Management Lite v0.1 | [share-link-management-lite.md](./share-link-management-lite.md) |
 | Beta Readiness v0.1 | [beta-readiness.md](./beta-readiness.md) |
-
 | Source Quality & Freshness Inspector v0.1 | [source-quality-and-freshness-inspector.md](./source-quality-and-freshness-inspector.md) |
-
 | Closed Beta Readiness v0.1 (incremental) | [closed-beta-readiness.md](./closed-beta-readiness.md) |
 | Basic Auth and Owner Scope v0.1 | [basic-auth-and-owner-scope.md](./basic-auth-and-owner-scope.md) |
+| Source Quality and Evidence Accuracy v0.1 | [source-quality-and-evidence-accuracy.md](./source-quality-and-evidence-accuracy.md) |
+| Source Detail Evidence Drilldown v0.1 | [source-detail-evidence-drilldown.md](./source-detail-evidence-drilldown.md) |
+| Unknown Map Categorization v0.1 | [unknown-map-categorization.md](./unknown-map-categorization.md) |
+| Report Export and Templates v0.1 | [report-export-and-templates.md](./report-export-and-templates.md) |
