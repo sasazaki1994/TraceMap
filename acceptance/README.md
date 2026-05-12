@@ -39,3 +39,5 @@
 | Beta Readiness | `beta-readiness.feature` |
 
 | Source Quality & Freshness Inspector v0.1 | `source-quality-and-freshness-inspector.feature` |
+
+| Closed Beta Readiness v0.1 (incremental) | `closed-beta-readiness.feature` |

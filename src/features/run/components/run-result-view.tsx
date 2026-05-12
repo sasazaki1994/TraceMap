@@ -723,7 +723,7 @@ export function RunResultView({
                                   {support.sourceLabel}
                                 </p>
                                 {support.supportingQuote ? (
-                                  <p className="claim-support-quote">
+                                  <p className="claim-support-quote" data-testid="source-supporting-quote">
                                     &quot;{support.supportingQuote}&quot;
                                   </p>
                                 ) : null}
@@ -998,6 +998,7 @@ export function RunResultView({
                         <li
                           key={`${selectedSource.id}-${claim.id}`}
                           className="claim-support-item"
+                          data-testid="source-related-claim"
                         >
                           <div className="claim-support-header">
                             <span className="claim-support-kind">
@@ -1009,7 +1010,7 @@ export function RunResultView({
                           </div>
                           <p className="source-list-item-title">{claim.summary}</p>
                           {support.supportingQuote ? (
-                            <p className="claim-support-quote">
+                            <p className="claim-support-quote" data-testid="source-supporting-quote">
                               &quot;{support.supportingQuote}&quot;
                             </p>
                           ) : null}
