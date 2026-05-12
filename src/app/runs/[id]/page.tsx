@@ -10,6 +10,7 @@ import { type RunShareLinkView } from "@/features/run/share-link-status";
 import { mapAnswerEvidenceForView } from "@/server/analysis/map-run-evidence";
 import { selectLatestAnswerSnapshotForView } from "@/server/analysis/select-latest-answer-snapshot";
 import { prisma } from "@/server/db/prisma";
+import { getCurrentUser } from "@/server/auth/current-user";
 import { parseAnswerGraphJson } from "@/types/answer-graph";
 
 type RunPageProps = {
@@ -19,9 +20,13 @@ type RunPageProps = {
 export default async function RunPage({ params }: RunPageProps) {
   const { id } = await params;
 
+  const user = await getCurrentUser();
+  if (!user) notFound();
+
   const run = await prisma.analysisRun.findUnique({
     where: { id },
     include: {
+      ownerId: true,
       shareLinks: {
         orderBy: { createdAt: "desc" },
         select: {
@@ -75,7 +80,7 @@ export default async function RunPage({ params }: RunPageProps) {
     },
   });
 
-  if (!run) {
+  if (!run || run.ownerId !== user.id) {
     notFound();
   }
 

@@ -1,0 +1,3 @@
+import { prisma } from "@/server/db/prisma";
+function resolveBetaAccessCode(): string { const code = process.env.TRACEMAP_BETA_ACCESS_CODE?.trim(); if (code) return code; if (process.env.NODE_ENV === "production") throw new Error("TRACEMAP_BETA_ACCESS_CODE is required in production."); return "tracemap-beta"; }
+export async function loginWithBetaAccess(params: { email: string; accessCode: string }) { const email = params.email.trim().toLowerCase(); if (!email || params.accessCode !== resolveBetaAccessCode()) throw new Error("Invalid login credentials."); return prisma.user.upsert({ where: { email }, update: {}, create: { email }, select: { id: true, email: true } }); }

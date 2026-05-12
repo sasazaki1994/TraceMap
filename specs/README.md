@@ -52,3 +52,4 @@ Each feature spec should describe:
 | Source Quality & Freshness Inspector v0.1 | [source-quality-and-freshness-inspector.md](./source-quality-and-freshness-inspector.md) |
 
 | Closed Beta Readiness v0.1 (incremental) | [closed-beta-readiness.md](./closed-beta-readiness.md) |
+| Basic Auth and Owner Scope v0.1 | [basic-auth-and-owner-scope.md](./basic-auth-and-owner-scope.md) |

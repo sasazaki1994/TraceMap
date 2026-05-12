@@ -1,11 +1,13 @@
 import { prisma } from "@/server/db/prisma";
 
 export async function revokeShareLinkForRun(params: {
+  ownerId: string;
   analysisRunId: string;
   shareLinkId: string;
 }): Promise<void> {
   const result = await prisma.shareLink.updateMany({
     where: {
+      analysisRun: { is: { ownerId: params.ownerId } },
       id: params.shareLinkId,
       analysisRunId: params.analysisRunId,
     },

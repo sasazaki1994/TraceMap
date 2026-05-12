@@ -1,5 +1,7 @@
 export const dynamic = "force-dynamic";
 
+import { redirect } from "next/navigation";
+
 import { PageContainer } from "@/components/ui/page-container";
 import { Panel } from "@/components/ui/panel";
 import { RunHistoryView } from "@/features/run-history/components/run-history-view";
@@ -8,6 +10,7 @@ import {
   normalizeRunHistorySearchQuery,
   parseRunHistoryStatusFilter,
 } from "@/features/run-history/lib/list-runs";
+import { getCurrentUser } from "@/server/auth/current-user";
 
 export default async function SavedInvestigationsPage({
   searchParams,
@@ -19,7 +22,13 @@ export default async function SavedInvestigationsPage({
   const rawQ = typeof resolved.q === "string" ? resolved.q : undefined;
   const status = parseRunHistoryStatusFilter(rawStatus);
   const q = normalizeRunHistorySearchQuery(rawQ);
-  const items = await listRunHistory({ status, q });
+
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  const items = await listRunHistory({ status, q, ownerId: user.id });
 
   return (
     <main data-testid="run-history-page">

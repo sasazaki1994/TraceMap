@@ -73,12 +73,15 @@ model AnalysisRun {
   question          String
   status            AnalysisRunStatus @default(queued)
   lastErrorMessage  String?           @map("last_error_message")
+  ownerId          String?           @map("owner_id")
+  owner            User?             @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   answerSnapshots   AnswerSnapshot[]
   sourceSnapshots SourceSnapshot[]
   shareLinks      ShareLink[]
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
 
+  @@index([ownerId])
   @@map("analysis_runs")
 }
 
@@ -311,4 +314,15 @@ model Alert {
   @@index([answerSnapshotId])
   @@index([claimId])
   @@map("alerts")
+}
+
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  analysisRuns AnalysisRun[]
+
+  @@map("users")
 }
