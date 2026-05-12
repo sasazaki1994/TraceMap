@@ -92,3 +92,22 @@ Investigation Mode reuses the current persistence model:
 ## Acceptance references
 
 See `acceptance/investigation-mode.feature`.
+
+
+## Answer Graph v3 rendering alignment
+
+### Purpose
+Ensure Evidence Map rendering stays consistent with Answer Graph schema v3 by rendering all supported node kinds.
+
+### Scope
+- Extend SVG layout to assign positions to `counterclaim`, `interpretation`, and `answer_segment` nodes.
+- Keep v1/v2 graph rendering compatibility.
+- Keep existing source/claim/question/answer selection behavior intact.
+- Add graph rendering test hooks (`data-node-kind`, kind test ids, edge test ids).
+
+### Non-goals
+- No provider/schema, DB, or persistence changes.
+- No graph engine migration.
+
+### Acceptance references
+- `acceptance/investigation-mode.feature` Graph v3 rendering scenarios.
