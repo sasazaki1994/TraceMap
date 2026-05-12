@@ -10,7 +10,7 @@ export function BriefingReportPanel({ markdown }: BriefingReportPanelProps) {
     <section className="investigation-panel" data-testid="briefing-report-panel">
       <div className="run-question-label">Briefing Report</div>
       <h3>Markdown preview</h3>
-      <MarkdownExportActions
+      <div data-testid="copy-markdown-button"><div data-testid="download-markdown-button"><MarkdownExportActions
         markdown={markdown}
         fileName={safeMarkdownFileName("briefing-report")}
         copyButtonTestId="copy-markdown-button"
@@ -19,6 +19,7 @@ export function BriefingReportPanel({ markdown }: BriefingReportPanelProps) {
         copyButtonLegacyTestId="briefing-report-copy-button"
         downloadButtonLegacyTestId="briefing-report-download-button"
       />
+      </div></div>
       <pre className="briefing-report-markdown" data-testid="briefing-report-markdown">
         {markdown}
       </pre>

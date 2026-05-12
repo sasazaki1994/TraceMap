@@ -22,7 +22,7 @@ export function UnknownMapPanel({ unknowns }: UnknownMapPanelProps) {
             >
               <div className="claim-support-header">
                 <span className="claim-support-kind">
-                  {unknown.severity.toUpperCase()}
+                  {unknown.severity.toUpperCase()} · {unknown.category.toUpperCase()}
                 </span>
                 <span className="muted">{unknown.reason}</span>
               </div>
@@ -34,7 +34,7 @@ export function UnknownMapPanel({ unknowns }: UnknownMapPanelProps) {
           ))}
         </ul>
       ) : (
-        <p className="muted">No unresolved investigation gaps were detected in this run.</p>
+        <p className="muted">No unresolved investigation gaps were detected in this beta run.</p>
       )}
     </section>
   );

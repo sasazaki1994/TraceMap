@@ -13,7 +13,7 @@ describe("buildCompanyResearchReport", () => {
         { id: "c3", text: "Competition in the EV market is increasing." },
       ],
       sources: [{ id: "s1", title: "Investor update", url: "https://example.com/ir" }],
-      unknowns: [{ id: "u1", text: "Regional margin trend", reason: "Insufficient public disclosure", severity: "medium", suggestedNextAction: "" }],
+      unknowns: [{ id: "u1", text: "Regional margin trend", reason: "Insufficient public disclosure", severity: "medium", category: "source", suggestedNextAction: "" }],
       sourceLineage: [{ sourceId: "s1", label: "Investor update", sourceType: "web", lineageLabel: "Primary evidence", publishedAt: null, isPrimarySource: true, linkedClaimCount: 1 }],
     });
 

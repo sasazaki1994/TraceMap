@@ -37,25 +37,25 @@ function sourceTypeLabel(sourceType: string): string {
     case "document":
       return "Document source";
     case "note":
-      return "Research note";
+      return "User-provided note";
     default:
-      return "Unknown source type";
+      return "Unclassified source";
   }
 }
 
 function lineageCategory(params: { sourceType: string; isPrimarySource: boolean }): string {
   if (params.isPrimarySource) {
-    return "Primary / Official Source";
+    return "Primary / Official-like source";
   }
   switch (params.sourceType) {
     case "web":
-      return "News / Secondary Source";
+      return "Web source";
     case "document":
-      return "Commentary / Analysis Source";
+      return "Document source";
     case "note":
-      return "Social / Unverified Source";
+      return "User-provided note";
     default:
-      return "Unknown source type";
+      return "Unclassified source";
   }
 }
 
@@ -72,7 +72,8 @@ function buildLineageLabel(params: {
     }),
     sourceTypeLabel(params.sourceType),
     params.claimCount === 1 ? "linked to 1 claim" : `linked to ${params.claimCount} claims`,
-    params.publishedAt ? `published ${params.publishedAt}` : "publication date unknown",
+    params.publishedAt ? `published ${params.publishedAt}` : "Unknown date",
+    `verification ${params.isPrimarySource ? "primary-linked" : "not-primary"}`,
   ];
 
   return parts.join(" / ");
