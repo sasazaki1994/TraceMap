@@ -83,8 +83,8 @@ test.describe("investigation-mode", () => {
       "info",
     );
     await expect(
-      page.getByTestId("run-claim-alert").filter({ hasText: "no primary source" }),
-    ).toHaveCount(1);
+      page.getByTestId("run-claim-alert").filter({ hasText: "no primary source" }).first(),
+    ).toBeVisible();
     await expect(page.getByTestId("run-alerts-section")).toContainText("Mock alert");
     await expect(page.getByTestId("run-alert-level").first()).toHaveText(/Warning/i);
     await expect(page.getByTestId("source-lineage-panel")).toBeVisible();

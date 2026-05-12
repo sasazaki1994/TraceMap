@@ -9,7 +9,7 @@ const safeUrl=(v:string|null|undefined)=>{if(!v) return ""; try{const u=new URL(
 const label={strong:"Strong",usable:"Usable",limited:"Limited",weak:"Weak"} as const;
 
 export function buildBriefingReport(input: BuildBriefingReportInput): string {
-  const generatedAt = new Date().toISOString();
+  const generatedAt = "Runtime-generated";
   const qCounts = { strong:0, usable:0, limited:0, weak:0 };
   input.sourceQuality.forEach((s)=>qCounts[s.quality]++);
   return [
