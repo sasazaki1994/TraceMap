@@ -4,81 +4,36 @@ import type { SourceQualitySignal } from "@/types/source-quality";
 export function buildSourceQualityUnknowns(sourceQuality: SourceQualitySignal[]): InvestigationUnknown[] {
   return sourceQuality.flatMap((signal) => {
     const unknowns: InvestigationUnknown[] = [];
-
-    if (signal.reachability === "unreachable") {
+    if (signal.freshness === "unknown") {
       unknowns.push({
-        id: `${signal.sourceId}-source-unreachable`,
+        id: `${signal.sourceId}-freshness-unknown`,
         text: signal.label,
-        reason: "Source is unreachable.",
-        severity: "high",
-        category: "source",
-      suggestedNextAction: "Replace or re-check the source URL.",
-      });
-    } else if (signal.reachability === "invalid") {
-      unknowns.push({
-        id: `${signal.sourceId}-source-invalid`,
-        text: signal.label,
-        reason: "Source URL appears invalid.",
-        severity: "high",
-        category: "source",
-      suggestedNextAction: "Replace or re-check the source URL.",
+        reason: "This source does not expose a publication or update date.",
+        severity: "medium",
+        category: "freshness",
+        suggestedNextAction: "Verify publication date and recency.",
       });
     }
-
-    if (signal.freshness === "stale") {
+    if (signal.reachability === "unchecked") {
       unknowns.push({
-        id: `${signal.sourceId}-source-stale`,
+        id: `${signal.sourceId}-reachability-unchecked`,
         text: signal.label,
-        reason: "A supporting source may be stale.",
+        reason: "This source has not been verified for reachability.",
         severity: "medium",
         category: "source",
-      suggestedNextAction: "Verify whether newer primary or official sources exist.",
-      });
-    } else if (signal.freshness === "unknown") {
-      unknowns.push({
-        id: `${signal.sourceId}-source-freshness-unknown`,
-        text: signal.label,
-        reason: "Source freshness is unknown.",
-        severity: "medium",
-        category: "source",
-      suggestedNextAction: "Verify whether newer primary or official sources exist.",
+        suggestedNextAction: "Open the source and confirm it is accessible.",
       });
     }
-
-    if (!Boolean(signal.publishedAt)) {
+    if (signal.quality === "weak" || signal.quality === "limited") {
       unknowns.push({
-        id: `${signal.sourceId}-source-no-publication-date`,
+        id: `${signal.sourceId}-weak-quality`,
         text: signal.label,
-        reason: "Source publication date is not available.",
-        severity: "low",
+        reason: "This claim depends on a source with limited quality signals.",
+        severity: signal.quality === "weak" ? "high" : "medium",
         category: "source",
-      suggestedNextAction: "Verify whether newer primary or official sources exist.",
+        suggestedNextAction: "Add an official or independent supporting source.",
       });
     }
-
-    if (!signal.hasSupportingQuote && signal.linkedClaimCount > 0) {
-      unknowns.push({
-        id: `${signal.sourceId}-source-missing-quote`,
-        text: signal.label,
-        reason: "Source supports claims but has no supporting quote.",
-        severity: "low",
-        category: "source",
-      suggestedNextAction: "Locate supporting quote or cited passage.",
-      });
-    }
-
-    if (signal.linkedClaimCount === 0) {
-      unknowns.push({
-        id: `${signal.sourceId}-source-no-linked-claims`,
-        text: signal.label,
-        reason: "Source is not linked to any claim.",
-        severity: "low",
-        category: "source",
-      suggestedNextAction:
-          "Remove unused source from report if it does not support any claim.",
-      });
-    }
-
-    return unknowns.slice(0, 3);
+    return unknowns;
   });
 }

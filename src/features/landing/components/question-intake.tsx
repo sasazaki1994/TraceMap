@@ -98,7 +98,7 @@ https://example.com/technical-doc`}
         {state.error ? <p className="form-error">{state.error}</p> : null}
         <div className="question-actions">
           <button type="submit" disabled={isPending}>
-            {isPending ? "Running investigation..." : "Start an Investigation"}
+            {isPending ? "Running investigation..." : "Start Investigation"}
           </button>
           <span className="muted">Closed Alpha demo path: mock mission creates an instant run.</span>
         </div>

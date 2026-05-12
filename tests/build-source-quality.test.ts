@@ -43,7 +43,7 @@ describe("buildSourceQualityInspections", () => {
     expect(result.find((r) => r.sourceId === "u1")?.quality).toBe("limited");
   });
 
-  it("classifies verified published with no quote as limited", () => {
+  it("classifies verified published with no quote as strong", () => {
     const result = buildSourceQualityInspections({
       sources: [source({ id: "l1", publishedAt: "2025-01-01", verificationStatus: "verified" })],
       claimSupports: [
@@ -51,6 +51,6 @@ describe("buildSourceQualityInspections", () => {
       ],
       now: new Date("2026-05-11"),
     });
-    expect(result[0]?.quality).toBe("limited");
+    expect(result[0]?.quality).toBe("strong");
   });
 });

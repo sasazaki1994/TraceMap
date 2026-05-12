@@ -203,10 +203,10 @@ it("adds stale source gap from source quality", () => {
     evidenceClaims: [],
     sourceQuality: [{
       sourceId: "s1", label: "S1", quality: "weak", freshness: "stale", reachability: "reachable",
-      reasons: ["stale"], linkedClaimCount: 1, hasSupportingQuote: true,
+      reasons: ["stale"], warnings: [], linkedClaimCount: 1, hasSupportingQuote: true,
     }],
   });
-  expect(unknowns.some((u) => u.reason.toLowerCase().includes("stale"))).toBe(true);
+  expect(unknowns.some((u) => u.reason.toLowerCase().includes("limited quality signals"))).toBe(true);
 });
 
 

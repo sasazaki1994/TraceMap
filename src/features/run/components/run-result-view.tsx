@@ -964,20 +964,23 @@ export function RunResultView({
                   </p>
                 ) : null}
                 {selectedSourceQuality ? (
-                  <div data-testid="source-quality-summary" style={{ marginTop: "12px" }}>
+                  <div data-testid="source-quality-detail" style={{ marginTop: "12px" }}>
                     <p data-testid="source-quality-badge">Quality: {selectedSourceQuality.quality}</p>
                     <p data-testid="source-freshness-badge">Freshness: {selectedSourceQuality.freshness}</p>
                     <p data-testid="source-reachability-badge">Reachability: {selectedSourceQuality.reachability}</p>
-                    {selectedSourceQuality.reasons.length > 0 ? (
+                    {selectedSourceQuality.reasons.length > 0 || selectedSourceQuality.warnings.length > 0 ? (
                       <ul className="evidence-list" style={{ marginTop: "6px" }}>
                         {selectedSourceQuality.reasons.map((reason) => (
-                          <li key={reason}>{reason}</li>
+                          <li key={reason} data-testid="source-quality-reason">{reason}</li>
+                        ))}
+                      {selectedSourceQuality.warnings.map((warning) => (
+                          <li key={warning} data-testid="source-quality-warning">{warning}</li>
                         ))}
                       </ul>
                     ) : null}
-                    {selectedSourceQuality.suggestedAction ? (
+                    {selectedSourceQuality.suggestedNextAction ? (
                       <>
-                        <p style={{ marginTop: "8px" }}>Suggested next action: {selectedSourceQuality.suggestedAction}</p>
+                        <p style={{ marginTop: "8px" }} data-testid="source-quality-next-action">Suggested next action: {selectedSourceQuality.suggestedNextAction}</p>
                       </>
                     ) : null}
                   </div>
