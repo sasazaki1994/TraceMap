@@ -22,7 +22,7 @@ export function UnknownMapPanel({ unknowns }: UnknownMapPanelProps) {
             >
               <div className="claim-support-header">
                 <span className="claim-support-kind">
-                  {unknown.severity.toUpperCase()} · {unknown.category.toUpperCase()}
+                  <span data-testid="unknown-severity">{unknown.severity.toUpperCase()}</span> · <span data-testid="unknown-category">{unknown.category.toUpperCase()}</span>
                 </span>
                 <span className="muted">{unknown.reason}</span>
               </div>

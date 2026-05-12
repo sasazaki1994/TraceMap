@@ -50,3 +50,5 @@ Each feature spec should describe:
 | Beta Readiness v0.1 | [beta-readiness.md](./beta-readiness.md) |
 
 | Source Quality & Freshness Inspector v0.1 | [source-quality-and-freshness-inspector.md](./source-quality-and-freshness-inspector.md) |
+
+| Closed Beta Readiness v0.1 (incremental) | [closed-beta-readiness.md](./closed-beta-readiness.md) |
