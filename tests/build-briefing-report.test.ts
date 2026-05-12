@@ -64,11 +64,13 @@ describe("buildBriefingReport", () => {
       unknowns,
       sourceLineage: lineage,
       sourceQuality: [],
+      generatedAt: "2026-05-12T00:00:00.000Z",
     });
 
     expect(markdown).toContain("# Briefing Report");
     expect(markdown).toContain("## Executive Summary");
     expect(markdown).toContain("- Topic: Compare domestic generative AI market players.");
+    expect(markdown).toContain("- Generated at: 2026-05-12T00:00:00.000Z");
     expect(markdown).toContain("Executive summary body.");
     expect(markdown).toContain("## Key Claims");
     expect(markdown).toContain("The market contains several competing AI platform vendors.");
@@ -161,11 +163,37 @@ describe("buildBriefingReport", () => {
       sources,
       unknowns,
       sourceLineage: lineage,
-      sourceQuality: [],
+      sourceQuality: [
+        {
+          sourceId: "src-1",
+          label: "Industry report",
+          quality: "weak",
+          freshness: "possibly_stale",
+          reachability: "unchecked",
+          reasons: ["Needs verification."],
+          linkedClaimCount: 1,
+          hasSupportingQuote: true,
+        },
+      ],
     });
 
     expect(markdown.toLowerCase()).not.toContain("investment advice");
     expect(markdown.toLowerCase()).not.toContain("buy recommendation");
     expect(markdown.toLowerCase()).not.toContain("sell recommendation");
+    expect(markdown).toContain("Weak / Possibly stale / Unchecked");
+  });
+
+  it("avoids unsafe URLs in markdown links", () => {
+    const markdown = buildBriefingReport({
+      researchTopic: "Unsafe URL validation.",
+      answerContent: "Summary.",
+      evidenceClaims: [],
+      sources: [{ ...sources[0]!, url: "javascript:alert(1)" }],
+      unknowns: [],
+      sourceLineage: [],
+      sourceQuality: [],
+    });
+    expect(markdown).toContain("- Industry report");
+    expect(markdown).not.toContain("javascript:alert(1)");
   });
 });

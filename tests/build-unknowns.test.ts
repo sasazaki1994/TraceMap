@@ -215,3 +215,37 @@ it("adds category and deduplicates unknowns", () => {
   expect(unknowns.length).toBe(1);
   expect(unknowns[0]?.category).toBeDefined();
 });
+
+it("keeps higher severity item when duplicates collide", () => {
+  const unknowns = buildUnknowns({
+    evidenceAlerts: [
+      { id: "low", level: "info", message: "Primary source missing" },
+      { id: "high", level: "error", message: "Primary source missing" },
+    ],
+    evidenceClaims: [],
+  });
+  expect(unknowns).toHaveLength(1);
+  expect(unknowns[0]?.severity).toBe("high");
+});
+
+it("limits unknown count and keeps supported categories", () => {
+  const unknowns = buildUnknowns({
+    evidenceAlerts: Array.from({ length: 30 }, (_, i) => ({
+      id: `a-${i}`,
+      level: i % 2 === 0 ? "warning" : "error",
+      message:
+        i % 4 === 0
+          ? "counter argument exists"
+          : i % 4 === 1
+            ? "source unavailable"
+            : i % 4 === 2
+              ? "publication date unknown"
+              : "evidence is weak",
+    })),
+    evidenceClaims: [],
+  });
+  expect(unknowns.length).toBeLessThanOrEqual(24);
+  for (const unknown of unknowns) {
+    expect(["evidence", "source", "freshness", "contradiction"]).toContain(unknown.category);
+  }
+});

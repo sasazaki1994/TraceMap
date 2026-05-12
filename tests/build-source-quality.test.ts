@@ -39,5 +39,18 @@ describe("buildSourceQualityInspections", () => {
     expect(result.find((r) => r.sourceId === "u1")?.freshness).toBe("unknown");
     expect(result.find((r) => r.sourceId === "u2")?.reachability).toBe("unreachable");
     expect(result.find((r) => r.sourceId === "u3")?.reachability).toBe("invalid");
+    expect(result.find((r) => r.sourceId === "u2")?.quality).toBe("weak");
+    expect(result.find((r) => r.sourceId === "u1")?.quality).toBe("limited");
+  });
+
+  it("classifies verified published with no quote as limited", () => {
+    const result = buildSourceQualityInspections({
+      sources: [source({ id: "l1", publishedAt: "2025-01-01", verificationStatus: "verified" })],
+      claimSupports: [
+        { ...claim, supports: [{ ...claim.supports[0]!, supportingQuote: null }] },
+      ],
+      now: new Date("2026-05-11"),
+    });
+    expect(result[0]?.quality).toBe("limited");
   });
 });
