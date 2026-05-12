@@ -17,6 +17,8 @@ import { buildSourceLineage } from "@/features/run/lib/build-source-lineage";
 import { buildSourceQuality } from "@/features/run/lib/build-source-quality";
 import { buildUnknowns } from "@/features/run/lib/build-unknowns";
 import { describeGraphNodeTie } from "@/features/run/lib/graph-node-tie-label";
+import { graphNodeKindLabel, graphNodeShortLabel, isSelectableGraphNode } from "@/features/run/lib/graph-node-presentation";
+import { layoutAnswerGraph } from "@/features/run/lib/layout-answer-graph";
 import { lensLabel, orderClaimsForLens } from "@/features/run/lib/run-lens";
 import { cn } from "@/lib/cn";
 import type { AnswerGraphJson } from "@/types/answer-graph";
@@ -156,47 +158,6 @@ function verificationStatusLabel(
   }
 }
 
-function layoutGraph(graph: AnswerGraphJson): Map<string, { x: number; y: number }> {
-  const map = new Map<string, { x: number; y: number }>();
-  const cx = GRAPH_W / 2;
-  const questionNode = graph.nodes.find((n) => n.kind === "question");
-  const answerNode = graph.nodes.find((n) => n.kind === "answer");
-  const sourceNodes = graph.nodes.filter((n) => n.kind === "source");
-  const claimNodes = [...graph.nodes.filter((n) => n.kind === "claim")].sort((a, b) =>
-    a.id.localeCompare(b.id),
-  );
-
-  if (questionNode) {
-    map.set(questionNode.id, { x: cx, y: 36 });
-  }
-  if (answerNode) {
-    map.set(answerNode.id, { x: cx, y: 104 });
-  }
-
-  const sourceY = claimNodes.length > 0 ? 218 : 200;
-  const n = sourceNodes.length;
-  sourceNodes.forEach((node, i) => {
-    if (n === 1) {
-      map.set(node.id, { x: cx, y: sourceY });
-      return;
-    }
-    const x = 64 + (i * (GRAPH_W - 128)) / Math.max(n - 1, 1);
-    map.set(node.id, { x, y: sourceY });
-  });
-
-  const m = claimNodes.length;
-  claimNodes.forEach((node, i) => {
-    if (m === 1) {
-      map.set(node.id, { x: cx, y: 162 });
-      return;
-    }
-    const x = 64 + (i * (GRAPH_W - 128)) / Math.max(m - 1, 1);
-    map.set(node.id, { x, y: 162 });
-  });
-
-  return map;
-}
-
 function edgeEndpoints(
   from: { x: number; y: number },
   to: { x: number; y: number },
@@ -241,7 +202,7 @@ export function RunResultView({
     "claims",
   );
 
-  const positions = useMemo(() => layoutGraph(graph), [graph]);
+  const positions = useMemo(() => layoutAnswerGraph(graph, GRAPH_W, GRAPH_H), [graph]);
   const lensClaims = useMemo(
     () => orderClaimsForLens(evidenceClaims, selectedLens),
     [evidenceClaims, selectedLens],
@@ -484,6 +445,9 @@ export function RunResultView({
                       y2={y2}
                       stroke="rgba(148, 163, 184, 0.55)"
                       strokeWidth={2}
+                      data-testid="graph-edge"
+                      data-edge-relation-type={edge.relationType}
+                      data-edge-support-type={edge.supportType}
                     />
                   );
                 })}
@@ -497,18 +461,13 @@ export function RunResultView({
                   const isClaim = node.kind === "claim";
                   const isAnswerOrQuestion =
                     node.kind === "answer" || node.kind === "question";
-                  const graphInteract =
-                    (isSource && linkedId !== undefined) ||
-                    isAnswerOrQuestion ||
-                    isClaim;
+                  const graphInteract = isSelectableGraphNode(node) && (!isSource || linkedId !== undefined);
 
                   const sourceSelected =
                     isSource &&
                     linkedId !== undefined &&
                     linkedId === selectedSourceId;
-                  const graphHighlight =
-                    (isAnswerOrQuestion || isClaim) &&
-                    selectedGraphNodeId === node.id;
+                  const graphHighlight = selectedGraphNodeId === node.id;
 
                   const selected = sourceSelected || graphHighlight;
 
@@ -517,16 +476,14 @@ export function RunResultView({
                       key={node.id}
                       className={`graph-node${graphInteract ? " graph-node--interactive" : ""}`}
                       data-testid={`graph-node-${node.id}`}
+                      data-node-kind={node.kind}
                       role={graphInteract ? "button" : undefined}
                       tabIndex={graphInteract ? 0 : undefined}
                       onClick={() => {
                         if (isSource && linkedId) {
                           setSelectedSourceId(linkedId);
                           setSelectedGraphNodeId(null);
-                        } else if (isAnswerOrQuestion) {
-                          setSelectedGraphNodeId(node.id);
-                          setSelectedSourceId(null);
-                        } else if (isClaim) {
+                        } else if (isAnswerOrQuestion || isClaim) {
                           setSelectedGraphNodeId(node.id);
                           setSelectedSourceId(null);
                         }
@@ -540,17 +497,14 @@ export function RunResultView({
                           if (isSource && linkedId) {
                             setSelectedSourceId(linkedId);
                             setSelectedGraphNodeId(null);
-                          } else if (isAnswerOrQuestion) {
-                            setSelectedGraphNodeId(node.id);
-                            setSelectedSourceId(null);
-                          } else if (isClaim) {
+                          } else if (isAnswerOrQuestion || isClaim) {
                             setSelectedGraphNodeId(node.id);
                             setSelectedSourceId(null);
                           }
                         }
                       }}
                     >
-                      <circle
+                      <circle data-testid={`graph-node-kind-${node.kind.replace("_", "-")}`}
                         cx={p.x}
                         cy={p.y}
                         r={NODE_R}
@@ -572,14 +526,9 @@ export function RunResultView({
                         fontSize={11}
                         fontWeight={600}
                       >
-                        {node.kind === "question"
-                          ? "Q"
-                          : node.kind === "answer"
-                            ? "A"
-                            : node.kind === "claim"
-                              ? "C"
-                              : "S"}
+                        {graphNodeShortLabel(node.kind)}
                       </text>
+                      <title>{`${graphNodeKindLabel(node.kind)}: ${node.label}`}</title>
                     </g>
                   );
                 })}

@@ -35,6 +35,14 @@ function claim(id: string, supportedBy: string[]) {
       { level: "warning" as const, message: " alert2 " },
       { level: "error" as const, message: " alert3 " },
     ],
+    support_relations: [
+      {
+        source_id: supportedBy[0],
+        support_kind: "direct" as const,
+        is_primary_source: true,
+        supporting_quote: " quoted support ",
+      },
+    ],
     propagation_chain: [
       {
         step_kind: "source" as const,
@@ -201,4 +209,57 @@ describe("normalizeGeneratedAnswerGraph", () => {
       expect(result.reason).toBe("output_limit_invalidated_evidence");
     }
   });
+
+  it("drops support_relations that reference unsupported source ids", () => {
+    const result = normalizeGeneratedAnswerGraph(
+      payload({
+        claims: [
+          {
+            ...claim("c1", ["s1"]),
+            support_relations: [
+              {
+                source_id: "s1",
+                support_kind: "direct",
+                is_primary_source: true,
+                supporting_quote: " kept quote ",
+              },
+              {
+                source_id: "s2",
+                support_kind: "supplemental",
+                is_primary_source: false,
+              },
+              {
+                source_id: "missing",
+                support_kind: "indirect",
+                is_primary_source: false,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+
+    expect(result.kind).toBe("ok");
+    if (result.kind !== "ok") return;
+    expect(result.payload.claims[0]?.support_relations).toEqual([
+      {
+        source_id: "s1",
+        support_kind: "direct",
+        is_primary_source: true,
+        supporting_quote: "kept quote",
+        contradiction_note: undefined,
+      },
+    ]);
+  });
+
+  it("keeps legacy payloads valid when support_relations is omitted", () => {
+    const c = claim("c1", ["s1"]);
+    delete (c as { support_relations?: unknown }).support_relations;
+    const result = normalizeGeneratedAnswerGraph(payload({ claims: [c] }));
+
+    expect(result.kind).toBe("ok");
+    if (result.kind !== "ok") return;
+    expect(result.payload.claims[0]?.support_relations).toBeUndefined();
+  });
+
 });

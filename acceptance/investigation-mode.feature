@@ -20,3 +20,22 @@ Feature: Investigation Mode
     And the run page should display an unknown map
     And the run page should display source lineage information
     And the run page should display a briefing report preview
+
+  Scenario: Run page renders all Answer Graph v3 node kinds
+    Given an analysis run has an Answer Graph v3 payload
+    When the run page displays the evidence map
+    Then question nodes should be visible
+    And answer nodes should be visible
+    And source nodes should be visible
+    And claim nodes should be visible
+    And counterclaim nodes should be visible
+    And interpretation nodes should be visible
+    And answer segment nodes should be visible
+
+  Scenario: User can still select sources and claims in a v3 graph
+    Given an analysis run has an Answer Graph v3 payload
+    When the user selects a source node
+    Then the source detail panel should show that source
+    When the user selects a claim node
+    Then linked sources should be highlighted
+

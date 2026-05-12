@@ -63,6 +63,40 @@ function buildOpenAiSchema(limits: InvestigationLimits) {
             minItems: 1,
             description: "Ids from sources[].id that support this claim.",
           },
+          support_relations: {
+            type: "array",
+            description:
+              "Per-source support metadata for this claim. Each relation source_id must be included in supported_by_source_ids and reference sources[].id.",
+            maxItems: limits.maxSources,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                source_id: { type: "string" },
+                support_kind: {
+                  type: "string",
+                  enum: ["direct", "supplemental", "indirect"],
+                },
+                is_primary_source: {
+                  type: "boolean",
+                  description:
+                    "True only when this source is official, primary, original, or directly authoritative for the claim.",
+                },
+                supporting_quote: {
+                  type: "string",
+                  description:
+                    "Short excerpt or passage supporting the claim, if available.",
+                  maxLength: limits.maxSourceExcerptChars,
+                },
+                contradiction_note: {
+                  type: "string",
+                  description:
+                    "Short note when the source partly contradicts, qualifies, or limits the claim.",
+                },
+              },
+              required: ["source_id", "support_kind", "is_primary_source"],
+            },
+          },
           counterpoints: {
             type: "array",
             description: "Counterarguments or caveats specific to this claim.",
@@ -595,6 +629,12 @@ export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {
               "When sufficient_grounding is true: include at least two distinct sources, each with a real public http or https URL you could verify (well-known references, standards, documentation, or authoritative pages).",
               "Do not invent URLs. If you cannot meet that bar, set sufficient_grounding to false (the run will fail — do not add fake links).",
               "Every claim must list supported_by_source_ids referencing sources[].id values.",
+              "When possible, include support_relations explaining how each listed source supports the claim.",
+              "Each support_relations[].source_id must reference sources[].id and also appear in supported_by_source_ids.",
+              "Use support_kind as one of direct, supplemental, or indirect.",
+              "Set is_primary_source true only for official primary/original authoritative sources; otherwise use false when uncertain.",
+              "Include supporting_quote only when a short real excerpt/passage is available from source text or supplied excerpt; never fabricate quotes.",
+              "Include contradiction_note only when the source materially contradicts, qualifies, or limits the claim.",
               `Keep output concise: at most ${limits.maxSources} sources, ${limits.maxClaims} claims, ${limits.maxCounterpointsPerClaim} counterpoints per claim, ${limits.maxAlertsPerClaim} alerts per claim, and ${limits.maxPropagationStepsPerClaim} propagation steps per claim.`,
               "Do not include UI-only layout instructions, coordinates, colors, or style fields; TraceMap derives presentation separately.",
               "Prefer per-claim counterpoints and alerts when caveats differ by claim; use top-level counterpoint_summary and alert only for a single shared caveat or answer-wide note.",
