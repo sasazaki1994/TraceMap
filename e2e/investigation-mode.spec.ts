@@ -4,7 +4,7 @@ test("landing page shows investigation-oriented intake copy", async ({ page }) =
   await page.goto("/");
 
   await expect(page.getByText("Turn a research topic into a traceable investigation mission.")).toBeVisible();
-  await expect(page.getByText("Closed Alpha: TraceMap is under active development.")).toBeVisible();
+  await expect(page.getByText("Public Beta: TraceMap is under active development.")).toBeVisible();
   await expect(page.getByTestId("research-topic-examples")).toBeVisible();
   const modeSelector = page.getByTestId("investigation-mode-selector");
   await expect(modeSelector).toBeVisible();
@@ -12,6 +12,20 @@ test("landing page shows investigation-oriented intake copy", async ({ page }) =
   await expect(modeSelector.locator('[data-testid="investigation-mode-fast"]')).toHaveAttribute("value", "fast");
   await expect(modeSelector.locator('[data-testid="investigation-mode-standard"]')).toHaveAttribute("value", "standard");
   await expect(modeSelector.locator('[data-testid="investigation-mode-deep"]')).toHaveAttribute("value", "deep");
+  await expect(page.getByText("Sign in to start a beta investigation.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
+  await expect(page.getByRole("button", { name: "Start an Investigation" })).toBeDisabled();
+});
+
+test("landing page shows manual source URL intake and validation message", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Optional source URLs")).toBeVisible();
+  await expect(page.getByTestId("manual-source-url-input")).toBeVisible();
+  await page.getByTestId("manual-source-url-input").fill("not-a-url");
+  await page.getByLabel("Research topic").fill("Manual source URL validation test");
+  await page.getByRole("button", { name: "Start an Investigation" }).click();
+  await expect(page.getByTestId("manual-source-url-error")).toBeVisible();
+  await expect(page.getByText(/Each source URL must use http or https/i)).toBeVisible();
 });
 
 test("investigation panels are visible on a completed run", async ({ page, request }) => {

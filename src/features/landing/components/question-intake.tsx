@@ -28,7 +28,7 @@ export function QuestionIntake({ disabled = false }: { disabled?: boolean }) {
         finding comes from.
       </p>
       <p className="muted" style={{ marginTop: "0.5rem" }}>
-        Closed Alpha: TraceMap is under active development. Please review outputs with
+        Public Beta: TraceMap is under active development. Please review outputs with
         the evidence map and source links before reuse.
       </p>
 
@@ -113,12 +113,12 @@ https://example.com/technical-doc`}
             {state.error}
           </p>
         ) : null}
-        {disabled ? <p className="form-error">Please sign in to start an investigation. <Link href="/login">Sign in</Link></p> : null}
+        {disabled ? <p className="form-error">Sign in to start a beta investigation. <Link href="/login">Sign in</Link></p> : null}
         <div className="question-actions">
           <button type="submit" disabled={isPending || disabled}>
             {isPending ? "Running investigation..." : "Start an Investigation"}
           </button>
-          <span className="muted">Closed Alpha demo path: mock mission creates an instant run.</span>
+          <span className="muted">Public Beta baseline: mock mission creates an instant run after sign-in.</span>
         </div>
       </form>
     </Panel>
