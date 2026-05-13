@@ -1,9 +1,8 @@
-import { notFound } from "next/navigation";
-
 export const dynamic = "force-dynamic";
 
 import { PageContainer } from "@/components/ui/page-container";
 import { RunResultView } from "@/features/run/components/run-result-view";
+import { ShareInvalidState, SharePageChrome } from "@/features/share/components/share-page-chrome";
 import { mapAnswerEvidenceForView } from "@/server/analysis/map-run-evidence";
 import { selectLatestAnswerSnapshotForView } from "@/server/analysis/select-latest-answer-snapshot";
 import { prisma } from "@/server/db/prisma";
@@ -66,12 +65,16 @@ export default async function SharePage({ params }: SharePageProps) {
     },
   });
 
-  if (!shareLink) {
-    notFound();
-  }
+  const isInactive = !shareLink || (shareLink.expiresAt !== null && shareLink.expiresAt <= new Date());
 
-  if (shareLink.expiresAt !== null && shareLink.expiresAt <= new Date()) {
-    notFound();
+  if (isInactive) {
+    return (
+      <main>
+        <PageContainer className="home-grid">
+          <ShareInvalidState />
+        </PageContainer>
+      </main>
+    );
   }
 
   const run = shareLink.analysisRun;
@@ -81,22 +84,21 @@ export default async function SharePage({ params }: SharePageProps) {
     return (
       <main>
         <PageContainer className="home-grid">
-          <p className="eyebrow" style={{ marginBottom: "-8px" }}>
-            Shared view · read-only
-          </p>
-          <RunResultView
-            question={run.question}
-            answerTitle={null}
-            answerContent=""
-            runStatusBanner={
-              run.lastErrorMessage ??
-              "調査結果を生成できませんでした。情報源が不足しているか、処理中にエラーが発生しました。所有者に再度実行してもらってください。"
-            }
-            evidenceAlerts={[]}
-            evidenceClaims={[]}
-            sources={[]}
-            graph={{ version: 1, nodes: [], edges: [] }}
-          />
+          <SharePageChrome expiresAt={shareLink.expiresAt}>
+            <RunResultView
+              question={run.question}
+              answerTitle={null}
+              answerContent=""
+              runStatusBanner={
+                run.lastErrorMessage ??
+                "調査結果を生成できませんでした。情報源が不足しているか、処理中にエラーが発生しました。所有者に再度実行してもらってください。"
+              }
+              evidenceAlerts={[]}
+              evidenceClaims={[]}
+              sources={[]}
+              graph={{ version: 1, nodes: [], edges: [] }}
+            />
+          </SharePageChrome>
         </PageContainer>
       </main>
     );
@@ -110,19 +112,18 @@ export default async function SharePage({ params }: SharePageProps) {
     return (
       <main>
         <PageContainer className="home-grid">
-          <p className="eyebrow" style={{ marginBottom: "-8px" }}>
-            Shared view · read-only
-          </p>
-          <RunResultView
-            question={run.question}
-            answerTitle={null}
-            answerContent=""
-            runStatusBanner={`${phase} しばらくしてからページを更新してください。`}
-            evidenceAlerts={[]}
-            evidenceClaims={[]}
-            sources={[]}
-            graph={{ version: 1, nodes: [], edges: [] }}
-          />
+          <SharePageChrome expiresAt={shareLink.expiresAt}>
+            <RunResultView
+              question={run.question}
+              answerTitle={null}
+              answerContent=""
+              runStatusBanner={`${phase} しばらくしてからページを更新してください。`}
+              evidenceAlerts={[]}
+              evidenceClaims={[]}
+              sources={[]}
+              graph={{ version: 1, nodes: [], edges: [] }}
+            />
+          </SharePageChrome>
         </PageContainer>
       </main>
     );
@@ -134,18 +135,17 @@ export default async function SharePage({ params }: SharePageProps) {
   return (
     <main>
       <PageContainer className="home-grid">
-        <p className="eyebrow" style={{ marginBottom: "-8px" }}>
-          Shared view · read-only
-        </p>
-        <RunResultView
-          question={run.question}
-          answerTitle={answer.title}
-          answerContent={answer.content}
-          evidenceAlerts={evidenceAlerts}
-          evidenceClaims={evidenceClaims}
-          sources={sources}
-          graph={graph}
-        />
+        <SharePageChrome expiresAt={shareLink.expiresAt}>
+          <RunResultView
+            question={run.question}
+            answerTitle={answer.title}
+            answerContent={answer.content}
+            evidenceAlerts={evidenceAlerts}
+            evidenceClaims={evidenceClaims}
+            sources={sources}
+            graph={graph}
+          />
+        </SharePageChrome>
       </PageContainer>
     </main>
   );
