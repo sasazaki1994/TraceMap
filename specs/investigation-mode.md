@@ -55,6 +55,8 @@ Investigation Mode reuses the current persistence model:
   - Research topic
   - Status banner when present
   - Answer title when present
+- Run page should include a **Run Metadata Panel** with run id/status/timestamps/provider/model/counts/cache/generated-at details.
+- Run page should include a **Usage Meter Lite** with source/claim counts, answer/report character counts, provider, mode, and estimated payload size.
 - Run page should show a fixed investigation timeline:
   - COLLECTING SOURCES
   - EXTRACTING CLAIMS
