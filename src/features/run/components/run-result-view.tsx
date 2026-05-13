@@ -273,6 +273,7 @@ export function RunResultView({
   const briefingReport = useMemo(
     () =>
       buildBriefingReport({
+        runId,
         researchTopic: question,
         answerContent,
         evidenceClaims,
@@ -280,8 +281,9 @@ export function RunResultView({
         unknowns,
         sourceLineage,
         sourceQuality,
+        generatedAt: answerGeneratedAt ?? runUpdatedAt ?? runCreatedAt ?? undefined,
       }),
-    [answerContent, evidenceClaims, question, sourceLineage, sourceQuality, sources, unknowns],
+    [answerContent, answerGeneratedAt, evidenceClaims, question, runCreatedAt, runId, runUpdatedAt, sourceLineage, sourceQuality, sources, unknowns],
   );
 
   const runMetadata = useMemo(

@@ -9,6 +9,7 @@ Feature: Report Export Lite
     And the report should include unknowns or open questions
     And the report should include source lineage summary
     And the report should include source quality notes
+    And the markdown preview should not change between server render and client hydration
 
   Scenario: User copies briefing report markdown
     Given an analysis run has completed

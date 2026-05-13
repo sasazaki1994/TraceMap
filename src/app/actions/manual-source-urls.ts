@@ -1,7 +1,7 @@
 import { normalizeSourceUrl } from "@/server/analysis/source-url-normalization";
 
 export const MANUAL_SOURCE_URLS_ERROR_MESSAGE =
-  "Source URLs must be valid http(s) URLs, one per line.";
+  "Each source URL must use http or https (one URL per line).";
 
 export type ParseManualSourceUrlsResult =
   | { kind: "ok"; manualSourceUrls: string[] }

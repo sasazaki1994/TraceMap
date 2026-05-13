@@ -12,7 +12,7 @@ export function SourceQualityPanel({ sourceQuality }: { sourceQuality: SourceQua
       {sourceQuality.length > 0 ? (
         <ul className="investigation-list">
           {sourceQuality.map((q) => (
-            <li key={q.sourceId} className="investigation-list-item">
+            <li key={q.sourceId} className="investigation-list-item" data-testid="source-quality-item">
               <p className="source-list-item-title">{q.label}</p>
               <p className="source-list-item-meta" data-testid="source-quality-badge">
                 Quality: <span data-testid="source-quality-label">{sourceQualityGradeLabel(q.quality)}</span> · Freshness: <span data-testid="source-freshness-label">{sourceFreshnessLabel(q.freshness)}</span> · Reachability: <span data-testid="source-reachability-label">{sourceReachabilityLabel(q.reachability)}</span>
