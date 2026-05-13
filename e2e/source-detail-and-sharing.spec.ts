@@ -86,6 +86,7 @@ test.describe("source-detail-and-sharing", () => {
       timeout: 15_000,
     });
     await page.goto(href!);
-    await expect(page.getByText("This page could not be found.")).toBeVisible();
+    await expect(page.getByTestId("share-invalid-state")).toBeVisible();
+    await expect(page.getByText("この共有リンクは無効または期限切れです。")).toBeVisible();
   });
 });

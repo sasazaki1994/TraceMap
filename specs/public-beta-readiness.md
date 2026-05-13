@@ -68,11 +68,22 @@ Users can complete an end-to-end investigation flow from topic intake to evidenc
 ## Provider requirements
 - Mock provider must be sufficient for UI walkthroughs (claims/sources/alerts/counterpoints)
 - OpenAI provider remains compatible with current structured output and does not auto-mark failed runs as completed
+- OpenAI smoke test results must be recorded in validation docs; if no API key is available, record as "未実行: API keyなし"
 
 ## Test requirements
 - Unit tests for unknowns, lineage, quality, and briefing report builders
 - UI/E2E checks for mission/timeline/panels/export/share/run history
 - `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm exec prisma validate` (and `pnpm test:e2e` when available)
+
+## Public beta validation checklist
+- Public Beta scope and Non-goals are explicitly documented
+- Auth / Owner Scope behavior is verified
+- Share link behavior is read-only + noindex
+- Mock provider baseline flow is verified
+- OpenAI provider smoke test result is documented (or API-key-missing skip is documented)
+- Safety / Trust copy includes non-advice statement
+- Validation commands and outcomes are recorded
+- Manual flow checklist outcomes are recorded
 
 ## Acceptance references
 - `acceptance/public-beta-readiness.feature`

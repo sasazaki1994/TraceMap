@@ -12,6 +12,7 @@ Enable deterministic Briefing Report markdown reuse via copy/download actions wi
 - Deterministic markdown generation from structured run data.
 - Include Executive Summary, Key Claims, Supporting Sources, Unknowns, Source Lineage, Source Quality Notes, Metadata.
 - Add Copy Markdown and Download .md actions in Briefing Report panel.
+- SSR/CSR hydration safety for markdown preview (no client-only timestamp drift in rendered markdown).
 
 ## Non-goals
 - PDF / PowerPoint / Notion export.
