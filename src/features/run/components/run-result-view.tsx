@@ -359,14 +359,17 @@ export function RunResultView({
             {answerContent.length > 0 ? (
               answerContent
             ) : (
-              <p className="muted" data-testid="run-empty-state">
+              <p className="muted run-empty-state" data-testid="run-empty-state">
                 調査サマリーはまだ生成されていません。実行が完了すると、根拠付きの要約が表示されます。
               </p>
             )}
           </div>
           {runStatusBanner ? (
             <p
-              className="muted"
+              className={cn(
+                "muted",
+                runStatusVariant === "error" ? "run-error-state" : "run-loading-state",
+              )}
               data-testid={runStatusVariant === "error" ? "run-error-state" : "run-loading-state"}
               style={{ marginTop: "0.65rem" }}
             >
@@ -856,7 +859,7 @@ export function RunResultView({
           <ul className="source-list">
             {sources.length === 0 ? (
               <li>
-                <p className="muted" data-testid="source-empty-state">
+                <p className="muted source-empty-state" data-testid="source-empty-state">
                   参照ソースはまだありません。COLLECTING SOURCES が完了すると、根拠リンク付きで表示されます。
                 </p>
               </li>

@@ -68,6 +68,12 @@ Investigation Mode reuses the current persistence model:
   - Unknown Map
   - Source Lineage
   - Briefing Report
+- Run / shared run pages should expose explicit state UI identifiers:
+  - Loading: `run-loading-state` with phase vocabulary (`COLLECTING SOURCES`, `EXTRACTING CLAIMS`, `LINKING EVIDENCE`, `DETECTING UNKNOWNS`, `BUILDING REPORT`) and Japanese helper copy.
+  - Error: `run-error-state` with `RUN FAILED` wording and Japanese helper copy.
+  - Empty summary: `run-empty-state` with Japanese helper copy.
+  - Empty sources: `source-empty-state` with Japanese helper copy.
+  - Unknown panel empty: keep existing `unknown-empty-state` semantics aligned.
 
 ## Provider requirements
 
