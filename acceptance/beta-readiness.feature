@@ -28,6 +28,7 @@ Feature: Beta Readiness
       | DETECTING UNKNOWNS |
       | BUILDING REPORT |
     And the loading message should include a Japanese explanation
+    And the shared page should remain read-only while loading
 
   Scenario: Run detail page shows explicit error and empty states
     Given an investigation run fails or has no generated snapshot yet
@@ -37,6 +38,7 @@ Feature: Beta Readiness
     And the page should show `run-empty-state` when summary content is empty
     And the page should show `source-empty-state` when source list is empty
     And `unknown-empty-state` should remain consistent with the unknown map panel wording
+    And the shared page should remain read-only when showing error or empty states
 
   Scenario: User can revisit a saved investigation
     Given at least one analysis run exists

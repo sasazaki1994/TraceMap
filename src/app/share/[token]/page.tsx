@@ -13,6 +13,16 @@ type SharePageProps = {
   params: Promise<{ token: string }>;
 };
 
+function loadingPhaseMessage(status: string): string {
+  if (status === "queued") {
+    return "COLLECTING SOURCES: この調査はキューで待機中です。";
+  }
+  if (status === "running") {
+    return "EXTRACTING CLAIMS / LINKING EVIDENCE / DETECTING UNKNOWNS / BUILDING REPORT: 調査結果を生成中です。";
+  }
+  return "COLLECTING SOURCES / EXTRACTING CLAIMS / LINKING EVIDENCE / DETECTING UNKNOWNS / BUILDING REPORT: 調査結果を準備中です。";
+}
+
 export default async function SharePage({ params }: SharePageProps) {
   const { token } = await params;
 
@@ -106,10 +116,7 @@ export default async function SharePage({ params }: SharePageProps) {
   }
 
   if (run.status !== "completed" || !answer) {
-    const phase =
-      run.status === "queued"
-        ? "COLLECTING SOURCES: この調査はキューで待機中です。"
-        : "EXTRACTING CLAIMS / LINKING EVIDENCE / DETECTING UNKNOWNS / BUILDING REPORT: 調査結果を生成中です。";
+    const phase = loadingPhaseMessage(run.status);
     return (
       <main>
         <PageContainer className="home-grid">
