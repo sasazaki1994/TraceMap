@@ -8,16 +8,17 @@ import { mapAnswerEvidenceForView } from "@/server/analysis/map-run-evidence";
 import { selectLatestAnswerSnapshotForView } from "@/server/analysis/select-latest-answer-snapshot";
 import { prisma } from "@/server/db/prisma";
 import { parseAnswerGraphJson } from "@/types/answer-graph";
+import type { AnalysisRunStatus } from "@prisma/client";
 
 type SharePageProps = {
   params: Promise<{ token: string }>;
 };
 
-function loadingPhaseMessage(status: string): string {
+function loadingPhaseMessage(status: AnalysisRunStatus): string {
   if (status === "queued") {
     return "COLLECTING SOURCES: この調査はキューで待機中です。";
   }
-  if (status === "running") {
+  if (status === "processing") {
     return "EXTRACTING CLAIMS / LINKING EVIDENCE / DETECTING UNKNOWNS / BUILDING REPORT: 調査結果を生成中です。";
   }
   return "COLLECTING SOURCES / EXTRACTING CLAIMS / LINKING EVIDENCE / DETECTING UNKNOWNS / BUILDING REPORT: 調査結果を準備中です。";
