@@ -49,6 +49,8 @@ describe("buildBriefingReport", () => {
     expect(markdown).toContain("Strong / Fresh / Unchecked");
     expect(markdown).toContain("Run ID: run_123");
     expect(markdown).toContain("Generated At: 2026-05-12T00:00:00.000Z");
+    expect(markdown).toContain("## Beta Notice");
+    expect(markdown).toContain("does not provide investment, legal, or medical advice");
     expect(markdown.toLowerCase()).not.toContain("verified and confirmed");
   });
 

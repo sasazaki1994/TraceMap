@@ -131,5 +131,8 @@ export function buildBriefingReport(input: BuildBriefingReportInput): string {
     `- Generated at: ${generatedAt}`,
     `- Topic: ${input.researchTopic.trim() || "Unknown"}`,
     `- Unknown count: ${input.unknowns.length}`,
+    "",
+    "## Beta Notice",
+    "TraceMap is a public beta research support tool. Outputs may contain incomplete or outdated information. Always verify critical claims against primary sources. TraceMap does not provide investment, legal, or medical advice.",
   ].join("\n");
 }

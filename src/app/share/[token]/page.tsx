@@ -12,6 +12,13 @@ type SharePageProps = {
   params: Promise<{ token: string }>;
 };
 
+export const metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default async function SharePage({ params }: SharePageProps) {
   const { token } = await params;
 

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { signInAsBetaUser } from "./support/auth";
 
 test.describe("investigation-mode", () => {
   let databaseConnected = false;
@@ -21,9 +22,11 @@ test.describe("investigation-mode", () => {
     );
 
     await page.goto("/");
+    await signInAsBetaUser(page, "q2a-primary");
+    await page.goto("/");
 
     await page.getByLabel("Research topic").fill("Why is interpretability important?");
-    await page.getByRole("button", { name: "Start Investigation" }).click();
+    await page.getByRole("button", { name: "Start an Investigation" }).click();
 
     await expect(page).toHaveURL(/\/runs\//);
     // Scope to the question panel: the same text is repeated inside the mock answer body.
@@ -125,15 +128,16 @@ test.describe("investigation-mode", () => {
 
     const topic = `Run cache smoke ${Date.now()}`;
 
+    await signInAsBetaUser(page, "q2a-repeat");
     await page.goto("/");
     await page.getByLabel("Research topic").fill(topic);
-    await page.getByRole("button", { name: "Start Investigation" }).click();
+    await page.getByRole("button", { name: "Start an Investigation" }).click();
     await expect(page).toHaveURL(/\/runs\//);
     const firstRunUrl = page.url();
 
     await page.goto("/");
     await page.getByLabel("Research topic").fill(topic);
-    await page.getByRole("button", { name: "Start Investigation" }).click();
+    await page.getByRole("button", { name: "Start an Investigation" }).click();
     await expect(page).toHaveURL(/\/runs\//);
     expect(page.url()).not.toBe(firstRunUrl);
 

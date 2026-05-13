@@ -3,6 +3,8 @@ Feature: Public Beta Readiness
 
   Scenario: User can complete a beta investigation flow
     Given the user is on the TraceMap landing page
+    And the landing page indicates Public Beta positioning
+    And investigation start requires sign-in
     When the user enters a research topic
     And the user starts the investigation
     Then a new analysis run should be created
@@ -16,9 +18,15 @@ Feature: Public Beta Readiness
     And the user should be able to copy the briefing report markdown
     And the user should be able to download the briefing report markdown
     And the user should be able to create or access a read-only share link
+    And the share page should be read-only and non-indexable
 
   Scenario: User can revisit a saved investigation
     Given at least one analysis run exists
     When the user opens the saved investigations page
     Then the user should see previous analysis runs
     And each completed run should link to its run detail page
+
+  Scenario: Briefing report contains public beta disclaimer
+    Given a completed investigation run is visible
+    Then the briefing report markdown should include a beta notice
+    And the briefing report should state that TraceMap does not provide investment, legal, or medical advice

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { signInAsBetaUser } from "./support/auth";
 
 test.describe("run-history", () => {
   let databaseConnected = false;
@@ -22,6 +23,7 @@ test.describe("run-history", () => {
       "Requires Postgres at DATABASE_URL, migrations applied, and dev server health check passing.",
     );
 
+    await signInAsBetaUser(page, "run-history-list");
     await page.goto("/runs");
     await expect(page.getByTestId("run-history-page")).toBeVisible();
     await expect(page.getByTestId("run-history-status-filter")).toBeVisible();
@@ -38,9 +40,10 @@ test.describe("run-history", () => {
     );
 
     const topic = `Saved investigations ${Date.now()}`;
+    await signInAsBetaUser(page, "run-history-create");
     await page.goto("/");
     await page.getByLabel("Research topic").fill(topic);
-    await page.getByRole("button", { name: "Start Investigation" }).click();
+    await page.getByRole("button", { name: "Start an Investigation" }).click();
     await expect(page).toHaveURL(/\/runs\//);
 
     await page.goto("/runs");

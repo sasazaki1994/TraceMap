@@ -8,12 +8,15 @@ Users can complete an end-to-end investigation flow from topic intake to evidenc
 
 ## Scope
 - Investigation intake from landing page
+- Public Beta copy alignment (no mixed Closed Alpha / Closed Beta wording)
+- Login-required beta posture across landing/login/actions copy
 - Analysis run creation via AI or mock provider
 - Run detail surfaces Mission Header, Investigation Timeline, Evidence Map, Unknown Map Lite, Source Lineage Lite, Source Quality/Freshness Lite
 - Source detail drilldown for claim-source relations
 - Briefing Report Markdown preview
 - Markdown copy/download actions
 - Share link read-only experience
+- Share page noindex (`index: false`, `follow: false`)
 - Run history / saved investigations page
 - Empty / loading / error states for beta usability
 - lint / typecheck / test / build verification
@@ -36,6 +39,7 @@ Users can complete an end-to-end investigation flow from topic intake to evidenc
 
 ## UI requirements
 - Landing text uses “Research topic” and “Start Investigation”
+- Landing/login copy uses “Public Beta” wording and clear login-required messaging
 - Run detail includes required beta data-testids:
   - `mission-header`, `mission-topic`, `investigation-timeline`, `investigation-step`, `evidence-map`
   - `unknown-map-panel`, `unknown-map-item`
@@ -47,6 +51,7 @@ Users can complete an end-to-end investigation flow from topic intake to evidenc
 - Run history includes `run-history-page`, `run-history-item`
 - Evidence map test id is `evidence-map` (legacy `run-graph` may coexist during migration)
 - Briefing export test ids are `copy-markdown-button` and `download-markdown-button` (legacy IDs may coexist)
+- Briefing markdown includes a Beta Notice disclaimer and non-advice statement
 
 ## Beta completion checklist (v0.2 hardening)
 - Mock provider only flow completes without OpenAI credentials.

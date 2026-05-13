@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { signInAsBetaUser } from "./support/auth";
 
 test.describe("source-detail-and-sharing", () => {
   let databaseConnected = false;
@@ -20,10 +21,11 @@ test.describe("source-detail-and-sharing", () => {
       "Requires Postgres at DATABASE_URL, migrations applied, and dev server health check passing.",
     );
 
+    await signInAsBetaUser(page, "share-create");
     await page.goto("/");
 
     await page.getByLabel("Research topic").fill("Share link E2E question?");
-    await page.getByRole("button", { name: "Start Investigation" }).click();
+    await page.getByRole("button", { name: "Start an Investigation" }).click();
 
     await expect(page).toHaveURL(/\/runs\//);
 
@@ -63,9 +65,10 @@ test.describe("source-detail-and-sharing", () => {
       "Requires Postgres at DATABASE_URL, migrations applied, and dev server health check passing.",
     );
 
+    await signInAsBetaUser(page, "share-revoke");
     await page.goto("/");
     await page.getByLabel("Research topic").fill("Share link revoke E2E question?");
-    await page.getByRole("button", { name: "Start Investigation" }).click();
+    await page.getByRole("button", { name: "Start an Investigation" }).click();
     await expect(page).toHaveURL(/\/runs\//);
 
     await page.getByTestId("share-create-button").click();
