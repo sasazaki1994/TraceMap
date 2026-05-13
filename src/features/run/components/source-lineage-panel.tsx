@@ -37,7 +37,7 @@ export function SourceLineagePanel({ sourceLineage, sourceQuality }: SourceLinea
                 </div>
                 {quality ? (
                   <div data-testid="source-lineage-quality-summary" className="source-list-item-meta" style={{ marginTop: "6px" }}>
-                    <span data-testid="source-quality-badge">Quality: {quality.quality}</span> · <span data-testid="source-freshness-badge">Freshness: {quality.freshness}</span> · <span data-testid="source-reachability-badge">Reachability: {quality.reachability}</span>
+                    <span data-testid="source-quality-badge">Quality: <span data-testid="source-quality-label">{quality.quality}</span></span> · <span>Freshness: <span data-testid="source-freshness-label">{quality.freshness}</span></span> · <span>Reachability: <span data-testid="source-reachability-label">{quality.reachability}</span></span>
                   </div>
                 ) : null}
                 <p className="source-list-item-meta" style={{ marginTop: "6px" }}>Type: {source.sourceType} · Published: {source.publishedAt ?? "Unknown"} · Checked: {source.checkedAt ?? "Unknown"}</p>

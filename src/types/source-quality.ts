@@ -1,35 +1,35 @@
 export type SourceQualityLevel = "strong" | "usable" | "limited" | "weak" | "unknown";
 
-export type SourceFreshnessLevel = "fresh" | "stale" | "unknown";
+export type SourceFreshness = "fresh" | "stale" | "unknown";
 
-export type SourceReachabilityLevel =
+export type SourceReachability =
   | "reachable"
   | "unreachable"
   | "invalid"
-  | "unchecked"
-  | "unknown";
+  | "unchecked" | "unknown";
 
-export type SourceQualityInspection = {
+export type SourceQualityAssessment = {
   sourceId: string;
   label: string;
   quality: SourceQualityLevel;
-  freshness: SourceFreshnessLevel;
-  reachability: SourceReachabilityLevel;
+  freshness: SourceFreshness;
+  reachability: SourceReachability;
   reasons: string[];
   warnings: string[];
-  suggestedNextAction?: string;
-  isPrimarySource?: boolean;
-  sourceType?: string | null;
   publishedAt?: string | null;
   checkedAt?: string | null;
   httpStatus?: number | null;
-  linkedClaimCount: number;
-  hasSupportingQuote: boolean;
+  isPrimaryLike?: boolean;
+  isPrimarySource?: boolean;
+  suggestedNextAction?: string;
   verificationStatus?: string | null;
   contentType?: string | null;
   finalUrl?: string | null;
   sourceCacheEntryId?: string | null;
   sourceFetchSnapshotId?: string | null;
+  sourceType?: string | null;
+  linkedClaimCount: number;
+  hasSupportingQuote: boolean;
 };
 
-export type SourceQualitySignal = SourceQualityInspection;
+export type SourceQualitySignal = SourceQualityAssessment;

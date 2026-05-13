@@ -1,29 +1,27 @@
 Feature: Source Quality and Freshness Inspector
 
-Scenario: Run page shows source quality indicators
-  Given an analysis run has completed
-  When the run page displays source lineage information
-  Then each source should show a reachability status
-  And each source should show a freshness label
-  And each source should show whether publication date is known
-  And unverified sources should not be shown as verified
+  Scenario: Run page shows source quality labels
+    Given an analysis run has completed
+    When the run page displays sources
+    Then each source should show a quality label
+    And each source should show a freshness label
+    And each source should show a reachability label
+    And each source should show at least one reason for the assessment
 
-Scenario: Unknown Map includes source quality caveats
-  Given an analysis run has completed
-  When a source is unreachable or has unknown freshness
-  Then the unknown map should include a source quality gap
-  And the gap should show a reason
-  And the gap should show a suggested next action
+  Scenario: Unknown or unchecked sources are not shown as verified
+    Given an analysis run has completed
+    When a source has missing publication date or unchecked reachability
+    Then the source should not be displayed as verified
+    And the source should show Unknown or Unchecked status
 
-Scenario: Briefing Report includes source quality summary
-  Given an analysis run has completed
-  When the briefing report preview is rendered
-  Then the report should include a source quality summary
-  And the report should mention unreachable or stale sources when present
-  And the report should not hide source quality limitations
+  Scenario: Official or primary-looking sources are visually distinguishable
+    Given an analysis run has completed
+    When a source is marked as primary or official-looking
+    Then the source quality panel should show that status
+    And the source should still show freshness and reachability separately
 
-Scenario: Run page shows dedicated source quality panel
-  Given an analysis run has completed
-  When the user opens the run detail page
-  Then the source quality panel should be visible
-  And source quality items should be listed when sources exist
+  Scenario: Stale sources are distinguishable
+    Given an analysis run has completed
+    When a source has an old publication date
+    Then the source should show Stale freshness
+    And the source should include a reason explaining the stale assessment

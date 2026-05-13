@@ -1,29 +1,30 @@
 Feature: Report Export Lite
 
-Scenario: User copies the briefing report markdown
-  Given an analysis run has completed
-  When the briefing report panel is displayed
-  And the user clicks the copy markdown button
-  Then the briefing report markdown should be copied to the clipboard
-  And the UI should show a copy success state
+  Scenario: User views a generated briefing report markdown
+    Given an analysis run has completed
+    When the run page displays the briefing report
+    Then the report should include an executive summary
+    And the report should include key claims
+    And the report should include supporting sources
+    And the report should include unknowns or open questions
+    And the report should include source lineage summary
+    And the report should include source quality notes
 
-Scenario: User downloads the briefing report markdown
-  Given an analysis run has completed
-  When the briefing report panel is displayed
-  And the user clicks the download markdown button
-  Then a markdown file should be generated from the briefing report content
-  And the file name should be safe for local download
+  Scenario: User copies briefing report markdown
+    Given an analysis run has completed
+    When the user clicks Copy Markdown
+    Then the generated report markdown should be copied to the clipboard
+    And the UI should show a copied confirmation
 
-Scenario: User copies the company research report markdown
-  Given an analysis run has completed
-  When the company research report panel is displayed
-  And the user clicks the copy markdown button
-  Then the company research report markdown should be copied to the clipboard
-  And the UI should show a copy success state
+  Scenario: Clipboard failure does not break the report panel
+    Given an analysis run has completed
+    When the clipboard API is unavailable
+    And the user clicks Copy Markdown
+    Then the report panel should not crash
+    And the UI should show a copy failure message
 
-Scenario: User downloads the company research report markdown
-  Given an analysis run has completed
-  When the company research report panel is displayed
-  And the user clicks the download markdown button
-  Then a markdown file should be generated from the company research report content
-  And the file name should be safe for local download
+  Scenario: User downloads briefing report markdown
+    Given an analysis run has completed
+    When the user clicks Download Markdown
+    Then a .md file should be generated
+    And the file name should include the run id or timestamp

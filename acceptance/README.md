@@ -47,3 +47,5 @@
 | Source Detail Evidence Drilldown | `source-detail-evidence-drilldown.feature` |
 | Unknown Map Categorization | `unknown-map-categorization.feature` |
 | Report Export and Templates | `report-export-and-templates.feature` |
+
+| Unknown Map Categorization & Deduplication | `unknown-map-categorization-and-deduplication.feature` |

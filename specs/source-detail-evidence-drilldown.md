@@ -1,36 +1,39 @@
-# Placeholder
+# Source Detail Evidence Drilldown v0.1
 
 ## Purpose
-Improve evidence accuracy UX with lightweight view-model driven enhancements.
+Show how each source supports claims, with quote/support/contradiction context, to improve evidence verifiability.
 
 ## User value
-Users can inspect quality, uncertainty, and export deterministic reports.
+Users can inspect source → claim support mapping directly in Source Detail before reusing findings.
 
 ## Scope
-Rule-based source quality, edge quality, unknown categorization, report template switching.
+- Source drilldown view model and builder from existing run data.
+- Source detail UI showing support kind, quote, contradiction note, primary-like status, quality, lineage, related unknowns.
 
 ## Non-goals
-No DB migration, no schema overhaul, no RAG/embedding/streaming jobs.
+- DB migration or source-detail table.
+- Evidence graph/layout overhaul.
+- OpenAI schema major rewrite.
 
 ## Existing implementation constraints
-- DBマイグレーションは今回行わない
-- Source Quality は既存の source / claim support / fetch snapshot / cache snapshot / available metadata から派生表示する
-- Unknown Map は alerts / claim confidence / source support / quote / primary source / source quality から派生表示する
-- Briefing Report は画面側または feature helper で Markdown 生成する
-- OpenAI provider の大規模 schema 変更は次フェーズ
-- 取得できないメタデータは `unknown` として扱い、verified 扱いしない
+- DBマイグレーションは今回行わない。
+- Source Detail は既存 source/claim/support/source quality/unknowns から派生表示する。
+- supporting quote がない場合は quote missing として扱う。
+- contradiction note は通常 support と区別表示する。
+- unchecked source を verified と表示しない。
+- OpenAI provider 大規模 schema 変更は次フェーズ。
 
 ## Data model strategy
-Use TypeScript view models only.
+Use feature-level view models only; no persistence changes.
 
 ## UI requirements
-Add source quality badges/details, source drilldown, unknown category/severity/reason/action, report template select + copy/download markdown.
+Render title/URL, primary badge, quality summary, lineage summary, supported claims, quote, contradiction note, related unknowns, and empty state.
 
 ## Provider requirements
-Keep OpenAI provider behavior and validation stable; only minimal wording/todo changes if needed.
+No required provider schema changes in this phase.
 
 ## Test requirements
-Add unit tests for rule-based helpers and report template coverage.
+Unit tests for support-kind normalization, source-quality/lineage/unknown linkage, missing quote warnings, and empty-state safety.
 
 ## Acceptance references
-See corresponding acceptance/*.feature.
+- `acceptance/source-detail-evidence-drilldown.feature`

@@ -1,60 +1,79 @@
 # Source Quality and Freshness Inspector v0.1
 
 ## Purpose
-Surface source quality/freshness caveats in Run UI from existing snapshot/cache metadata.
+Improve trust calibration in TraceMap by surfacing a lightweight, derived quality assessment per source without changing persisted evidence structures.
 
 ## User value
-Users can quickly identify reachable, stale, unknown, and weakly supported sources before reusing findings.
+- Users can quickly estimate whether a source is likely reliable enough to reuse.
+- Users can separate quality, freshness, and reachability signals instead of treating a source as simply "verified".
+- Users can spot stale/unchecked evidence before sharing findings.
 
 ## Scope
-- Derived `SourceQualitySignal` view model (no DB persistence).
-- Source Lineage + Source Detail UI indicators.
-- Unknown Map caveats from source quality.
-- Briefing/Company reports include source quality summary/limits.
+- Add Source Quality/Freshness/Reachability view-model types.
+- Add rule-based helper that derives source assessments from existing source snapshots and claim support metadata.
+- Show assessments in run UI (source lineage/source list/quality panel) with reasons and warnings.
+- Reuse helper output from Unknown Map / Briefing Report as minimal integration.
+- Add mock provider sample coverage for diverse source quality patterns.
+- Add unit tests for derivation rules.
 
 ## Non-goals
-- No DB migration.
-- No definitive truth score.
-- No investment/legal judgment score.
+- Report export enhancements.
+- Source detail drilldown expansion.
+- Unknown Map major redesign.
+- Manual source URL workflow enhancements.
+- RAG / embeddings / reranking / background jobs / streaming / full-text crawling.
 
 ## Existing implementation constraints
-Use existing `SourceSnapshot`, `SourceCacheEntry`, `SourceFetchSnapshot`, claim support metadata only.
+- DB migration is out of scope for this phase.
+- Existing Evidence Graph / Claim / Source / Alert / Counterpoint / confidence / lineage / briefing behavior must not be broken.
+- OpenAI provider schema large-scale changes are deferred to the next phase.
 
 ## Data model strategy
-`SourceQualitySignal` is computed at render time from existing `sources + evidenceClaims`.
-
-## Source quality dimensions
-- Quality level: strong / usable / limited / weak
-- Reachability: reachable / unreachable / invalid / unchecked
-- Freshness: fresh / stale / unknown
-- Primary-source flag, linked claim count, quote presence
-
-## Freshness rules
-MVP rule: <=180 days fresh, >180 stale, no date unknown. Future domain-specific rules allowed.
-
-## Reachability rules
-- verified or HTTP 2xx/3xx => reachable
-- unreachable => unreachable
-- invalid => invalid
-- else unchecked
+- No new DB table.
+- Derive `SourceQualityAssessment` from existing source fields (URL, status, timestamps, sourceType) and claim support fields (supportingQuote, contradictionNote, isPrimarySource).
+- Unavailable metadata is treated as `unknown` (freshness) or `unchecked` (reachability).
+- Unknown/unchecked sources must never be presented as verified.
 
 ## UI requirements
-- Source Lineage shows quality/reachability/freshness/claims/date/http/content/final URL.
-- Source Detail shows selected source quality + reasons + next actions.
-- Never show non-verified source as verified.
+- Display, per source:
+  - Quality: Strong / Usable / Limited / Weak
+  - Freshness: Fresh / Stale / Unknown
+  - Reachability: Reachable / Unreachable / Invalid / Unchecked
+  - Reasons and warnings
+- Do not rely on color-only distinction.
+- Keep changes incremental and composable; avoid full page refactor.
 
-## Unknown Map integration
-`stale` / `unknown freshness` / `unreachable` / `invalid` / missing quote caveats can be emitted as Unknowns.
-Limit per source to avoid noise.
+## Provider requirements
+- Mock provider should include representative source patterns (primary-like, quote-backed, missing publishedAt, stale, invalid/unchecked).
+- OpenAI provider changes limited to minimal wording/TODO-level guidance; no schema-breaking updates.
 
-## Report integration
-- Briefing: add `## Source Quality Summary`
-- Company report: add `## Evidence Quality / Limits`
+## Rule set v0.1
+
+### Reachability
+- URL parse failure => `invalid`
+- `httpStatus` 200–299 => `reachable`
+- `httpStatus` 300–599 => `unreachable`
+- Missing `httpStatus` or missing `checkedAt` => `unchecked`
+
+### Freshness
+- Missing `publishedAt` => `unknown`
+- Older than 540 days from `now` => `stale`
+- Within 540 days from `now` => `fresh`
+
+### Quality
+- `strong`: primary-like + reachable + fresh + supporting quote
+- `usable`: primary-like OR supporting quote
+- `limited`: freshness unknown OR reachability unchecked
+- `weak`: invalid/unreachable OR contradiction warning present
 
 ## Test requirements
-Unit tests for quality derivation, quality unknown mapping, and report integration.
+- Unit test coverage for reachability, freshness, quality prioritization, warnings, and deterministic `now` injection.
+- UI should expose stable test IDs for quality/freshness/reachability labels and reason/warning rows.
 
 ## Acceptance references
 - `acceptance/source-quality-and-freshness.feature`
 - `acceptance/unknown-map-and-source-lineage.feature`
 - `acceptance/briefing-report.feature`
+
+## Foundation role
+Source Quality in v0.1 is a foundation for improving Evidence Map / Source Lineage / Unknown Map / Briefing Report precision in later phases.

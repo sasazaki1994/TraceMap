@@ -10,12 +10,14 @@ import { MissionHeader } from "@/features/run/components/mission-header";
 import { SourceLineagePanel } from "@/features/run/components/source-lineage-panel";
 import { SourceQualityPanel } from "@/features/run/components/source-quality-panel";
 import { UnknownMapPanel } from "@/features/run/components/unknown-map-panel";
+import { SourceDetailDrilldown } from "@/features/run/components/source-detail-drilldown";
 import { alertLevelLabel } from "@/features/run/lib/alert-level-label";
 import { buildBriefingReport } from "@/features/run/lib/build-briefing-report";
 import { buildCompanyResearchReport } from "@/features/run/lib/build-company-research-report";
 import { buildSourceLineage } from "@/features/run/lib/build-source-lineage";
 import { buildSourceQuality } from "@/features/run/lib/build-source-quality";
 import { buildUnknowns } from "@/features/run/lib/build-unknowns";
+import { buildSourceDrilldown } from "@/features/run/lib/build-source-drilldown";
 import { describeGraphNodeTie } from "@/features/run/lib/graph-node-tie-label";
 import { graphNodeKindLabel, graphNodeShortLabel, isSelectableGraphNode } from "@/features/run/lib/graph-node-presentation";
 import { layoutAnswerGraph } from "@/features/run/lib/layout-answer-graph";
@@ -213,13 +215,23 @@ export function RunResultView({
     () => buildSourceQuality({ sources, claimSupports: evidenceClaims }),
     [sources, evidenceClaims],
   );
-  const unknowns = useMemo(
-    () => buildUnknowns({ evidenceAlerts, evidenceClaims, sourceQuality }),
-    [evidenceAlerts, evidenceClaims, sourceQuality],
-  );
   const sourceLineage = useMemo(
     () => buildSourceLineage({ sources, evidenceClaims }),
     [sources, evidenceClaims],
+  );
+  const sourceDrilldown = useMemo(
+    () =>
+      buildSourceDrilldown({
+        sources,
+        claims: evidenceClaims,
+        sourceQuality,
+        sourceLineage,
+      }),
+    [evidenceClaims, sourceLineage, sourceQuality, sources],
+  );
+  const unknowns = useMemo(
+    () => buildUnknowns({ evidenceAlerts, evidenceClaims, sourceQuality, sourceDrilldown }),
+    [evidenceAlerts, evidenceClaims, sourceDrilldown, sourceQuality],
   );
   const companyResearchReport = useMemo(
     () =>
@@ -259,6 +271,10 @@ export function RunResultView({
     [answerContent, evidenceClaims, question, sourceLineage, sourceQuality, sources, unknowns],
   );
 
+  const selectedSourceDrilldown = useMemo(
+    () => sourceDrilldown.find((item) => item.sourceId === selectedSourceId) ?? null,
+    [selectedSourceId, sourceDrilldown],
+  );
   const selectedClaimSupportingSourceIds = useMemo(() => {
     if (!selectedGraphNodeId) {
       return new Set<string>();
@@ -853,7 +869,7 @@ export function RunResultView({
 
           <SourceLineagePanel sourceLineage={sourceLineage} sourceQuality={sourceQuality} />
           <SourceQualityPanel sourceQuality={sourceQuality} />
-          <BriefingReportPanel runId={runId} briefingMarkdown={briefingReport} companyResearchMarkdown={companyResearchReport.markdown} />
+          <BriefingReportPanel runId={runId} briefingMarkdown={briefingReport} />
           <CompanyResearchReportPanel markdown={companyResearchReport.markdown} />
         </Panel>
       </div>
@@ -865,6 +881,7 @@ export function RunResultView({
           <div data-testid="source-detail-panel">
             {selectedSource ? (
               <>
+                <SourceDetailDrilldown detail={selectedSourceDrilldown} />
                 <p className="source-list-item-title">{selectedSource.label}</p>
                 <p className="source-list-item-meta" style={{ marginTop: "8px" }}>
                   Type: {selectedSource.sourceType}

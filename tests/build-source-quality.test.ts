@@ -29,7 +29,7 @@ describe("buildSourceQualityInspections", () => {
     const result = buildSourceQualityInspections({
       sources: [
         source({ id: "u1", publishedAt: undefined, httpStatus: null }),
-        source({ id: "u2", httpStatus: 404, publishedAt: "2024-01-01" }),
+        source({ id: "u2", checkedAt: "2026-01-01T00:00:00.000Z", httpStatus: 404, publishedAt: "2024-01-01" }),
         source({ id: "u3", url: "mailto:test@example.com", publishedAt: "2024-01-01" }),
       ],
       claimSupports: [],
