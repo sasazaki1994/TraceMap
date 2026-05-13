@@ -60,6 +60,7 @@ type RunResultViewProps = {
   evidenceAlerts?: RunEvidenceAlert[];
   /** Shown when the run did not complete successfully (e.g. failed pipeline). */
   runStatusBanner?: string | null;
+  runStatusVariant?: "loading" | "error" | null;
   runId?: string;
 };
 
@@ -195,6 +196,7 @@ export function RunResultView({
   evidenceClaims = [],
   evidenceAlerts = [],
   runStatusBanner,
+  runStatusVariant = null,
   runId,
 }: RunResultViewProps) {
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
@@ -354,8 +356,23 @@ export function RunResultView({
           <InvestigationTimeline />
           <h2>Executive summary</h2>
           <div className="run-answer-body" data-testid="run-answer">
-            {answerContent}
+            {answerContent.length > 0 ? (
+              answerContent
+            ) : (
+              <p className="muted" data-testid="run-empty-state">
+                調査サマリーはまだ生成されていません。実行が完了すると、根拠付きの要約が表示されます。
+              </p>
+            )}
           </div>
+          {runStatusBanner ? (
+            <p
+              className="muted"
+              data-testid={runStatusVariant === "error" ? "run-error-state" : "run-loading-state"}
+              style={{ marginTop: "0.65rem" }}
+            >
+              {runStatusBanner}
+            </p>
+          ) : null}
 
           {evidenceAlerts.length > 0 ? (
             <div
@@ -837,6 +854,13 @@ export function RunResultView({
             Sources
           </h3>
           <ul className="source-list">
+            {sources.length === 0 ? (
+              <li>
+                <p className="muted" data-testid="source-empty-state">
+                  参照ソースはまだありません。COLLECTING SOURCES が完了すると、根拠リンク付きで表示されます。
+                </p>
+              </li>
+            ) : null}
             {sources.map((s) => (
               <li key={s.id}>
                 <button

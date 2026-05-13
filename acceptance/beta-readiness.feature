@@ -17,6 +17,27 @@ Feature: Beta Readiness
     And the user should be able to download the briefing report markdown
     And the user should be able to create or access a read-only share link
 
+  Scenario: Run detail page shows explicit state UI during mission lifecycle
+    Given an investigation run is in progress
+    When the user opens the run detail page or a read-only share page
+    Then the page should show `run-loading-state`
+    And the loading message should include one of:
+      | COLLECTING SOURCES |
+      | EXTRACTING CLAIMS |
+      | LINKING EVIDENCE |
+      | DETECTING UNKNOWNS |
+      | BUILDING REPORT |
+    And the loading message should include a Japanese explanation
+
+  Scenario: Run detail page shows explicit error and empty states
+    Given an investigation run fails or has no generated snapshot yet
+    When the user opens the run detail page or a read-only share page
+    Then the page should show `run-error-state` when the run failed
+    And the error message should include `RUN FAILED`
+    And the page should show `run-empty-state` when summary content is empty
+    And the page should show `source-empty-state` when source list is empty
+    And `unknown-empty-state` should remain consistent with the unknown map panel wording
+
   Scenario: User can revisit a saved investigation
     Given at least one analysis run exists
     When the user opens the saved investigations page

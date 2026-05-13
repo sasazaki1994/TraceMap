@@ -88,9 +88,12 @@ export default async function SharePage({ params }: SharePageProps) {
             question={run.question}
             answerTitle={null}
             answerContent=""
+            runStatusVariant="error"
             runStatusBanner={
-              run.lastErrorMessage ??
-              "調査結果を生成できませんでした。情報源が不足しているか、処理中にエラーが発生しました。所有者に再度実行してもらってください。"
+              `RUN FAILED: ${
+                run.lastErrorMessage ??
+                "調査結果を生成できませんでした。情報源が不足しているか、処理中にエラーが発生しました。所有者に再度実行してもらってください。"
+              }`
             }
             evidenceAlerts={[]}
             evidenceClaims={[]}
@@ -117,6 +120,7 @@ export default async function SharePage({ params }: SharePageProps) {
             question={run.question}
             answerTitle={null}
             answerContent=""
+            runStatusVariant="loading"
             runStatusBanner={`${phase} しばらくしてからページを更新してください。`}
             evidenceAlerts={[]}
             evidenceClaims={[]}

@@ -102,9 +102,12 @@ export default async function RunPage({ params }: RunPageProps) {
             question={run.question}
             answerTitle={null}
             answerContent=""
+            runStatusVariant="error"
             runStatusBanner={
-              run.lastErrorMessage ??
-              "調査結果を生成できませんでした。情報源が不足しているか、処理中にエラーが発生しました。別の調査テーマにするか、公式URLを追加して再実行してください。"
+              `RUN FAILED: ${
+                run.lastErrorMessage ??
+                "調査結果を生成できませんでした。情報源が不足しているか、処理中にエラーが発生しました。別の調査テーマにするか、公式URLを追加して再実行してください。"
+              }`
             }
             evidenceAlerts={[]}
             evidenceClaims={[]}
@@ -130,6 +133,7 @@ export default async function RunPage({ params }: RunPageProps) {
             question={run.question}
             answerTitle={null}
             answerContent=""
+            runStatusVariant="loading"
             runStatusBanner={`${phase} しばらくしてからページを更新してください。`}
             evidenceAlerts={[]}
             evidenceClaims={[]}
