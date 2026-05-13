@@ -45,7 +45,9 @@ Allow users to submit optional source URLs from the landing page so Investigatio
 - Label: `Optional source URLs`.
 - Help text: `Add one URL per line. TraceMap will prioritize these sources when building the evidence map.`
 - Name: `sourceUrls`.
-- `data-testid="manual-source-urls-input"`.
+- `data-testid="manual-source-url-input"` for textarea input.
+- `data-testid="manual-source-url-help"` for help text.
+- `data-testid="manual-source-url-error"` for invalid URL validation message.
 - Optional input, empty means existing behavior.
 - Validation error can be shown near existing form error region.
 
