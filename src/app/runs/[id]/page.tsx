@@ -110,6 +110,10 @@ export default async function RunPage({ params }: RunPageProps) {
             evidenceClaims={[]}
             sources={[]}
             graph={{ version: 1, nodes: [], edges: [] }}
+            runId={run.id}
+            runStatus={run.status}
+            runCreatedAt={run.createdAt.toISOString()}
+            runUpdatedAt={run.updatedAt.toISOString()}
           />
         </PageContainer>
       </main>
@@ -135,6 +139,10 @@ export default async function RunPage({ params }: RunPageProps) {
             evidenceClaims={[]}
             sources={[]}
             graph={{ version: 1, nodes: [], edges: [] }}
+            runId={run.id}
+            runStatus={run.status}
+            runCreatedAt={run.createdAt.toISOString()}
+            runUpdatedAt={run.updatedAt.toISOString()}
           />
         </PageContainer>
       </main>
@@ -157,6 +165,12 @@ export default async function RunPage({ params }: RunPageProps) {
           evidenceClaims={evidenceClaims}
           sources={sources}
           graph={graph}
+          runId={run.id}
+          runStatus={run.status}
+          runCreatedAt={run.createdAt.toISOString()}
+          runUpdatedAt={run.updatedAt.toISOString()}
+          answerModel={answer.model}
+          answerGeneratedAt={answer.createdAt.toISOString()}
         />
       </PageContainer>
     </main>

@@ -11,12 +11,15 @@ import { SourceLineagePanel } from "@/features/run/components/source-lineage-pan
 import { SourceQualityPanel } from "@/features/run/components/source-quality-panel";
 import { UnknownMapPanel } from "@/features/run/components/unknown-map-panel";
 import { SourceDetailDrilldown } from "@/features/run/components/source-detail-drilldown";
+import { RunMetadataPanel } from "@/features/run/components/run-metadata-panel";
+import { UsageMeterLite } from "@/features/run/components/usage-meter-lite";
 import { alertLevelLabel } from "@/features/run/lib/alert-level-label";
 import { buildBriefingReport } from "@/features/run/lib/build-briefing-report";
 import { buildCompanyResearchReport } from "@/features/run/lib/build-company-research-report";
 import { buildSourceLineage } from "@/features/run/lib/build-source-lineage";
 import { buildSourceQuality } from "@/features/run/lib/build-source-quality";
 import { buildUnknowns } from "@/features/run/lib/build-unknowns";
+import { buildRunMetadata } from "@/features/run/lib/build-run-metadata";
 import { buildSourceDrilldown } from "@/features/run/lib/build-source-drilldown";
 import { describeGraphNodeTie } from "@/features/run/lib/graph-node-tie-label";
 import { graphNodeKindLabel, graphNodeShortLabel, isSelectableGraphNode } from "@/features/run/lib/graph-node-presentation";
@@ -51,6 +54,7 @@ export type RunSourceView = {
 };
 
 type RunResultViewProps = {
+  runStatus?: "queued" | "processing" | "completed" | "failed";
   question: string;
   answerTitle: string | null;
   answerContent: string;
@@ -61,6 +65,10 @@ type RunResultViewProps = {
   /** Shown when the run did not complete successfully (e.g. failed pipeline). */
   runStatusBanner?: string | null;
   runId?: string;
+  runCreatedAt?: string | null;
+  runUpdatedAt?: string | null;
+  answerModel?: string | null;
+  answerGeneratedAt?: string | null;
 };
 
 const GRAPH_W = 420;
@@ -196,6 +204,11 @@ export function RunResultView({
   evidenceAlerts = [],
   runStatusBanner,
   runId,
+  runStatus,
+  runCreatedAt,
+  runUpdatedAt,
+  answerModel,
+  answerGeneratedAt,
 }: RunResultViewProps) {
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [selectedGraphNodeId, setSelectedGraphNodeId] = useState<string | null>(
@@ -271,6 +284,21 @@ export function RunResultView({
     [answerContent, evidenceClaims, question, sourceLineage, sourceQuality, sources, unknowns],
   );
 
+  const runMetadata = useMemo(
+    () =>
+      buildRunMetadata({
+        runId,
+        status: runStatus,
+        createdAt: runCreatedAt,
+        updatedAt: runUpdatedAt,
+        model: answerModel,
+        sources,
+        evidenceClaims,
+        evidenceAlerts,
+        generatedAt: answerGeneratedAt,
+      }),
+    [answerGeneratedAt, answerModel, evidenceAlerts, evidenceClaims, runCreatedAt, runId, runStatus, runUpdatedAt, sources],
+  );
   const selectedSourceDrilldown = useMemo(
     () => sourceDrilldown.find((item) => item.sourceId === selectedSourceId) ?? null,
     [selectedSourceId, sourceDrilldown],
@@ -391,6 +419,16 @@ export function RunResultView({
               </div>
             </div>
           ) : null}
+
+          <RunMetadataPanel metadata={runMetadata} />
+          <UsageMeterLite
+            sourceCount={sources.length}
+            claimCount={evidenceClaims.length}
+            answerLength={answerContent.length}
+            reportLength={briefingReport.length}
+            provider={runMetadata.provider}
+            mode={selectedLens}
+          />
 
           <UnknownMapPanel unknowns={unknowns} />
 

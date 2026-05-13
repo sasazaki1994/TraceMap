@@ -30,6 +30,10 @@ test("investigation panels are visible on a completed run", async ({ page, reque
   await expect(page.getByTestId("investigation-guide-step")).toHaveCount(5);
   await expect(page.getByTestId("investigation-timeline")).toBeVisible();
   await expect(page.getByTestId("investigation-step")).toHaveCount(5);
+  await expect(page.getByTestId("run-metadata-panel")).toBeVisible();
+  await expect(page.getByTestId("run-metadata-item").first()).toBeVisible();
+  await expect(page.getByTestId("usage-meter-lite")).toBeVisible();
+  await expect(page.getByTestId("usage-meter-item").first()).toBeVisible();
   await expect(page.getByTestId("unknown-map-panel")).toBeVisible();
   await expect(page.getByTestId("unknown-map-item").first()).toBeVisible();
   await expect(page.getByTestId("source-lineage-panel")).toBeVisible();

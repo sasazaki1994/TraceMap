@@ -17,6 +17,8 @@ Feature: Investigation Mode
     And the run page should display an investigation timeline
     And the run page should display an executive summary
     And the run page should display an evidence map
+    And the run page should display run metadata
+    And the run page should display usage meter lite
     And the run page should display an unknown map
     And the run page should display source lineage information
     And the run page should display a briefing report preview
