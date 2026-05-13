@@ -853,7 +853,7 @@ export function RunResultView({
 
           <SourceLineagePanel sourceLineage={sourceLineage} sourceQuality={sourceQuality} />
           <SourceQualityPanel sourceQuality={sourceQuality} />
-          <BriefingReportPanel runId={runId} briefingMarkdown={briefingReport} companyResearchMarkdown={companyResearchReport.markdown} />
+          <BriefingReportPanel runId={runId} briefingMarkdown={briefingReport} />
           <CompanyResearchReportPanel markdown={companyResearchReport.markdown} />
         </Panel>
       </div>

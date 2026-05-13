@@ -8,22 +8,128 @@ import {
   sourceReachabilityLabel,
 } from "@/features/run/lib/source-quality-labels";
 
-type BuildBriefingReportInput = { researchTopic: string; answerContent: string; evidenceClaims: RunEvidenceClaim[]; sources: RunSourceView[]; unknowns: InvestigationUnknown[]; sourceLineage: SourceLineageLite[]; sourceQuality: SourceQualitySignal[]; generatedAt?: string; };
-const nonEmpty = (v: string, f: string) => v.trim() || f;
-const safeUrl=(v:string|null|undefined)=>{if(!v) return ""; try{const u=new URL(v); return ["http:","https:"].includes(u.protocol)?u.toString():"";}catch{return ""}};
+type BuildBriefingReportInput = {
+  runId?: string;
+  researchTopic: string;
+  answerContent: string;
+  evidenceClaims: RunEvidenceClaim[];
+  sources: RunSourceView[];
+  unknowns: InvestigationUnknown[];
+  sourceLineage: SourceLineageLite[];
+  sourceQuality: SourceQualitySignal[];
+  generatedAt?: string;
+};
+
+const safeUrl = (value: string | null | undefined): string | null => {
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
+};
 
 export function buildBriefingReport(input: BuildBriefingReportInput): string {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
-  const qCounts = { strong:0, usable:0, limited:0, weak:0, unknown:0 };
-  input.sourceQuality.forEach((s)=>qCounts[s.quality]++);
+  const qualityBySourceId = new Map(input.sourceQuality.map((item) => [item.sourceId, item]));
+
+  const strongCount = input.sourceQuality.filter((s) => s.quality === "strong").length;
+  const limitedOrWeakCount = input.sourceQuality.filter((s) => s.quality === "limited" || s.quality === "weak").length;
+  const unknownFreshnessCount = input.sourceQuality.filter((s) => s.freshness === "unknown").length;
+  const uncheckedReachabilityCount = input.sourceQuality.filter((s) => s.reachability === "unchecked").length;
+
+  const keyClaims = input.evidenceClaims.length
+    ? input.evidenceClaims.flatMap((claim) => {
+        const supports = claim.supports.length
+          ? claim.supports.map((support) => {
+              const q = qualityBySourceId.get(support.sourceId);
+              const qualityText = q
+                ? `${sourceQualityGradeLabel(q.quality)} / ${sourceFreshnessLabel(q.freshness)} / ${sourceReachabilityLabel(q.reachability)}`
+                : "Unknown / Unknown / Unchecked";
+              return [
+                `  - Evidence: ${support.sourceLabel || support.sourceId}`,
+                `  - Support: ${support.supportKind}`,
+                `  - Source Quality: ${qualityText}`,
+              ].join("\n");
+            })
+          : ["  - Evidence: No structured data available in this run."];
+        return [`- ${claim.summary.trim() || "Untitled claim"}`, ...supports];
+      })
+    : ["- No key claims are available yet."];
+
+  const supportingSources = input.sources.length
+    ? input.sources.map((source) => {
+        const q = qualityBySourceId.get(source.id);
+        const notes = q
+          ? [...q.reasons, ...q.warnings].join(" ") || "No additional quality notes."
+          : "No source quality assessment available.";
+        const sourceTitle = source.label.trim() || "Untitled source";
+        const sourceUrl = safeUrl(source.url);
+        return [
+          `- ${sourceTitle}${sourceUrl ? ` (${sourceUrl})` : ""}`,
+          `  - URL: ${sourceUrl ?? "Unavailable"}`,
+          `  - Type: ${source.sourceType ?? "unknown"}`,
+          `  - Quality: ${q ? sourceQualityGradeLabel(q.quality) : "Unknown"}`,
+          `  - Freshness: ${q ? sourceFreshnessLabel(q.freshness) : "Unknown"}`,
+          `  - Reachability: ${q ? sourceReachabilityLabel(q.reachability) : "Unchecked"}`,
+          `  - Notes: ${notes}`,
+        ].join("\n");
+      })
+    : ["- No supporting sources are available yet."];
+
+  const unknowns = input.unknowns.length
+    ? input.unknowns.map(
+        (unknown) =>
+          `- [${unknown.severity.toUpperCase()}] ${unknown.text.trim() || "Unspecified investigation gap"} — ${unknown.suggestedNextAction?.trim() || "Review this gap before reusing the finding."}\n  - Reason: ${unknown.reason}\n  - Suggested next action: ${unknown.suggestedNextAction?.trim() || "Review this gap before reusing the finding."}`,
+      )
+    : ["- No critical unknowns detected in this beta run.", "- No unresolved unknowns were detected in the current structured output."];
+
+  const lineage = input.sourceLineage.length
+    ? input.sourceLineage.map(
+        (entry) => `- ${(entry.label || "Untitled source").trim() || "Untitled source"}: ${(entry.lineageLabel || "Lineage not available").trim() || "Lineage not available"}`,
+      )
+    : ["- No source lineage summary is available yet."];
+
   return [
-    "# Briefing Report","","## Executive Summary", input.answerContent.trim() || "No executive summary is available yet.","",
-    "## Key Claims", ...(input.evidenceClaims.length?input.evidenceClaims.map(c=>`- ${nonEmpty(c.summary,'Untitled claim')}`):["- No key claims are available yet."]),"",
-    "## Supporting Sources", ...(input.sources.length?input.sources.map(s=>`- ${nonEmpty(s.label,'Untitled source')}${safeUrl(s.url)?` (${safeUrl(s.url)})`:''}`):["- No supporting sources are available yet."]),"",
-    "## Unknowns / Open Questions", ...(input.unknowns.length?input.unknowns.map(u=>`- [${u.severity.toUpperCase()}] ${nonEmpty(u.text,'Unspecified investigation gap')} — ${nonEmpty(u.suggestedNextAction,'Review this gap before reusing the finding.')}`):["- No critical unknowns detected in this beta run."]),"",
-    "## Source Quality Summary", `- Strong sources: ${qCounts.strong}`,`- Usable sources: ${qCounts.usable}`,`- Limited sources: ${qCounts.limited}`,`- Weak sources: ${qCounts.weak}`,`- Unknown sources: ${qCounts.unknown}`,"",
-    "### Notes", ...(input.sourceQuality.length?input.sourceQuality.map(q=>`- ${q.label}: ${sourceQualityGradeLabel(q.quality)} / ${sourceFreshnessLabel(q.freshness)} / ${sourceReachabilityLabel(q.reachability)}. ${q.reasons.join(' ')}`):["- No source quality notes are available yet."]),"",
-    "## Source Lineage Summary", ...(input.sourceLineage.length?input.sourceLineage.map(l=>`- ${nonEmpty(l.label,'Untitled source')}: ${nonEmpty(l.lineageLabel,'Lineage not available')}`):["- No source lineage summary is available yet."]),"",
-    "## Generated From", `- Topic: ${nonEmpty(input.researchTopic,'Unknown')}`, `- Generated at: ${generatedAt}`, `- Source count: ${input.sources.length}`, `- Claim count: ${input.evidenceClaims.length}`, `- Unknown count: ${input.unknowns.length}`,
-  ].join('\n');
+    "# Briefing Report",
+    "",
+    "## Executive Summary",
+    input.answerContent.trim() || "No executive summary is available yet.",
+    "",
+    "## Key Claims",
+    ...keyClaims,
+    "",
+    "## Supporting Sources",
+    ...supportingSources,
+    "",
+    "## Unknowns / Open Questions",
+    ...unknowns,
+    "",
+    "## Source Lineage Summary",
+    ...lineage,
+    "",
+    "## Source Quality Summary",
+    `- Strong sources: ${strongCount}`,
+    `- Usable sources: ${input.sourceQuality.filter((s) => s.quality === "usable").length}`,
+    `- Limited sources: ${input.sourceQuality.filter((s) => s.quality === "limited").length}`,
+    `- Weak sources: ${input.sourceQuality.filter((s) => s.quality === "weak").length}`,
+    `- Unknown sources: ${input.sourceQuality.filter((s) => s.quality === "unknown").length}`,
+    "",
+    "### Notes",
+    ...(input.sourceQuality.length ? input.sourceQuality.map((q) => `- ${q.label}: ${sourceQualityGradeLabel(q.quality)} / ${sourceFreshnessLabel(q.freshness)} / ${sourceReachabilityLabel(q.reachability)}. ${q.reasons.join(" ")}`) : ["- No source quality notes are available yet."]),
+    "",
+    "## Source Quality Notes",
+    `- Strong sources: ${strongCount}`,
+    `- Limited or weak sources: ${limitedOrWeakCount}`,
+    `- Unknown freshness: ${unknownFreshnessCount}`,
+    `- Unchecked reachability: ${uncheckedReachabilityCount}`,
+    "",
+    "## Metadata",
+    `- Run ID: ${input.runId ?? "Unknown"}`,
+    `- Generated At: ${generatedAt}`,
+    `- Generated at: ${generatedAt}`,
+    `- Topic: ${input.researchTopic.trim() || "Unknown"}`,
+    `- Unknown count: ${input.unknowns.length}`,
+  ].join("\n");
 }
