@@ -36,7 +36,7 @@
 | Manual Source URL Intake v0.1 | `manual-source-url-intake.feature` |
 | Run History and Saved Investigations | `run-history-and-saved-investigations.feature` |
 | Share Link Management Lite | `share-link-management-lite.feature` |
-| Beta Readiness | `beta-readiness.feature` |
+| Public Beta Readiness | `public-beta-readiness.feature` |
 
 | Source Quality & Freshness Inspector v0.1 | `source-quality-and-freshness-inspector.feature` |
 

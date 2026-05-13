@@ -54,4 +54,4 @@ Closed Beta 前に、TraceMap を「AI回答」ではなく「根拠を追跡す
 
 ## Acceptance references
 - `acceptance/closed-beta-readiness.feature`
-- 既存の `acceptance/beta-readiness.feature` と整合させる
+- 既存の `acceptance/public-beta-readiness.feature` と整合させる
