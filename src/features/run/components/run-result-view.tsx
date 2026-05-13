@@ -215,13 +215,23 @@ export function RunResultView({
     () => buildSourceQuality({ sources, claimSupports: evidenceClaims }),
     [sources, evidenceClaims],
   );
-  const unknowns = useMemo(
-    () => buildUnknowns({ evidenceAlerts, evidenceClaims, sourceQuality }),
-    [evidenceAlerts, evidenceClaims, sourceQuality],
-  );
   const sourceLineage = useMemo(
     () => buildSourceLineage({ sources, evidenceClaims }),
     [sources, evidenceClaims],
+  );
+  const sourceDrilldown = useMemo(
+    () =>
+      buildSourceDrilldown({
+        sources,
+        claims: evidenceClaims,
+        sourceQuality,
+        sourceLineage,
+      }),
+    [evidenceClaims, sourceLineage, sourceQuality, sources],
+  );
+  const unknowns = useMemo(
+    () => buildUnknowns({ evidenceAlerts, evidenceClaims, sourceQuality, sourceDrilldown }),
+    [evidenceAlerts, evidenceClaims, sourceDrilldown, sourceQuality],
   );
   const companyResearchReport = useMemo(
     () =>
@@ -259,18 +269,6 @@ export function RunResultView({
         sourceQuality,
       }),
     [answerContent, evidenceClaims, question, sourceLineage, sourceQuality, sources, unknowns],
-  );
-
-  const sourceDrilldown = useMemo(
-    () =>
-      buildSourceDrilldown({
-        sources,
-        claims: evidenceClaims,
-        sourceQuality,
-        sourceLineage,
-        unknowns,
-      }),
-    [evidenceClaims, sourceLineage, sourceQuality, sources, unknowns],
   );
 
   const selectedSourceDrilldown = useMemo(

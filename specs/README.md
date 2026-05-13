@@ -58,3 +58,5 @@ Each feature spec should describe:
 | Source Detail Evidence Drilldown v0.1 | [source-detail-evidence-drilldown.md](./source-detail-evidence-drilldown.md) |
 | Unknown Map Categorization v0.1 | [unknown-map-categorization.md](./unknown-map-categorization.md) |
 | Report Export and Templates v0.1 | [report-export-and-templates.md](./report-export-and-templates.md) |
+
+| Unknown Map Categorization & Deduplication v0.1 | [unknown-map-categorization-and-deduplication.md](./unknown-map-categorization-and-deduplication.md) |

@@ -18,6 +18,7 @@ export type InvestigationUnknown = {
   suggestedNextAction: string;
   relatedClaimIds?: string[];
   relatedSourceIds?: string[];
+  signals?: string[];
 };
 
 export type SourceLineageLite = {
