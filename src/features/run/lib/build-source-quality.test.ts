@@ -28,6 +28,8 @@ describe("buildSourceQuality", () => {
     expect(buildSourceQuality({ sources: [{ ...baseSource, checkedAt: "2026-01-01T00:00:00.000Z", httpStatus: 200 }] })[0].reachability).toBe("reachable");
     expect(buildSourceQuality({ sources: [{ ...baseSource, checkedAt: "2026-01-01T00:00:00.000Z", httpStatus: 404 }] })[0].reachability).toBe("unreachable");
     expect(buildSourceQuality({ sources: [baseSource] })[0].reachability).toBe("unchecked");
+    expect(buildSourceQuality({ sources: [{ ...baseSource, checkedAt: undefined, httpStatus: 200 }] })[0].reachability).toBe("unchecked");
+    expect(buildSourceQuality({ sources: [{ ...baseSource, checkedAt: "2026-01-01T00:00:00.000Z", httpStatus: undefined }] })[0].reachability).toBe("unchecked");
   });
 
   it("classifies freshness unknown/stale/fresh with injected now", () => {

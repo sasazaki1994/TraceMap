@@ -19,7 +19,7 @@ function isValidHttpUrl(url: string | null | undefined): boolean {
 function classifyReachability(source: RunSourceView): SourceQualityAssessment["reachability"] {
   if (!source.url) return "unchecked";
   if (!isValidHttpUrl(source.url)) return "invalid";
-  if (typeof source.httpStatus !== "number") return "unchecked";
+  if (!source.checkedAt || typeof source.httpStatus !== "number") return "unchecked";
   if (source.httpStatus >= 200 && source.httpStatus <= 299) return "reachable";
   if (source.httpStatus >= 300 && source.httpStatus <= 599) return "unreachable";
   return "unchecked";
@@ -52,7 +52,7 @@ export function buildSourceQuality(params: {
       claim.supports.some((support) => support.sourceId === source.id),
     ).length;
 
-    const lowerType = source.sourceType.toLowerCase();
+    const lowerType = String(source.sourceType ?? "").toLowerCase();
     const isPrimaryLike =
       supports.some((s) => s.isPrimarySource) ||
       PRIMARY_LIKE_KEYWORDS.some((keyword) => lowerType.includes(keyword));
