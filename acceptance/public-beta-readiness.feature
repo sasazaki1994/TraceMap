@@ -1,4 +1,4 @@
-Feature: Beta Readiness
+Feature: Public Beta Readiness
   TraceMap beta v0.1 should support a complete investigation workflow with evidence-first outputs.
 
   Scenario: User can complete a beta investigation flow

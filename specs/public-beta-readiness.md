@@ -1,4 +1,4 @@
-# Beta Readiness v0.1
+# Public Beta Readiness v0.1
 
 ## Purpose
 Define the minimum integrated product bar for releasing TraceMap as a third-party testable beta.
@@ -70,7 +70,7 @@ Users can complete an end-to-end investigation flow from topic intake to evidenc
 - `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm exec prisma validate` (and `pnpm test:e2e` when available)
 
 ## Acceptance references
-- `acceptance/beta-readiness.feature`
+- `acceptance/public-beta-readiness.feature`
 - `acceptance/investigation-mode.feature`
 - `acceptance/unknown-map-and-source-lineage.feature`
 - `acceptance/source-quality-and-freshness.feature`
