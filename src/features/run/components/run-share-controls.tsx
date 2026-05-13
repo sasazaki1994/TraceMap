@@ -69,7 +69,7 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
     <Panel className="run-share-panel" data-testid="share-link-section">
       <div className="eyebrow">Share</div>
       <p className="muted" style={{ marginTop: 8, marginBottom: 12 }}>
-        Create a read-only link so others can view this run without signing in.
+        Create a read-only link so others can view this run without signing in. Shared pages cannot be edited or re-run.
       </p>
       <form action={formAction}>
         <input name="analysisRunId" type="hidden" value={analysisRunId} />
@@ -148,7 +148,7 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
         })}
       </div>
 
-      {copyStatus ? <p data-testid="share-link-copy-status">{copyStatus}</p> : null}
+      {copyStatus ? <p data-testid="share-copied-state">{copyStatus}</p> : null}
       {error ? <p data-testid="share-link-revoke-error">{error}</p> : null}
     </Panel>
   );

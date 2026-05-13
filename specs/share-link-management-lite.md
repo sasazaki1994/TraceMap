@@ -58,7 +58,15 @@ Provide lightweight, safe visibility and control for run-level read-only share l
 ## Share page requirements
 - `/share/[token]` resolves only active share links.
 - Expired/revoked links are not publicly readable.
-- Behavior for inactive links is `notFound()` (aligned with existing route handling).
+- Inactive links render a dedicated invalid/expired read-only UI state.
+- Shared page always shows fixed notice that edit/re-run is unavailable.
+
+## Additional QA hooks
+- Shared page shows fixed read-only notice that editing/re-running is unavailable.
+- Shared page exposes read-only badge test id `share-readonly-badge`.
+- Shared page exposes copied feedback test id `share-copied-state` in share controls.
+- Shared page exposes expiry text test id `share-expiry` when `expiresAt` exists.
+- Invalid/expired token routes to dedicated UI state with test id `share-invalid-state` instead of direct `notFound()`.
 
 ## Test requirements
 - Unit tests for active/expired status helper.

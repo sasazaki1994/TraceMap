@@ -18,6 +18,7 @@ Feature: Share Link Management Lite
     Given an active share link exists on the run detail page
     When the user clicks the copy button for a share link
     Then the share link URL should be copied to the clipboard
+    And the UI should show copied state feedback
 
   Scenario: User revokes a share link
     Given an active share link exists
@@ -25,7 +26,9 @@ Feature: Share Link Management Lite
     Then the share link should be marked expired
     And the public share page should no longer show the run content for that token
 
-  Scenario: Expired share link is not publicly readable
-    Given a share link is expired
+  Scenario: Invalid or expired share link shows dedicated read-only invalid state
+    Given a share link is invalid or expired
     When someone opens the share URL
-    Then the public share page should not display the run content
+    Then the public share page should show a dedicated invalid state message
+    And the page should display the read-only badge
+    And the page should state that edit and re-run are unavailable
