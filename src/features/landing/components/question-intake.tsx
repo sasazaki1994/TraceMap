@@ -7,6 +7,7 @@ import {
   createMockRunAction,
   type CreateRunFormState,
 } from "@/app/actions/create-run";
+import { MANUAL_SOURCE_URLS_ERROR_MESSAGE } from "@/app/actions/manual-source-urls";
 import { Panel } from "@/components/ui/panel";
 
 const initialState: CreateRunFormState = {};
@@ -60,7 +61,11 @@ export function QuestionIntake({ disabled = false }: { disabled?: boolean }) {
         <label className="question-label" htmlFor="sourceUrls" style={{ marginTop: "1rem" }}>
           Optional source URLs
         </label>
-        <p className="muted" style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
+        <p
+          className="muted"
+          data-testid="manual-source-url-help"
+          style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}
+        >
           Add one URL per line. TraceMap will prioritize these sources when building the evidence map.
         </p>
         <textarea
@@ -71,7 +76,7 @@ https://example.com/press-release
 https://example.com/technical-doc`}
           rows={4}
           disabled={isPending || disabled}
-          data-testid="manual-source-urls-input"
+          data-testid="manual-source-url-input"
         />
         <label className="question-label" htmlFor="mode" style={{ marginTop: "1rem" }}>
           Investigation depth
@@ -96,7 +101,18 @@ https://example.com/technical-doc`}
             Deep — broader investigation with more claims and counterpoints
           </option>
         </select>
-        {state.error ? <p className="form-error">{state.error}</p> : null}
+        {state.error ? (
+          <p
+            className="form-error"
+            data-testid={
+              state.error === MANUAL_SOURCE_URLS_ERROR_MESSAGE
+                ? "manual-source-url-error"
+                : undefined
+            }
+          >
+            {state.error}
+          </p>
+        ) : null}
         {disabled ? <p className="form-error">Please sign in to start an investigation. <Link href="/login">Sign in</Link></p> : null}
         <div className="question-actions">
           <button type="submit" disabled={isPending || disabled}>
