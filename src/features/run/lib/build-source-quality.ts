@@ -83,8 +83,17 @@ export function buildSourceQuality(params: {
     }
     if (hasContradiction) warnings.push("Contradiction note exists in claim support.");
 
+    const hasInsufficientMetadata =
+      !source.publishedAt &&
+      !source.checkedAt &&
+      typeof source.httpStatus !== "number" &&
+      !source.url;
+
     let quality: SourceQualityAssessment["quality"] = "limited";
-    if (reachability === "invalid" || reachability === "unreachable" || hasContradiction) {
+    if (hasInsufficientMetadata && !hasSupportingQuote && !isPrimaryLike) {
+      quality = "unknown";
+      reasons.push("Insufficient metadata to assess source quality confidently.");
+    } else if (reachability === "invalid" || reachability === "unreachable" || hasContradiction) {
       quality = "weak";
     } else if (
       isPrimaryLike &&

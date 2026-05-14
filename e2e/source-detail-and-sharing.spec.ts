@@ -25,7 +25,7 @@ test.describe("source-detail-and-sharing", () => {
     await page.goto("/");
 
     await page.getByLabel("Research topic").fill("Share link E2E question?");
-    await page.getByRole("button", { name: "Start an Investigation" }).click();
+    await page.getByRole("button", { name: "Start Investigation" }).click();
 
     await expect(page).toHaveURL(/\/runs\//);
 
@@ -40,6 +40,7 @@ test.describe("source-detail-and-sharing", () => {
     await page.goto(href!);
 
     await expect(page.getByText("Shared view · read-only")).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex.*nofollow|nofollow.*noindex/);
     await expect(
       page.locator(".run-question").getByText("Share link E2E question?", { exact: true }),
     ).toBeVisible();
@@ -68,7 +69,7 @@ test.describe("source-detail-and-sharing", () => {
     await signInAsBetaUser(page, "share-revoke");
     await page.goto("/");
     await page.getByLabel("Research topic").fill("Share link revoke E2E question?");
-    await page.getByRole("button", { name: "Start an Investigation" }).click();
+    await page.getByRole("button", { name: "Start Investigation" }).click();
     await expect(page).toHaveURL(/\/runs\//);
 
     await page.getByTestId("share-create-button").click();
