@@ -43,6 +43,7 @@ test("investigation panels are visible on a completed run", async ({ page, reque
   await expect(page).toHaveURL(/\/runs\//);
   await expect(page.getByTestId("mission-header")).toBeVisible();
   await expect(page.getByTestId("mission-topic")).toBeVisible();
+  await expect(page.getByTestId("mission-status")).toContainText("Run status:");
   await expect(page.getByTestId("investigation-guide")).toBeVisible();
   await expect(page.getByTestId("investigation-guide-step")).toHaveCount(5);
   await expect(page.getByTestId("investigation-timeline")).toBeVisible();
