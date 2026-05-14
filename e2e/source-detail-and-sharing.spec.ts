@@ -40,6 +40,7 @@ test.describe("source-detail-and-sharing", () => {
     await page.goto(href!);
 
     await expect(page.getByText("Shared view · read-only")).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex.*nofollow|nofollow.*noindex/);
     await expect(
       page.locator(".run-question").getByText("Share link E2E question?", { exact: true }),
     ).toBeVisible();
