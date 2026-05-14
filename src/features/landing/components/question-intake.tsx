@@ -21,7 +21,7 @@ export function QuestionIntake({ disabled = false }: { disabled?: boolean }) {
   return (
     <Panel className="question-panel">
       <div className="eyebrow">Investigation Intake</div>
-      <h2>Turn a research topic into a traceable investigation mission.</h2>
+        <h2>Analyze a research topic with traceable evidence and unknowns.</h2>
       <p className="muted">
         TraceMap is not a chat box. It decomposes your topic into claims, supporting
         evidence, unresolved unknowns, and source lineage so you can review where each
@@ -116,7 +116,7 @@ https://example.com/technical-doc`}
         {disabled ? <p className="form-error">Sign in to start a beta investigation. <Link href="/login">Sign in</Link></p> : null}
         <div className="question-actions">
           <button type="submit" disabled={isPending || disabled}>
-            {isPending ? "Running investigation..." : "Start an Investigation"}
+            {isPending ? "Running investigation..." : "Start Investigation"}
           </button>
           <span className="muted">Public Beta baseline: mock mission creates an instant run after sign-in.</span>
         </div>
