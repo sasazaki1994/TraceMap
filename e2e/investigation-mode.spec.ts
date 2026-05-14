@@ -4,7 +4,7 @@ import { signInAsBetaUser } from "./support/auth";
 test("landing page shows investigation-oriented intake copy", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByText("Turn a research topic into a traceable investigation mission.")).toBeVisible();
+  await expect(page.getByText("Analyze a research topic with traceable evidence and unknowns.")).toBeVisible();
   await expect(page.getByText("Public Beta: TraceMap is under active development.")).toBeVisible();
   await expect(page.getByTestId("research-topic-examples")).toBeVisible();
   const modeSelector = page.getByTestId("investigation-mode-selector");
@@ -15,7 +15,7 @@ test("landing page shows investigation-oriented intake copy", async ({ page }) =
   await expect(modeSelector.locator('[data-testid="investigation-mode-deep"]')).toHaveAttribute("value", "deep");
   await expect(page.getByText("Sign in to start a beta investigation.")).toBeVisible();
   await expect(page.getByTestId("auth-status").getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
-  await expect(page.getByRole("button", { name: "Start an Investigation" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Start Investigation" })).toBeDisabled();
 });
 
 test("landing page shows manual source URL intake and validation message", async ({ page }) => {
@@ -25,7 +25,7 @@ test("landing page shows manual source URL intake and validation message", async
   await expect(page.getByTestId("manual-source-url-input")).toBeVisible();
   await page.getByTestId("manual-source-url-input").fill("not-a-url");
   await page.getByLabel("Research topic").fill("Manual source URL validation test");
-  await page.getByRole("button", { name: "Start an Investigation" }).click();
+  await page.getByRole("button", { name: "Start Investigation" }).click();
   await expect(page.getByTestId("manual-source-url-error")).toBeVisible();
   await expect(page.getByText(/Each source URL must use http or https/i)).toBeVisible();
 });
@@ -38,11 +38,12 @@ test("investigation panels are visible on a completed run", async ({ page, reque
   await signInAsBetaUser(page, "investigation-panels");
   await page.goto("/");
   await page.getByLabel("Research topic").fill("Investigation mode smoke test");
-  await page.getByRole("button", { name: "Start an Investigation" }).click();
+  await page.getByRole("button", { name: "Start Investigation" }).click();
 
   await expect(page).toHaveURL(/\/runs\//);
   await expect(page.getByTestId("mission-header")).toBeVisible();
   await expect(page.getByTestId("mission-topic")).toBeVisible();
+  await expect(page.getByTestId("mission-status")).toContainText("Run status:");
   await expect(page.getByTestId("investigation-guide")).toBeVisible();
   await expect(page.getByTestId("investigation-guide-step")).toHaveCount(5);
   await expect(page.getByTestId("investigation-timeline")).toBeVisible();

@@ -59,9 +59,9 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
     }
     try {
       await navigator.clipboard.writeText(url);
-      setCopyStatus("Copied.");
+      setCopyStatus("Copied share link.");
     } catch {
-      setCopyStatus("Failed to copy link.");
+      setCopyStatus("Failed to copy share link.");
     }
   }
 
@@ -70,6 +70,9 @@ export function RunShareControls({ analysisRunId, shareLinks }: RunShareControls
       <div className="eyebrow">Share</div>
       <p className="muted" style={{ marginTop: 8, marginBottom: 12 }}>
         Create a read-only link so others can view this run without signing in. Shared pages cannot be edited or re-run.
+      </p>
+      <p className="muted" data-testid="share-readonly-note" style={{ marginTop: -6, marginBottom: 12 }}>
+        Public Beta shared snapshots are read-only and intended for evidence review.
       </p>
       <form action={formAction}>
         <input name="analysisRunId" type="hidden" value={analysisRunId} />

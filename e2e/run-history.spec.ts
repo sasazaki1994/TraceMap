@@ -43,7 +43,7 @@ test.describe("run-history", () => {
     await signInAsBetaUser(page, "run-history-create");
     await page.goto("/");
     await page.getByLabel("Research topic").fill(topic);
-    await page.getByRole("button", { name: "Start an Investigation" }).click();
+    await page.getByRole("button", { name: "Start Investigation" }).click();
     await expect(page).toHaveURL(/\/runs\//);
 
     await page.goto("/runs");

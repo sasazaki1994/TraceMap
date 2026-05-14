@@ -1,14 +1,19 @@
 type MissionHeaderProps = {
   researchTopic: string;
   answerTitle: string | null;
+  runStatus?: "queued" | "processing" | "completed" | "failed";
+  generatedAt?: string | null;
   runStatusBanner?: string | null;
 };
 
 export function MissionHeader({
   researchTopic,
   answerTitle,
+  runStatus,
+  generatedAt,
   runStatusBanner,
 }: MissionHeaderProps) {
+  const statusLabel = runStatus ? runStatus.toUpperCase() : "UNKNOWN";
   return (
     <section className="mission-header" data-testid="mission-header">
       <div className="eyebrow">Investigation Mission</div>
@@ -16,6 +21,14 @@ export function MissionHeader({
         <div className="run-question-label">Research topic</div>
         <p data-testid="mission-topic">{researchTopic}</p>
       </div>
+      <p className="muted" style={{ marginTop: "0.5rem" }} data-testid="mission-status">
+        Run status: {statusLabel}
+      </p>
+      {generatedAt ? (
+        <p className="muted" style={{ marginTop: "0.25rem" }} data-testid="mission-generated-at">
+          Generated at: {generatedAt}
+        </p>
+      ) : null}
       {runStatusBanner ? (
         <p
           className="muted"

@@ -368,6 +368,8 @@ export function RunResultView({
           <MissionHeader
             answerTitle={answerTitle}
             researchTopic={question}
+            runStatus={runStatus}
+            generatedAt={answerGeneratedAt ?? runUpdatedAt ?? runCreatedAt ?? null}
             runStatusBanner={runStatusBanner}
           />
           <section className="investigation-panel" data-testid="investigation-guide">
