@@ -27,6 +27,9 @@ export function SourceQualityPanel({ sourceQuality }: { sourceQuality: SourceQua
                   Warning: {warning}
                 </p>
               ))}
+              <p className="muted" data-testid="source-quality-caveat">
+                Caveat: This quality signal is a beta heuristic, not a truth score.
+              </p>
             </li>
           ))}
         </ul>

@@ -81,6 +81,8 @@ describe("buildBriefingReport", () => {
     expect(markdown).toContain("## Source Quality Summary");
     expect(markdown).toContain("### Notes");
     expect(markdown).toContain("## Source Lineage Summary");
+    expect(markdown).toContain("## Non-advice Statement");
+    expect(markdown).toContain("TraceMap does not provide investment, legal, or medical advice.");
     expect(markdown).toContain("Primary evidence");
     expect(markdown).not.toContain("undefined");
     expect(markdown).toContain("- Unknown count:");
@@ -182,6 +184,7 @@ describe("buildBriefingReport", () => {
     expect(markdown.toLowerCase()).not.toContain("buy recommendation");
     expect(markdown.toLowerCase()).not.toContain("sell recommendation");
     expect(markdown).toContain("Weak / Stale / Unchecked");
+    expect(markdown).toContain("Caveat: Source quality is a directional beta signal");
   });
 
   it("avoids unsafe URLs in markdown links", () => {

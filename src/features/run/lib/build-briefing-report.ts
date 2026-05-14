@@ -74,6 +74,7 @@ export function buildBriefingReport(input: BuildBriefingReportInput): string {
           `  - Freshness: ${q ? sourceFreshnessLabel(q.freshness) : "Unknown"}`,
           `  - Reachability: ${q ? sourceReachabilityLabel(q.reachability) : "Unchecked"}`,
           `  - Notes: ${notes}`,
+          `  - Caveat: Source quality is a directional beta signal, not a definitive truth score.`,
         ].join("\n");
       })
     : ["- No supporting sources are available yet."];
@@ -133,6 +134,9 @@ export function buildBriefingReport(input: BuildBriefingReportInput): string {
     `- Unknown count: ${input.unknowns.length}`,
     "",
     "## Beta Notice",
-    "TraceMap is a public beta research support tool. Outputs may contain incomplete or outdated information. Always verify critical claims against primary sources. TraceMap does not provide investment, legal, or medical advice.",
+    "TraceMap is a public beta research support tool. Outputs may contain incomplete or outdated information. Always verify critical claims against primary sources.",
+    "",
+    "## Non-advice Statement",
+    "TraceMap does not provide investment, legal, or medical advice.",
   ].join("\n");
 }

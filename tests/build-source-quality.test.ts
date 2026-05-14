@@ -43,6 +43,16 @@ describe("buildSourceQualityInspections", () => {
     expect(result.find((r) => r.sourceId === "u1")?.quality).toBe("limited");
   });
 
+  it("classifies missing metadata as unknown quality", () => {
+    const result = buildSourceQualityInspections({
+      sources: [source({ id: "u4", url: null, publishedAt: undefined, checkedAt: null, httpStatus: null })],
+      claimSupports: [],
+      now: new Date("2026-05-11"),
+    });
+    expect(result[0]?.quality).toBe("unknown");
+    expect(result[0]?.freshness).toBe("unknown");
+  });
+
   it("classifies verified published with no quote as limited", () => {
     const result = buildSourceQualityInspections({
       sources: [source({ id: "l1", publishedAt: "2025-01-01", verificationStatus: "verified" })],
