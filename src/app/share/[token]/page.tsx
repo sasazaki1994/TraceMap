@@ -151,6 +151,12 @@ export default async function SharePage({ params }: SharePageProps) {
             evidenceClaims={evidenceClaims}
             sources={sources}
             graph={graph}
+            runId={run.id}
+            runStatus={run.status}
+            runCreatedAt={run.createdAt.toISOString()}
+            runUpdatedAt={run.updatedAt.toISOString()}
+            answerModel={answer.model}
+            answerGeneratedAt={answer.createdAt.toISOString()}
           />
         </SharePageChrome>
       </PageContainer>

@@ -52,3 +52,55 @@ When API key is unavailable, do not force failing runs. Record as:
 
 - OpenAI smoke test: SKIPPED
 - Reason: `TRACEMAP_OPENAI_API_KEY / OPENAI_API_KEY` is not set.
+
+
+## Pre-run checklist
+- `DATABASE_URL` is set
+- migrations are applied
+- `TRACEMAP_ANSWER_GRAPH_PROVIDER=openai`
+- `TRACEMAP_OPENAI_API_KEY` or `OPENAI_API_KEY` is set
+- `TRACEMAP_OPENAI_MODEL` is set
+- beta login works
+- app can create a mock run before OpenAI testing
+
+## Suggested command context
+Do not commit secrets.
+
+```bash
+TRACEMAP_ANSWER_GRAPH_PROVIDER=openai
+TRACEMAP_OPENAI_MODEL=gpt-4o-mini
+TRACEMAP_OPENAI_API_KEY=... pnpm dev
+```
+
+## UI execution steps
+1. Sign in with beta access code.
+2. Start a run with each smoke topic (company / technical / market).
+3. Confirm run status, claims, source links, Unknown Map, Source Lineage, Source Quality, and Briefing Report.
+4. Confirm failed runs show safe copy and do not expose raw stack traces.
+
+## Post-run record items
+- run id
+- run status
+- source count
+- claim count
+- sufficient grounding pass/fail
+- advice-like expression check
+- safety copy check
+- any blocker for GO/NO-GO decision
+
+## Secret handling
+- Never paste API keys into git-managed files.
+- Never include raw API key values in terminal logs, screenshots, or validation reports.
+- Record only whether key was set/unset.
+
+## Failure triage
+
+| Symptom | Likely area | Action |
+|---|---|---|
+| API key missing | env | set key or record SKIPPED |
+| run failed with insufficient grounding | provider/model output | accepted failure if safe UI appears |
+| invalid URL persisted | provider validation | NO-GO |
+| claim has no source link | structured output / validation | NO-GO |
+| raw stack trace visible | UI failure handling | NO-GO |
+| report has advice-like copy | safety copy/provider prompt | NO-GO |
+
