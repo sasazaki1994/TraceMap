@@ -29,13 +29,21 @@
 
 ## Required environment variables
 
+Always required:
+
 - DATABASE_URL
 - TRACEMAP_SESSION_SECRET
 - TRACEMAP_BETA_ACCESS_CODE
 - TRACEMAP_ANSWER_GRAPH_PROVIDER
+
+Conditionally required (only when running OpenAI smoke tests, or when `TRACEMAP_ANSWER_GRAPH_PROVIDER` is set to an OpenAI-backed provider):
+
 - TRACEMAP_OPENAI_API_KEY or OPENAI_API_KEY
 - TRACEMAP_OPENAI_MODEL
 - TRACEMAP_OPENAI_TIMEOUT_MS
+
+Note:
+- If OpenAI keys are not set, record OpenAI smoke as `SKIPPED` with reason (`TRACEMAP_OPENAI_API_KEY / OPENAI_API_KEY` not set), and keep GO/NO-GO evidence explicit.
 
 ## Recommended beta settings
 

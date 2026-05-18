@@ -8,7 +8,11 @@ const originalEnv = {
 };
 
 afterEach(() => {
-  Reflect.set(process.env, "NODE_ENV", originalEnv.NODE_ENV);
+  if (originalEnv.NODE_ENV === undefined) {
+    delete (process.env as Record<string, string | undefined>).NODE_ENV;
+  } else {
+    (process.env as Record<string, string | undefined>).NODE_ENV = originalEnv.NODE_ENV;
+  }
   if (originalEnv.TRACEMAP_BETA_ACCESS_CODE === undefined) {
     delete process.env.TRACEMAP_BETA_ACCESS_CODE;
   } else {

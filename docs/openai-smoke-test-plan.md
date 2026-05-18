@@ -94,6 +94,7 @@ TRACEMAP_OPENAI_API_KEY=... pnpm dev
 - Record only whether key was set/unset.
 
 ## Failure triage
+
 | Symptom | Likely area | Action |
 |---|---|---|
 | API key missing | env | set key or record SKIPPED |
@@ -102,3 +103,4 @@ TRACEMAP_OPENAI_API_KEY=... pnpm dev
 | claim has no source link | structured output / validation | NO-GO |
 | raw stack trace visible | UI failure handling | NO-GO |
 | report has advice-like copy | safety copy/provider prompt | NO-GO |
+
