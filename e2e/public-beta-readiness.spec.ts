@@ -21,7 +21,7 @@ test.describe("public-beta-readiness", () => {
     const topic = `Public beta readiness ${Date.now()}`;
 
     await page.goto("/");
-    await expect(page.getByText("Public Beta", { exact: false })).toBeVisible();
+    await expect(page.getByText("Public Beta: TraceMap is under active development", { exact: false })).toBeVisible();
     await expect(page.getByLabel("Research topic")).toBeVisible();
     await expect(page.getByRole("button", { name: "Start Investigation" })).toBeDisabled();
     await expect(page.getByText("Sign in to start a beta investigation.")).toBeVisible();

@@ -228,3 +228,27 @@ By default, runs use the **mock** answer-graph provider. To call OpenAI from the
 If the key is missing or the API errors, the run ends as **failed** and `last_error_message` is set. This path does not add web search, retrieval/RAG, background jobs, or streaming — see `docs/architecture.md` and `docs/adr/openai-answer-graph-provider.md`.
 
 **Source-grounded slice (OpenAI only):** the model must return at least **two** sources with **http** or **https** URLs (hostname required). Claims must reference those sources by id. If the model sets **`sufficient_grounding`** to **false** (cannot ground the answer), the run **fails** — it is not marked completed. Structural validation is the gate for **`completed`** runs. On persist, the server performs a **best-effort** HTTP check per http(s) URL and stores verification metadata on **`source_snapshots`**; unreachable URLs do **not** by themselves fail the run. Default provider remains **mock**; use `TRACEMAP_ANSWER_GRAPH_PROVIDER=openai` to enable this path.
+
+## Public Beta Launch
+
+Before marking Public Beta as GO:
+
+1. Configure required environment variables.
+2. Run static validation:
+   - `pnpm lint`
+   - `pnpm typecheck`
+   - `pnpm test`
+   - `pnpm build`
+   - `DATABASE_URL=... pnpm exec prisma validate`
+3. Run browser validation:
+   - `pnpm exec playwright install --with-deps chromium`
+   - `pnpm test:e2e`
+4. Run OpenAI smoke tests with 3 topics.
+5. Update final validation docs with GO / NO-GO.
+6. Keep Public Beta / non-advice / source verification copy visible.
+
+Use these docs together:
+- `docs/public-beta-launch-checklist.md`
+- `docs/public-beta-final-validation-template.md`
+- `docs/public-beta-operations.md`
+- `docs/openai-smoke-test-plan.md`

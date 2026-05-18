@@ -30,3 +30,11 @@ Feature: Public Beta Readiness
     Given a completed investigation run is visible
     Then the briefing report markdown should include a beta notice
     And the briefing report should state that TraceMap does not provide investment, legal, or medical advice
+
+
+  Scenario: Launch and operation documents are available
+    Given maintainers are preparing Public Beta launch decision
+    Then a launch checklist document should exist
+    And a final validation template should exist
+    And an operations runbook should exist
+    And the OpenAI smoke test plan should include pre-run and triage guidance

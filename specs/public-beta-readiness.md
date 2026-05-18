@@ -93,3 +93,10 @@ Users can complete an end-to-end investigation flow from topic intake to evidenc
 - `acceptance/briefing-report.feature`
 - `acceptance/report-export-lite.feature`
 - `acceptance/run-history-and-saved-investigations.feature`
+
+
+## Operations and launch docs
+- `docs/public-beta-launch-checklist.md`
+- `docs/public-beta-operations.md`
+- `docs/public-beta-final-validation-template.md`
+- `docs/openai-smoke-test-plan.md`
