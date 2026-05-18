@@ -7,7 +7,7 @@ NO-GO
 ## Environment
 
 - Branch: work
-- Commit: 964ad95
+- Commit: 8850a2d
 - Node: v24.15.0
 - pnpm: 10.18.2
 - Database: PostgreSQL (expected: `postgresql://postgres:postgres@localhost:5432/tracemap?schema=public`)
@@ -28,13 +28,16 @@ NO-GO
 | Command | Result | Notes |
 |---|---|---|
 | pnpm install | PASS | dependencies already up to date |
+| docker compose up -d | FAIL | `docker` command unavailable in validation environment |
 | pnpm exec prisma generate | PASS | prisma client generated |
 | DATABASE_URL=... pnpm exec prisma validate | PASS | schema valid |
+| DATABASE_URL=... pnpm exec prisma migrate deploy | FAIL | P1001: database server not reachable on localhost:5432 |
 | pnpm lint | PASS | no lint errors |
 | pnpm typecheck | PASS | no type errors |
-| pnpm test | PASS | 44 files / 204 tests passed |
+| pnpm test | PASS | 45 files / 205 tests passed |
 | pnpm build | PASS | next build completed |
 | pnpm exec playwright install --with-deps chromium | FAIL | apt/proxy 403 prevented browser dependency install |
+| pnpm exec playwright install chromium | FAIL | Playwright CDN/proxy 403 prevented Chromium download |
 | pnpm test:e2e | FAIL | Playwright browser executable missing (`chromium_headless_shell`) |
 
 ## Public Beta E2E Result
@@ -79,16 +82,13 @@ Reason: `TRACEMAP_OPENAI_API_KEY / OPENAI_API_KEY` is not set.
 | Failed run shows safe user-facing copy | PASS | fallback Japanese safe copy with next actions |
 | Non-advice statement appears in reports | PASS | acceptance + report builder baseline already in repo tests |
 
-## Remaining Blockers
+## Final Blockers
 
-- Playwright browser install is blocked by environment package mirror/proxy (`apt` 403), so E2E execution evidence is incomplete.
+- Docker is unavailable in this environment, so PostgreSQL could not be started locally for migration deploy verification.
+- Prisma migration deploy failed because PostgreSQL on `localhost:5432` was unreachable (`P1001`).
+- Playwright browser install is blocked by environment package mirror/proxy (`apt` and CDN 403), so E2E execution evidence is incomplete.
 - OpenAI smoke test could not run because API key env vars are not set.
 
 ## Final Decision
 
 NO-GO
-
-## Notes
-
-- Added integrated Public Beta E2E spec (`e2e/public-beta-readiness.spec.ts`) for the required cross-page flow and required `data-testid` checks.
-- Existing UI already exposed required `data-testid` list and safe empty/loading/error fallback copy, so no additional UI patch was required in this pass.
