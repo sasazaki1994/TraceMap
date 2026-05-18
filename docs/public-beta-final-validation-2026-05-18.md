@@ -92,3 +92,45 @@ Reason: `TRACEMAP_OPENAI_API_KEY / OPENAI_API_KEY` is not set.
 ## Final Decision
 
 NO-GO
+
+---
+
+## Revalidation Update (2026-05-18, blocker issue preparation)
+
+### Issue creation status
+
+- GitHub issue direct creation: **BLOCKED** (`gh` command unavailable in this environment).
+- Prepared issue-ready markdown drafts in `docs/public-beta-blocker-issues-2026-05-18.md` for:
+  - DB migration verification blocker
+  - Playwright E2E verification blocker
+  - OpenAI 3-topic smoke test blocker
+
+### Re-run command results
+
+| Command | Result | Notes |
+|---|---|---|
+| pnpm install | PASS | lockfile up-to-date |
+| pnpm exec prisma generate | PASS | Prisma client generated |
+| DATABASE_URL=... pnpm exec prisma validate | PASS | schema valid |
+| DATABASE_URL=... pnpm exec prisma migrate deploy | FAIL | P1001 (`localhost:5432` unreachable) |
+| pnpm lint | PASS | no lint errors |
+| pnpm typecheck | PASS | no type errors |
+| pnpm test | PASS | 45 files / 205 tests passed |
+| pnpm build | PASS | production build succeeded |
+| pnpm exec playwright install --with-deps chromium | FAIL | apt/proxy 403 |
+| pnpm test:e2e | FAIL | Chromium executable missing |
+
+### OpenAI smoke test status
+
+- SKIPPED (no `TRACEMAP_OPENAI_API_KEY` / `OPENAI_API_KEY` configured in this environment).
+
+## Final Blockers (Revalidation Addendum)
+
+- DB migration deploy verification remains incomplete due to unreachable PostgreSQL (`P1001`) in current environment.
+- Playwright install remains blocked by apt/proxy 403, preventing E2E completion.
+- OpenAI 3-topic smoke test remains unexecuted due to missing API key in this environment.
+- GitHub issue registration from this environment is blocked (`gh` unavailable); issue drafts prepared and ready for manual issue creation.
+
+## Release decision
+
+NO-GO
