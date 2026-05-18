@@ -124,7 +124,7 @@ NO-GO
 
 - SKIPPED (no `TRACEMAP_OPENAI_API_KEY` / `OPENAI_API_KEY` configured in this environment).
 
-## Final Blockers
+## Final Blockers (Revalidation Addendum)
 
 - DB migration deploy verification remains incomplete due to unreachable PostgreSQL (`P1001`) in current environment.
 - Playwright install remains blocked by apt/proxy 403, preventing E2E completion.
