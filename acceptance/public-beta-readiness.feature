@@ -31,6 +31,12 @@ Feature: Public Beta Readiness
     Then the briefing report markdown should include a beta notice
     And the briefing report should state that TraceMap does not provide investment, legal, or medical advice
 
+  Scenario: Failed run does not expose internal exception detail
+    Given an investigation run fails due to an unexpected provider or persistence exception
+    When the user opens the failed run page or its share page
+    Then the failure banner should show safe fallback guidance
+    And raw stack traces, provider internals, and secret fragments should not be shown in UI copy
+
 
   Scenario: Launch and operation documents are available
     Given maintainers are preparing Public Beta launch decision

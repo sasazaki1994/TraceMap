@@ -64,6 +64,7 @@ Users can complete an end-to-end investigation flow from topic intake to evidenc
 - Empty collections must render explicit helper copy (claims/sources/unknowns/quality/lineage/history).
 - Loading/submission states must disable primary actions to prevent duplicate actions.
 - Failure states must show investigation/share/history-safe fallback copy, not raw stack traces.
+- Unexpected provider/persistence exceptions must not be surfaced verbatim to end users; UI-visible failed-run messages should use a generic safe fallback.
 
 ## Provider requirements
 - Mock provider must be sufficient for UI walkthroughs (claims/sources/alerts/counterpoints)
