@@ -20,6 +20,9 @@ export type CreateAnalysisRunOptions = {
   ownerId?: string;
 };
 
+const SAFE_RUN_FAILURE_MESSAGE =
+  "調査結果を生成できませんでした。時間をおいて再実行してください。問題が続く場合は設定を確認してください。";
+
 /**
  * Creates an `analysis_runs` row and fills evidence via the configured answer-graph provider.
  * Synchronous path: queued → processing → completed | failed (no background jobs).
@@ -96,14 +99,12 @@ export async function createAnalysisRunFromProvider(
     try {
       result = await provider.generateAnswerGraph({ question, sourceCandidates: sourceIntake.candidates, mode });
     } catch (cause) {
-      const message =
-        cause instanceof Error ? cause.message : "Answer graph generation failed.";
       console.error("[analysis] generateAnswerGraph threw", { runId: run.id, cause });
       await prisma.analysisRun.update({
         where: { id: run.id },
         data: {
           status: "failed",
-          lastErrorMessage: message,
+          lastErrorMessage: SAFE_RUN_FAILURE_MESSAGE,
         } satisfies Prisma.AnalysisRunUpdateInput,
       });
       return run.id;
@@ -137,8 +138,6 @@ export async function createAnalysisRunFromProvider(
       payload,
     });
   } catch (cause) {
-    const message =
-      cause instanceof Error ? cause.message : "Failed to persist answer graph.";
     console.error("[analysis] persistGeneratedAnswerGraph failed", {
       runId: run.id,
       cause,
@@ -147,7 +146,7 @@ export async function createAnalysisRunFromProvider(
       where: { id: run.id },
       data: {
         status: "failed",
-        lastErrorMessage: message,
+        lastErrorMessage: SAFE_RUN_FAILURE_MESSAGE,
       } satisfies Prisma.AnalysisRunUpdateInput,
     });
     return run.id;

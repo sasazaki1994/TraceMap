@@ -528,4 +528,37 @@ describe("createAnalysisRunFromProvider", () => {
       }),
     );
   });
+
+  it("stores a safe generic failed message when provider throws", async () => {
+    const { resolveAnswerGraphProvider } = await import(
+      "@/server/analysis/resolve-answer-graph-provider"
+    );
+    const provider = {
+      id: "mock" as const,
+      modelLabel: "mock",
+      generateAnswerGraph: vi.fn().mockRejectedValue(new Error("internal stack/api key: sk-xxx")),
+    };
+    vi.mocked(resolveAnswerGraphProvider).mockReturnValue(provider);
+
+    const { createAnalysisRunFromProvider } = await import(
+      "@/server/analysis/create-analysis-run-from-provider"
+    );
+
+    await createAnalysisRunFromProvider("Throwing provider");
+
+    const { prisma } = await import("@/server/db/prisma");
+    const p = prisma as unknown as {
+      analysisRun: { update: ReturnType<typeof vi.fn> };
+    };
+    expect(p.analysisRun.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "run_mock" },
+        data: expect.objectContaining({
+          status: "failed",
+          lastErrorMessage:
+            "調査結果を生成できませんでした。時間をおいて再実行してください。問題が続く場合は設定を確認してください。",
+        }),
+      }),
+    );
+  });
 });
