@@ -36,19 +36,30 @@ function hydrateDatabaseUrlFromEnvFile(): void {
 
 hydrateDatabaseUrlFromEnvFile();
 
+const previewBaseUrl = process.env.PLAYWRIGHT_BASE_URL?.trim();
+const hasValidPreviewBaseUrl =
+  previewBaseUrl !== undefined &&
+  previewBaseUrl.length > 0 &&
+  /^https?:\/\//.test(previewBaseUrl);
+const baseURL = hasValidPreviewBaseUrl
+  ? previewBaseUrl
+  : "http://localhost:3000";
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL,
     trace: "on-first-retry",
   },
-  webServer: {
-    command: "pnpm dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: hasValidPreviewBaseUrl
+    ? undefined
+    : {
+        command: "pnpm dev",
+        url: "http://localhost:3000",
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
   projects: [
     {
       name: "chromium",
