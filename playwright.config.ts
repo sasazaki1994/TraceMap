@@ -36,7 +36,14 @@ function hydrateDatabaseUrlFromEnvFile(): void {
 
 hydrateDatabaseUrlFromEnvFile();
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const previewBaseUrl = process.env.PLAYWRIGHT_BASE_URL?.trim();
+const hasValidPreviewBaseUrl =
+  previewBaseUrl !== undefined &&
+  previewBaseUrl.length > 0 &&
+  /^https?:\/\//.test(previewBaseUrl);
+const baseURL = hasValidPreviewBaseUrl
+  ? previewBaseUrl
+  : "http://localhost:3000";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -45,7 +52,7 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
   },
-  webServer: process.env.PLAYWRIGHT_BASE_URL
+  webServer: hasValidPreviewBaseUrl
     ? undefined
     : {
         command: "pnpm dev",

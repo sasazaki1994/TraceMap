@@ -6,8 +6,8 @@ NO-GO
 
 ## Environment
 
-- Branch: work
-- Commit: 8040db8
+- Branch: codex/verify-final-gate-for-public-beta
+- Commit: 325b38f
 - Node: v24.15.0
 - pnpm: 10.18.2
 - Database target: `postgresql://postgres:postgres@localhost:5432/tracemap?schema=public` (unreachable in this environment)
