@@ -36,6 +36,8 @@ export async function createAnalysisRunFromProvider(
     options.mode ?? process.env.TRACEMAP_INVESTIGATION_MODE?.trim(),
   );
 
+  // 手動URL指定時はユーザーが明示した調査条件を優先し、
+  // 既存run cacheの再利用で入力意図が薄まることを避ける。
   const hasManualSourceUrls = (options.manualSourceUrls?.length ?? 0) > 0;
 
   const run = await prisma.analysisRun.create({
@@ -46,6 +48,8 @@ export async function createAnalysisRunFromProvider(
     },
   });
 
+  // MVP v2 は同期実行のため、run status は queued -> processing -> completed/failed を
+  // この関数内で完結させる。
   await prisma.analysisRun.update({
     where: { id: run.id },
     data: { status: "processing" },
@@ -61,6 +65,8 @@ export async function createAnalysisRunFromProvider(
   let payload: GeneratedAnswerGraphPayload | null = null;
   let shouldStoreRunCache = false;
 
+  // run cacheは「同一topic + provider + mode」でのみ再利用する。
+  // 手動URL付きrunは上書き条件なのでlookup自体を行わない。
   if (!hasManualSourceUrls) {
     try {
       const cached = await lookupRunCacheEntry(cacheKeyInfo);
@@ -100,6 +106,7 @@ export async function createAnalysisRunFromProvider(
       result = await provider.generateAnswerGraph({ question, sourceCandidates: sourceIntake.candidates, mode });
     } catch (cause) {
       console.error("[analysis] generateAnswerGraph threw", { runId: run.id, cause });
+      // provider例外は生メッセージをUIへ出さず、安全な固定文言へ変換して保存する。
       await prisma.analysisRun.update({
         where: { id: run.id },
         data: {

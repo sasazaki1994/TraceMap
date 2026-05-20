@@ -186,6 +186,8 @@ function edgeEndpoints(
   };
 }
 
+// TraceMapはチャット時系列ではなく調査導線を重視するため、
+// Mission -> Evidence -> Unknown -> Lineage -> Report の順を固定表示する。
 const INVESTIGATION_GUIDE_STEPS = [
   "Mission",
   "Evidence Map",
@@ -210,6 +212,8 @@ export function RunResultView({
   answerModel,
   answerGeneratedAt,
 }: RunResultViewProps) {
+  // グラフ/クレーム/ソース詳細を連動させる選択状態。
+  // どれかを起点にしても同じ調査対象へフォーカスできるようにする。
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [selectedGraphNodeId, setSelectedGraphNodeId] = useState<string | null>(
     null,

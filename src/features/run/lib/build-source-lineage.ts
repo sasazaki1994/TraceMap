@@ -83,6 +83,8 @@ function normalizeVerificationStatus(value: string | null | undefined): string |
   return value === "verified" ? "verified" : value ?? null;
 }
 
+// Source Lineage Lite は厳密な出典系譜DBではなく、
+// sourceType / primary判定 / publishedAt など既存スナップショットから推定する軽量ビュー。
 export function buildSourceLineage(params: {
   sources: SourceForLineage[];
   evidenceClaims: RunEvidenceClaim[];
