@@ -12,6 +12,8 @@ type SharePageProps = {
   params: Promise<{ token: string }>;
 };
 
+// 共有ページはトークン知識ベースの限定公開。
+// 検索エンジン経由の露出を避けるため noindex/nofollow を強制する。
 export const metadata = {
   robots: {
     index: false,
@@ -87,6 +89,7 @@ export default async function SharePage({ params }: SharePageProps) {
   const run = shareLink.analysisRun;
   const { answer, sources } = selectLatestAnswerSnapshotForView(run.answerSnapshots);
 
+  // 共有閲覧者には再実行権限がないため、失敗時は安全文言のみを表示する。
   if (run.status === "failed") {
     return (
       <main>

@@ -20,6 +20,7 @@ export async function buildSourceIntakeFromQuestion(
   const discoveryProvider = resolveSourceDiscoveryProvider();
   const ignoredUrls: SourceIntakeResult["ignoredUrls"] = [];
 
+  // source discoveryは補助入力。失敗時もrunを止めず、ignoredUrlsへ理由を残す。
   let discoveredUrls: string[] = [];
   if (discoveryProvider.id !== "disabled") {
     const discovery = await discoveryProvider.discoverSources({
@@ -33,6 +34,8 @@ export async function buildSourceIntakeFromQuestion(
     }
   }
 
+  // manual > topic中URL > discovery候補を同一パイプラインへ流し、
+  // URL正規化/安全判定/重複排除を一箇所で適用する。
   const merged = [
     ...manualUrls.map((url) => ({ url, origin: "manual_url" as const })),
     ...topicUrls.map((url) => ({ url, origin: "topic_url" as const })),
@@ -57,6 +60,7 @@ export async function buildSourceIntakeFromQuestion(
       ignoredUrls.push({ url: item.url, reason: result.errorMessage });
       continue;
     }
+    // 最終URLではなくnormalized URLでdedupeし、同一記事の追跡パラメータ差分を吸収する。
     if (seen.has(result.normalizedUrl)) continue;
     seen.add(result.normalizedUrl);
 

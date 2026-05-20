@@ -105,6 +105,8 @@ export async function persistGeneratedAnswerGraph(params: {
 }): Promise<void> {
   const { runId, payload } = params;
 
+  // source検証はbest-effort。到達不能でもrun全体は継続し、
+  // Unknown/Source Quality側で「注意情報」として表示できる形に寄せる。
   const verificationByIndex = await Promise.all(
     payload.sources.map((src) =>
       shouldResolveSourceCache(src.url)
@@ -150,6 +152,8 @@ export async function persistGeneratedAnswerGraph(params: {
       idMap.set(placeholderId, row.id);
     }
 
+    // providerは仮ID(__src_n__)を返すため、永続化後のsourceSnapshotIdへ張り替えて
+    // graph snapshotをDB参照可能な形に正規化する。
     const graph = replaceGraphSourceIds(payload.answer.graphJson, idMap);
 
     await tx.answerSnapshot.update({
@@ -170,6 +174,7 @@ export async function persistGeneratedAnswerGraph(params: {
           },
         });
 
+        // claim-source参照はsupports優先。legacy配列は後方互換としてdirect supportへ変換。
         const supportRelations = c.supports
           ? c.supports.flatMap((support) => {
               const sourceSnapshotId = idMap.get(support.sourcePlaceholderId);

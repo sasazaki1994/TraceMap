@@ -16,6 +16,8 @@ export async function createMockRunAction(
   _prevState: CreateRunFormState,
   formData: FormData,
 ): Promise<CreateRunFormState> {
+  // DB列名互換のためフォーム名はquestionを維持。
+  // UI上はResearch Topicとして扱い、既存API/永続化互換を壊さない。
   const raw = formData.get("question");
   if (typeof raw !== "string" || !raw.trim()) {
     return { error: "Research topic is required." };
@@ -31,6 +33,8 @@ export async function createMockRunAction(
     return { error: manualSourceUrlsResult.message };
   }
 
+  // runはowner scopeで分離する。未認証で作成させないことで
+  // 履歴閲覧/共有リンク管理の境界を単純に保つ。
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { error: "Sign in is required to start an investigation." };

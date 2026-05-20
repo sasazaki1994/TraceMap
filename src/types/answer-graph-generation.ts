@@ -101,6 +101,10 @@ export type GeneratedEvidenceBundle = {
 };
 
 /** Persistable result of a successful generation step (DB writer consumes this). */
+/**
+ * provider出力を永続化用へ正規化した中間payload。
+ * graphJsonは描画スナップショットで、claim/source実体は別テーブルへ保存される。
+ */
 export type GeneratedAnswerGraphPayload = {
   answer: {
     title: string | null;

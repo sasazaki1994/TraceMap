@@ -15,6 +15,8 @@ function fromAlert(params: { id: string; message: string; level: AlertLevel; cla
   return { id: params.id, relatedClaimIds: params.claimSummary ? [params.id.split("-")[0]] : [], relatedSourceIds: [], text: params.claimSummary ? `${params.claimSummary}: ${params.message}` : params.message, reason: m.includes("primary source") ? "Primary or official evidence is missing." : "Existing evidence raised an investigation caveat.", severity: severityFromAlertLevel(params.level), category, suggestedNextAction: next, signals: ["alert"] };
 }
 
+// Unknown Mapは専用テーブルではなく、
+// claim/alert/source-qualityから派生する調査上の「未解決点ビュー」。
 export function buildUnknowns(params: { evidenceAlerts: RunEvidenceAlert[]; evidenceClaims: RunEvidenceClaim[]; sourceQuality?: SourceQualitySignal[]; sourceDrilldown?: SourceDetailDrilldown[] }): InvestigationUnknown[] {
   const unknowns: InvestigationUnknown[] = [];
   params.evidenceAlerts.forEach((a) => unknowns.push(fromAlert(a)));
@@ -40,6 +42,8 @@ export function buildUnknowns(params: { evidenceAlerts: RunEvidenceAlert[]; evid
     });
   });
 
+  // 同一論点の重複表示を避けるため、category+関連ID+reasonで集約し、
+  // severityが高いものを優先して残す。
   const deduped = new Map<string, InvestigationUnknown>();
   for (const u of unknowns) {
     const key = `${u.category}|${(u.relatedClaimIds ?? []).sort().join(",")}|${(u.relatedSourceIds ?? []).sort().join(",")}|${u.reason.toLowerCase()}`;
