@@ -104,7 +104,7 @@ TraceMap は、調査テーマ（Research Topic）を入力すると Investigati
 6. Playwrightブラウザ導入
 
    ```bash
-   pnpm exec playwright install
+   pnpm exec playwright install --with-deps chromium
    ```
 
 ## 7. 開発サーバー起動
@@ -173,7 +173,7 @@ GitHub Actions（`.github/workflows/ci.yml`）は `pull_request` と `main` へ�
 CI既定値:
 
 - `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tracemap?schema=public`
-- `ANSWER_GRAPH_PROVIDER=mock`
+- `TRACEMAP_ANSWER_GRAPH_PROVIDER=mock`
 - `NODE_ENV=test`
 
 ## 14. 現在のMVPベースライン
