@@ -19,7 +19,7 @@ import type {
   GenerateAnswerGraphResult,
 } from "@/types/answer-graph-generation";
 
-/** User-visible when `sufficient_grounding` is false in structured output. */
+/** Structured Outputsで `sufficient_grounding` がfalseのときにユーザーへ表示する文言。 */
 export const OPENAI_INSUFFICIENT_GROUNDING_MESSAGE =
   INSUFFICIENT_GROUNDING_MESSAGE;
 
@@ -215,8 +215,8 @@ function buildOpenAiSchema(limits: InvestigationLimits) {
 } as const;
 }
 
-// TODO(investigation-result-schema): keep this MVP v2 schema stable and add richer
-// Unknown Map / Source Lineage / Briefing Report fields in a later provider phase.
+// TODO(investigation-result-schema): MVP v2ではこのschemaを安定運用し、次フェーズで
+// Unknown Map / Source Lineage / Briefing Report 向けの項目を拡張する。
 
 function getOpenAiConfig(): { apiKey: string | undefined; model: string; timeoutMs: number } {
   const apiKey =
@@ -277,7 +277,7 @@ function providerFailure(
 }
 
 /**
- * Validates structured output after JSON parse. Returns failure result or normalized sources (trimmed URLs).
+ * JSON parse後のStructured Outputsを検証し、failure結果またはURL trim済みsourceを返す。
  */
 export function validateStructuredAnswerPayload(
   parsed: StructuredAnswerPayload,
@@ -587,8 +587,8 @@ export const openAiAnswerGraphProviderTestUtils = {
 } as const;
 
 /**
- * Real provider: OpenAI Chat Completions with Structured Outputs (json_schema).
- * Requires `TRACEMAP_OPENAI_API_KEY` or `OPENAI_API_KEY` when selected via
+ * 実プロバイダー実装。OpenAI Chat Completions + Structured Outputs (json_schema) を利用する。
+ * provider選択時は `TRACEMAP_OPENAI_API_KEY` または `OPENAI_API_KEY` が必要。
  * `TRACEMAP_ANSWER_GRAPH_PROVIDER=openai`.
  */
 export const realOpenAiAnswerGraphProvider: AnswerGraphProvider = {

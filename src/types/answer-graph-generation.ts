@@ -12,14 +12,14 @@ import type { AnswerGraphJson } from "@/types/answer-graph";
 import type { SourceCandidate } from "@/types/source-intake";
 import type { InvestigationMode } from "@/server/analysis/investigation-limits";
 
-/** Input for generating graph + evidence payload for a single analysis run. */
+/** 単一analysis run向けにgraph + evidence payloadを生成するための入力。 */
 export type GenerateAnswerGraphInput = {
   question: string;
   sourceCandidates?: SourceCandidate[];
   mode?: InvestigationMode;
 };
 
-/** One source row to persist as `source_snapshots` (order preserved). */
+/** `source_snapshots`へ保存する1件分source（順序保持）。 */
 export type GeneratedSourceSnapshot = {
   label: string;
   sourceType: SourceSnapshotType;
@@ -63,36 +63,36 @@ export type GeneratedPropagationChainStepInput = {
   answerSegmentKey?: string | null;
 };
 
-/** One claim row + graph node id + source placeholders (`__src_0__`, …) before persist. */
+/** 永続化前のclaim 1件分。graph node idとsource placeholder（`__src_0__`等）を含む。 */
 export type GeneratedEvidenceClaimInput = {
   summary: string;
   graphNodeId: string | null;
-  /** Legacy path; converted into direct supports when `supports` is omitted. */
+  /** legacy経路。`supports` 未指定時はdirect supportsへ変換する。 */
   supportedSourcePlaceholderIds: string[];
-  /** Preferred normalized support relations for this claim. */
+  /** このclaimで推奨する正規化済みsupport relation。 */
   supports?: GeneratedClaimSupportInput[];
-  /** Explainable confidence for this claim. */
+  /** このclaimの説明可能なconfidence情報。 */
   confidence?: GeneratedClaimConfidenceInput;
-  /** When set, persisted as `counterpoints` rows for this claim. */
+  /** 指定時はこのclaimに紐づく`counterpoints`行として永続化する。 */
   counterpoints?: GeneratedCounterpointInput[];
-  /** Ordered provenance/explanation chain for this claim. */
+  /** このclaimの出どころ/解釈の順序付きチェーン。 */
   propagationChain?: GeneratedPropagationChainStepInput[];
-  /** When set, persisted as `alerts` rows with this claim's id. */
+  /** 指定時はこのclaim id付きの`alerts`行として永続化する。 */
   alerts?: { level: AlertLevel; message: string }[];
 };
 
-/** Optional structured evidence rows; omit for minimal stub runs. */
+/** 任意の構造化evidence行。最小stub runでは省略可能。 */
 export type GeneratedEvidenceBundle = {
   claims: GeneratedEvidenceClaimInput[];
   /**
-   * Legacy: one counterargument applied to the first claim when that claim has no `counterpoints`.
-   * Prefer per-claim `counterpoints` on each `claims[]` entry.
+   * legacy: 先頭claimに`counterpoints`が無い場合のみ、単一反論を先頭claimへ適用する。
+   * 推奨は各`claims[]`要素ごとの`counterpoints`指定。
    */
   counterpoint?: {
     summary: string;
   };
   /**
-   * Legacy: answer-scoped alert (`alerts.claim_id` null). Prefer per-claim `alerts` on `claims[]`.
+   * legacy: answer全体alert（`alerts.claim_id` null）。推奨は`claims[]`側のclaim単位`alerts`。
    */
   alert?: {
     level: AlertLevel;
@@ -100,7 +100,7 @@ export type GeneratedEvidenceBundle = {
   };
 };
 
-/** Persistable result of a successful generation step (DB writer consumes this). */
+/** 生成成功時にDB writerが受け取る永続化可能な結果。 */
 /**
  * provider出力を永続化用へ正規化した中間payload。
  * graphJsonは描画スナップショットで、claim/source実体は別テーブルへ保存される。
@@ -123,9 +123,9 @@ export type GenerateAnswerGraphSuccess = {
 
 export type GenerateAnswerGraphFailure = {
   kind: "failure";
-  /** Safe-for-UI message; also persisted on `analysis_runs.last_error_message` when the run fails. */
+  /** UI表示して安全なメッセージ。run失敗時は`analysis_runs.last_error_message`にも保存する。 */
   errorMessage: string;
-  /** Optional detail for server logs only (not stored by default). */
+  /** 任意の詳細情報。サーバーログ用途のみ（既定では永続化しない）。 */
   cause?: unknown;
 };
 

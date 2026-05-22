@@ -7,7 +7,7 @@ function newShareToken(): string {
 }
 
 /**
- * Creates a read-only share link row for an analysis run. Returns the opaque token.
+ * 指定runの読み取り専用share linkを作成し、外部公開用のopaque tokenを返す。
  */
 export async function createShareLinkForRun(analysisRunId: string, ownerId: string): Promise<string> {
   const run = await prisma.analysisRun.findUnique({
@@ -30,7 +30,7 @@ export async function createShareLinkForRun(analysisRunId: string, ownerId: stri
       });
       return token;
     } catch {
-      // Extremely unlikely: token collision — retry
+      // token衝突はほぼ起きない想定だが、限定公開URLの一意性を守るため再試行する。
     }
   }
 

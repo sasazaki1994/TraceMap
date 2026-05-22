@@ -22,7 +22,7 @@ test.describe("visual-design-system-cyber", () => {
     expect(tokens.background).toMatch(/^#/);
     expect(tokens.foreground).toMatch(/^#/);
     expect(tokens.accent).toMatch(/^#/);
-    // Browsers may resolve `rgba(...)` to an 8-digit hex with alpha.
+    // ブラウザ実装差で `rgba(...)` が alpha付き8桁hexへ正規化される場合がある。
     expect(tokens.border.length).toBeGreaterThan(0);
 
     const panelBg = await page.evaluate(() => {

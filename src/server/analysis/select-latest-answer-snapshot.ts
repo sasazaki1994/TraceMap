@@ -31,8 +31,8 @@ function toIsoString(value: Date | string | null | undefined): string | null {
 }
 
 /**
- * Run/share pages render one answer snapshot at a time.
- * Keep the source list scoped to that same latest snapshot so graph/evidence/source data stay aligned.
+ * run/shareページは常に1つのanswer snapshot単位で描画する。
+ * graph/evidence/sourceの整合を保つため、source一覧も同じlatest snapshotに限定する。
  */
 export function selectLatestAnswerSnapshotForView<
   TAnswer extends AnswerSnapshotWithSources,

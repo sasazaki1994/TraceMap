@@ -24,8 +24,8 @@ const SAFE_RUN_FAILURE_MESSAGE =
   "調査結果を生成できませんでした。時間をおいて再実行してください。問題が続く場合は設定を確認してください。";
 
 /**
- * Creates an `analysis_runs` row and fills evidence via the configured answer-graph provider.
- * Synchronous path: queued → processing → completed | failed (no background jobs).
+ * `analysis_runs`を作成し、設定済みanswer-graph providerでevidenceを充填する。
+ * MVP v2は同期実行のため、queued → processing → completed | failedを1リクエストで完結させる。
  */
 export async function createAnalysisRunFromProvider(
   question: string,

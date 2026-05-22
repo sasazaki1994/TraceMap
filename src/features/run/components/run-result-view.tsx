@@ -62,7 +62,7 @@ type RunResultViewProps = {
   graph: AnswerGraphJson;
   evidenceClaims?: RunEvidenceClaim[];
   evidenceAlerts?: RunEvidenceAlert[];
-  /** Shown when the run did not complete successfully (e.g. failed pipeline). */
+  /** runが正常完了しなかった場合（例: pipeline失敗）に表示するバナー文言。 */
   runStatusBanner?: string | null;
   runId?: string;
   runCreatedAt?: string | null;
@@ -72,7 +72,7 @@ type RunResultViewProps = {
 };
 
 const GRAPH_W = 420;
-/** Taller when claim nodes exist (v2) so source → claim → answer fits. */
+/** claim nodeがあるv2表示で source → claim → answer が収まるよう高さを増やす。 */
 const GRAPH_H = 260;
 const NODE_R = 22;
 

@@ -11,8 +11,8 @@ export type SourceUrlVerificationResult = {
 };
 
 /**
- * Compatibility wrapper around Source Fetch v0.1.
- * Prefer `resolveSourceCacheForUrl` for persistence so cache/fetch snapshots are recorded.
+ * Source Fetch v0.1 互換のラッパー。
+ * 永続化時は cache/fetch snapshot を残せる `resolveSourceCacheForUrl` を優先する。
  */
 export async function verifyPublicHttpUrl(
   rawUrl: string,

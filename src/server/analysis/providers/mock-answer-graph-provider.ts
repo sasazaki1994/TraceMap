@@ -8,7 +8,7 @@ import type {
   GenerateAnswerGraphResult,
 } from "@/types/answer-graph-generation";
 
-/** Stable prefix so Playwright can assert the mock answer region. */
+/** Playwrightがmock回答領域を安定検証するための固定prefix。 */
 export const MOCK_ANSWER_LEAD = "Mock trace snapshot";
 
 function buildMockGraph(params: {
@@ -148,8 +148,8 @@ function mapSourceCandidates(input: GenerateAnswerGraphInput) {
 }
 
 /**
- * Mock pipeline: deterministic graph + evidence matching the current product slice.
- * Source IDs are placeholders; the DB writer replaces graph_json after inserts.
+ * mockパイプライン。現在のプロダクト範囲に合わせた決定的なgraph/evidenceを返す。
+ * source IDはplaceholderで、insert後にDB writerがgraph_json内参照を実IDへ張り替える。
  */
 export function buildMockAnswerGraphPayload(input: GenerateAnswerGraphInput | string): GenerateAnswerGraphResult {
   const normalizedInput = typeof input === "string" ? { question: input } : input;

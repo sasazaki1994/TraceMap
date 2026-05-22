@@ -92,7 +92,7 @@ function countIndependentSources(
           continue;
         }
       } catch {
-        // Fall through to placeholder identity.
+        // URL解析できない場合はフォールバックとしてplaceholder単位で独立性を数える。
       }
     }
 

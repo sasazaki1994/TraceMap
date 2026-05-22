@@ -55,7 +55,7 @@ type AnswerWithEvidence = {
   }>;
 };
 
-/** Maps Prisma-loaded claims/alerts into client-serializable run view props. */
+/** Prismaで取得したclaim/alertを、クライアントへ返せるrun view propsへ整形する。 */
 export function mapAnswerEvidenceForView(
   answer: AnswerWithEvidence,
   lens: RunLens = "rigor",
