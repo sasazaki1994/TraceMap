@@ -175,7 +175,7 @@ describe("run-cache-service", () => {
 
   it("does not expose a failure-result store path", () => {
     expect(storeRunCacheEntry).toBeTypeOf("function");
-    // The store input requires a GeneratedAnswerGraphPayload, not GenerateAnswerGraphFailure.
+    // store入力は GenerateAnswerGraphFailure ではなく GeneratedAnswerGraphPayload が必要。
     expect(Object.keys({ cacheKeyInfo, payload })).toEqual(["cacheKeyInfo", "payload"]);
   });
 

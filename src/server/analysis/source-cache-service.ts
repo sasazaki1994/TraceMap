@@ -186,8 +186,8 @@ function fetchSnapshotCreateData(params: {
 }
 
 /**
- * Resolves reusable source cache metadata for a provider-returned source URL.
- * This is best effort: failures are returned as verification metadata and do not throw.
+ * providerが返したsource URLに対し、再利用可能なSource Cacheメタデータを解決する。
+ * best-effortで実行し、失敗は例外ではなく検証メタデータとして返す。
  */
 export async function resolveSourceCacheForUrl(
   rawUrl: string,

@@ -4,8 +4,8 @@ import type {
 } from "@/types/answer-graph-generation";
 
 /**
- * Boundary for future real LLM / retrieval pipelines. Mock and stub implementations
- * live under `src/server/analysis/providers/`.
+ * 将来の実プロバイダー（LLM / retrieval）差し替え境界。mock / stub実装は
+ * `src/server/analysis/providers/` 配下に置く。
  */
 export type AnswerGraphProvider = {
   readonly id: "mock" | "stub" | "openai";

@@ -125,7 +125,7 @@ function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
 }
 
-/** http(s) only, parseable URL, non-empty host. */
+/** http(s)のみ許可し、URLとして解釈可能かつhostが空でないことを検証する。 */
 export function isValidPublicHttpUrl(raw: string): boolean {
   const trimmed = raw.trim();
   if (!trimmed) {

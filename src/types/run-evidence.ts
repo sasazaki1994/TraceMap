@@ -56,11 +56,11 @@ export type RunEvidencePropagationStep = {
   sourceId: string | null;
 };
 
-/** Serializable claim row + nested counterpoints for run / share pages. */
+/** run/shareページ向けの直列化可能なclaim行（nested counterpoints含む）。 */
 export type RunEvidenceClaim = {
   id: string;
   summary: string;
-  /** When set, ties this claim to `graph_json.nodes[].id` (visual graph + optional highlight). */
+  /** 指定時はこのclaimを`graph_json.nodes[].id`へ紐付け、可視グラフ連動やhighlightに利用する。 */
   graphNodeId: string | null;
   /** `source_snapshots.id` values linked via `claim_source_snapshots`. */
   supportingSourceIds: string[];
@@ -69,11 +69,11 @@ export type RunEvidenceClaim = {
   counterpoints: RunEvidenceCounterpoint[];
   propagationSteps: RunEvidencePropagationStep[];
   lensScore: number;
-  /** Alerts scoped to this claim (`alerts.claim_id` set). */
+  /** このclaimにスコープされたalert（`alerts.claim_id`あり）。 */
   alerts: { id: string; level: AlertLevel; message: string }[];
 };
 
-/** Answer-wide alert (`alerts.claim_id` null). */
+/** 回答全体にかかるalert（`alerts.claim_id` null）。 */
 export type RunEvidenceAlert = {
   id: string;
   level: AlertLevel;

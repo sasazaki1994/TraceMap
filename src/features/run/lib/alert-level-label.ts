@@ -1,6 +1,6 @@
 import type { AlertLevel } from "@/types/run-evidence";
 
-/** Human-readable label for mock / UI display of `AlertLevel`. */
+/** mock/UI表示向けの`AlertLevel`人間可読ラベル。 */
 export function alertLevelLabel(level: AlertLevel): string {
   switch (level) {
     case "info":

@@ -1,6 +1,6 @@
 /*
- * TraceMap visual design tokens (cyber baseline).
- * Spec: specs/visual-design-system-cyber.md — use these variables instead of ad hoc colors in new CSS.
+ * TraceMapのvisual design token（cyber基調）。
+ * Spec: specs/visual-design-system-cyber.md。新規CSSでは場当たり色指定ではなく本変数を使う。
  */
 :root {
   color-scheme: dark;

@@ -29,7 +29,7 @@ test.describe("investigation-mode", () => {
     await page.getByRole("button", { name: "Start Investigation" }).click();
 
     await expect(page).toHaveURL(/\/runs\//);
-    // Scope to the question panel: the same text is repeated inside the mock answer body.
+    // 同一文言がmock回答本文にも出るため、質問パネル配下に検索範囲を限定する。
     await expect(
       page.locator(".run-question").getByText("Why is interpretability important?", {
         exact: true,

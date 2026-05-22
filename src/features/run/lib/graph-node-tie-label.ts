@@ -1,6 +1,6 @@
 import type { AnswerGraphJson } from "@/types/answer-graph";
 
-/** Resolved labels for showing a Claim's `graph_node_id` next to `graph_json` nodes. */
+/** Claimの`graph_node_id`を`graph_json`ノード横に表示するための解決済みラベル。 */
 export function describeGraphNodeTie(
   graph: AnswerGraphJson,
   graphNodeId: string | null,

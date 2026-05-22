@@ -96,8 +96,8 @@ function replaceGraphSourceIds(
 }
 
 /**
- * Writes a generated payload into `analysis_runs` + related tables inside one transaction.
- * Caller controls run lifecycle (status before/after, failure handling).
+ * 生成済みpayloadを `analysis_runs` と関連テーブルへ1トランザクションで書き込む。
+ * run statusの前後遷移や失敗処理は呼び出し側で管理する。
  */
 export async function persistGeneratedAnswerGraph(params: {
   runId: string;

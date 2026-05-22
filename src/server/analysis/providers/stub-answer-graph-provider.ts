@@ -22,8 +22,8 @@ const STUB_GRAPH: AnswerGraphJson = {
 answerGraphJsonSchema.parse(STUB_GRAPH);
 
 /**
- * Placeholder provider: no API keys, no external calls. Produces a minimal completed run
- * so the real-provider slot can be wired later without changing the persistence path.
+ * プレースホルダープロバイダー。API key不要・外部通信なしで最小構成のcompleted runを生成し、
+ * 後で実プロバイダーへ差し替えても永続化経路を変えないようにする。
  */
 export const stubAnswerGraphProvider: AnswerGraphProvider = {
   id: "stub",
